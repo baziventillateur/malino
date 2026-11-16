@@ -108,7 +108,7 @@ h1,h2,h3,h4{font-weight:700}
 .alogo{width:60px;height:60px;border-radius:15px}
 .abox h2{font-size:22px;margin:6px 0}.abox p{color:var(--ink2);font-size:15px;line-height:1.4;margin:4px 0 12px}
 .abox .fld{text-align:left;margin-bottom:10px;font-size:15px}
-.acode{text-align:center;letter-spacing:8px;font-size:24px!important}
+.acode{text-align:center;letter-spacing:6px;font-size:22px!important}
 .alink{display:block;margin:8px auto 0;color:var(--v);font-weight:600;font-size:14px;padding:6px}
 .alink:disabled{color:#a9a4c6}
 .amsg{margin:0 0 8px;color:#C0392B;font-weight:600;font-size:14px}.amsg.ok{color:#27795a}.amsg:empty{display:none}
@@ -1452,7 +1452,7 @@ const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:
     const head=`<img class="alogo" src="logo.svg" alt="">`+(w?`<h2>Bravo ! 🎉</h2><p>Pour continuer à jouer et garder la progression, <b>un parent</b> se connecte (gratuit, 1 minute).</p>`:`<h2>Connexion</h2><p>Un parent se connecte pour retrouver la progression sur tous les appareils.</p>`);
     let body='';const v=this.view;
     if(v==='email')body=`<label class="fld">E-mail du parent<input id="aEmail" type="email" inputmode="email" autocomplete="email" placeholder="parent@exemple.fr" value="${esc(this.email)}"></label><button class="btn p sm block" data-act="authsend">Recevoir mon code ✉️</button><button class="alink" data-act="authview" data-arg="pw">J’ai un mot de passe</button>`;
-    else if(v==='code')body=`<p>Un code a été envoyé à <b>${esc(this.email)}</b>.<br>Pense à regarder les courriers indésirables.</p><label class="fld">Code à 6 chiffres<input id="aCode" class="acode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="······"></label><button class="btn p sm block" data-act="authverify">Valider</button><button class="alink" id="aResend" data-act="authsend" data-arg="again" ${this.wait>0?'disabled':''}>${this.wait>0?`Renvoyer le code (${this.wait} s)`:'Renvoyer le code'}</button><button class="alink" data-act="authview" data-arg="email">Changer d’adresse</button>`;
+    else if(v==='code')body=`<p>Un code a été envoyé à <b>${esc(this.email)}</b>.<br>Pense à regarder les courriers indésirables.</p><label class="fld">Code reçu par e-mail<input id="aCode" class="acode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="········"></label><button class="btn p sm block" data-act="authverify">Valider</button><button class="alink" id="aResend" data-act="authsend" data-arg="again" ${this.wait>0?'disabled':''}>${this.wait>0?`Renvoyer le code (${this.wait} s)`:'Renvoyer le code'}</button><button class="alink" data-act="authview" data-arg="email">Changer d’adresse</button>`;
     else if(v==='pw')body=`<label class="fld">E-mail<input id="aEmail" type="email" inputmode="email" autocomplete="email" value="${esc(this.email)}"></label><label class="fld">Mot de passe<input id="aPw" type="password" autocomplete="current-password"></label><button class="btn p sm block" data-act="authpw">Se connecter</button><button class="alink" data-act="authforgot">Mot de passe oublié ? Recevoir un code</button><button class="alink" data-act="authview" data-arg="email">Connexion par code e-mail</button>`;
     else if(v==='pick')body=`<p>Quel profil utiliser sur cet appareil ?</p>${this.list.map(r=>`<button class="btn sm o block" style="margin-bottom:8px" data-act="authpick" data-arg="${r.id}">${esc(r.nom)} · niv. ${levelInfo((r.data&&r.data.xp)||0).level}</button>`).join('')}<button class="btn sm block" data-act="authpick" data-arg="local">➕ Garder la progression de cet appareil (${esc(S.name||'Champion')}) comme nouveau profil</button>`;
     else body=`<p>Connexion en cours…</p>`;
@@ -1477,7 +1477,7 @@ const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:
   },
   async verify(){
     const code=((($('#aCode')||{}).value)||'').replace(/\D/g,'');
-    if(code.length!==6)return this.setMsg('Saisis les 6 chiffres du code');
+    if(code.length<6)return this.setMsg('Saisis le code reçu par e-mail');
     this.setMsg('Vérification…',1);
     try{const sb=await this.lib();
       let r={error:1};for(const t of ['email','magiclink','signup']){r=await sb.auth.verifyOtp({email:this.email,token:code,type:t});if(!r.error)break;}
