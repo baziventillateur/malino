@@ -103,6 +103,16 @@ h1,h2,h3,h4{font-weight:700}
 .mini{background:#fff;border-radius:20px;padding:12px 6px;box-shadow:0 5px 0 #D6DAEA;font-weight:700;font-size:15px;display:flex;flex-direction:column;align-items:center;gap:4px}
 .mini span{font-size:32px}
 .mini:active{transform:translateY(4px);box-shadow:0 1px 0 #D6DAEA}
+.auth{position:fixed;inset:0;z-index:70;background:linear-gradient(160deg,#7B5CFF,#4A36E0);display:flex;padding:16px;overflow:auto}
+.abox{position:relative;background:#fff;border-radius:24px;padding:18px 16px;width:100%;max-width:400px;margin:auto;text-align:center;box-shadow:0 6px 0 #D9D0FF,0 20px 40px rgba(20,8,90,.35)}
+.alogo{width:60px;height:60px;border-radius:15px}
+.abox h2{font-size:22px;margin:6px 0}.abox p{color:var(--ink2);font-size:15px;line-height:1.4;margin:4px 0 12px}
+.abox .fld{text-align:left;margin-bottom:10px;font-size:15px}
+.acode{text-align:center;letter-spacing:8px;font-size:24px!important}
+.alink{display:block;margin:8px auto 0;color:var(--v);font-weight:600;font-size:14px;padding:6px}
+.alink:disabled{color:#a9a4c6}
+.amsg{margin:0 0 8px;color:#C0392B;font-weight:600;font-size:14px}.amsg.ok{color:#27795a}.amsg:empty{display:none}
+.aclose{position:absolute;right:8px;top:8px}
 .parentrow{display:flex;gap:8px;justify-content:center;margin-top:6px}.parentrow .parentbtn{margin:0;display:inline-block;text-decoration:none}
 .parentbtn{display:block;margin:6px auto 0;color:var(--ink2);font-weight:600;font-size:15px;padding:10px 16px;border-radius:12px;background:rgba(255,255,255,.6)}
 
@@ -412,6 +422,7 @@ h1,h2,h3,h4{font-weight:700}
 <div id="fx"></div>
 <canvas id="confetti"></canvas>
 <div id="modal" class="modal hidden"></div>
+<div id="auth" class="auth hidden"></div>
 <div id="tip" class="hidden"></div>
 <div id="toast"></div>
 <noscript>Cette application a besoin de JavaScript.</noscript>
@@ -787,7 +798,7 @@ function defaultState(){
 function deepMerge(base,over){for(const k in over){const o=over[k],b=base[k];if(o&&typeof o==='object'&&!Array.isArray(o)&&b&&typeof b==='object'&&!Array.isArray(b))base[k]=deepMerge(b,o);else base[k]=o;}return base;}
 let S;
 function load(){try{const raw=localStorage.getItem(STORE_KEY);if(raw){const d=JSON.parse(raw);S=deepMerge(defaultState(),d);if(!d.frV){S.frV=2;S.fr={};S.settings.frLevel=1;S.frFlashMs=2000;}S.settings.frLevel=Math.min(Math.max(1,S.settings.frLevel),FR_LEVELS.length);S.settings.mathLevel=Math.min(Math.max(1,S.settings.mathLevel),MATH_LEVELS.length);Object.keys(THEMES).forEach(k=>{S.settings.lv[k]=Math.min(Math.max(1,S.settings.lv[k]||1),THEMES[k].levels.length);});return;}}catch(e){}S=defaultState();}
-function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(S));}catch(e){}}
+function save(){try{S.ts=Date.now();localStorage.setItem(STORE_KEY,JSON.stringify(S));}catch(e){}if(window.__dirty)window.__dirty();}
 const nm=()=>esc(S.name||'Champion');
 
 // ---------- Progression ----------
@@ -1004,6 +1015,7 @@ let G=null;
 function later(fn,ms){const g=G;if(!g)return;const t=setTimeout(()=>{if(G===g&&!g.ended)fn();},ms);g.timers.push(t);}
 function stopGame(){if(G){G.ended=true;G.timers.forEach(clearTimeout);if(G.clock)clearInterval(G.clock);}G=null;Voice.stop();$('#tip').classList.add('hidden');}
 function startGame(sub,mode){
+  if(Acct.wall()){Acct.show('wall');return;}
   stopGame();const st=S.settings;
   G={sub,mode,queue:[],idx:0,n:0,mainN:0,okFirst:0,combo:0,bestCombo:0,fast:0,times:[],xp:0,coins:0,wrong:0,score:0,t0:Date.now(),reviews:{},timers:[],cur:null,input:'',ended:false};
   if(sub==='math'){
@@ -1154,7 +1166,7 @@ function endGame(){
   let thUp=0;if(THEMES[G.sub]&&S.settings.thAuto){const lv=S.settings.lv[G.sub];if(lv<THEMES[G.sub].levels.length&&levelMastery(G.sub,lv)>=.8){S.settings.lv[G.sub]=thUp=lv+1;}}const thT=THEMES[G.sub];
   save();
   const after=levelInfo(S.xp).level,badges=checkBadges(sess),gifts=checkGifts();
-  go('result');Sound.play(G.mode==='sprint'?(G.record&&G.score?'level':Sound.custom('fail').length?'fail':'end'):'end');
+  go('result');setTimeout(()=>{if(Acct.wall()&&SCR==='result')Acct.show('wall');},3800);Sound.play(G.mode==='sprint'?(G.record&&G.score?'level':Sound.custom('fail').length?'fail':'end'):'end');
   if(G.mode==='sprint'?G.record:G.stars>=2)setTimeout(()=>Confetti.burst(130),250);
   if(S.settings.voice){const nmv=S.name||'';Voice.say(G.mode==='sprint'?`${G.score} calculs justes ! ${G.record?'Nouveau record !':''}`:`Bravo ! ${G.stars} étoile${G.stars>1?'s':''} !`);}
   setTimeout(()=>{if(thUp)queueModal(`<div class="bigemoji">${thT.e}</div><h2>${thT.n} : niveau ${thUp} !</h2><p>${thT.levels[thUp-1].e} ${thT.levels[thUp-1].n}</p><button class="btn y block" data-act="mclose">Super ! 🎉</button>`,()=>{Sound.play('level');Confetti.burst(100);});if(after>before)levelUpModal(before,after);badges.forEach(badgeModal);gifts.forEach(giftModal);},1300);
@@ -1181,7 +1193,7 @@ function renderHome(){
   ${st.frOn?`<button class="play ${frLocked?'locked':''} ${!frLocked&&!t.fr?'pulse':''}" style="--c:var(--p);--d:var(--pd)" data-act="startfr"><span class="ico">📖</span><span class="tx"><span class="t1">Lecture</span><span class="t2">${frLocked?'Après ton entraînement de maths':`Niveau ${st.frLevel} · ${fl.n}`}</span></span>${frLocked?'<span class="lock">🔒</span>':''}</button>`:''}
   ${themesHTML()}
   <div class="minis"><button class="mini" data-act="shop"><span>🎨</span>Mon perso</button><button class="mini" data-act="badges"><span>🏆</span>Badges ${nb}/${BADGES.length}</button><button class="mini" data-act="gifts"><span>🎁</span>Cadeaux</button></div>
-  <div class="parentrow"><button class="parentbtn" data-act="parent">🔒 Espace parents</button><a class="parentbtn" href="aide.html" target="_blank" rel="noopener">💬 Aide</a></div>`;
+  <div class="parentrow"><button class="parentbtn" data-act="parent">🔒 Espace parents</button><a class="parentbtn" href="aide.html" target="_blank" rel="noopener">💬 Aide</a>${Acct.user?'':'<button class="parentbtn" data-act="openlogin">🔑 Connexion</button>'}</div>`;
 }
 function renderGame(){
   return `<div class="game"><div class="gtop"><button class="xbtn" data-act="quit" aria-label="Arrêter">✕</button>${G.mode==='sprint'?`<div class="clock" id="clock">⏱ ${S.settings.sprintSec}</div>`:'<div class="gprog"><i id="gprog"></i></div>'}<div class="combo" id="combo"></div></div>
@@ -1224,9 +1236,9 @@ function renderPin(){
 function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class="${S.settings[k]==v?'on':''}" data-act="set" data-arg="${k}|${v}">${l}</button>`).join('')}</div>`;}
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 function renderAdmin(){
-  const P={reglages:paneSettings,jeux:paneThemes,progres:paneProgress,cadeaux:paneGifts,donnees:paneData};
+  const P={reglages:paneSettings,jeux:paneThemes,progres:paneProgress,cadeaux:paneGifts,compte:paneAccount,donnees:paneData};
   return `<div class="stop"><button class="xbtn" data-act="leaveadmin" aria-label="Retour">←</button><h2>Espace parents</h2></div>
-  <div class="tabs">${[['reglages','⚙️ Réglages'],['jeux','🎲 Jeux'],['progres','📈 Progrès'],['cadeaux','🎁 Cadeaux'],['donnees','💾 Données']].map(([k,l])=>`<button class="${adminTab===k?'on':''}" data-act="tab" data-arg="${k}">${l}</button>`).join('')}</div>${P[adminTab]()}`;
+  <div class="tabs">${[['reglages','⚙️ Réglages'],['jeux','🎲 Jeux'],['progres','📈 Progrès'],['cadeaux','🎁 Cadeaux'],['compte','👤 Compte'],['donnees','💾 Données']].map(([k,l])=>`<button class="${adminTab===k?'on':''}" data-act="tab" data-arg="${k}">${l}</button>`).join('')}</div>${P[adminTab]()}`;
 }
 function paneSettings(){
   const st=S.settings,m=levelMastery('math',st.mathLevel),fm=levelMastery('fr',st.frLevel);
@@ -1297,7 +1309,7 @@ function paneGifts(){
 function paneData(){
   return `<section class="acard"><h3>🪙 Bonus des parents</h3><p class="hint">Pour récompenser un effort de la vraie vie.</p><div class="seg"><button data-act="bonus" data-arg="10">+10 🪙</button><button data-act="bonus" data-arg="25">+25 🪙</button><button data-act="bonus" data-arg="50">+50 🪙</button><button data-act="bonus" data-arg="100">+100 🪙</button></div></section>
   <section class="acard"><h3>💾 Sauvegarde</h3><p class="hint">La progression est enregistrée dans ce navigateur, sur cet appareil. Exportez-la pour la garder ou la transférer sur une autre tablette.</p><div class="seg"><button data-act="export">⬇️ Exporter</button><button data-act="import">⬆️ Importer</button></div><input type="file" id="importFile" accept="application/json,.json" class="hidden"></section>
-  <section class="acard"><h3>ℹ️ Crédits</h3><p class="hint">Bruitages : pack « uisfx », thème arcade, domaine public (CC0).</p></section>
+  <section class="acard"><h3>ℹ️ Crédits</h3><p class="hint">Bruitages : pack « uisfx », thème arcade, domaine public (CC0). Voix : Piper TTS, voix « siwis » (jeu de données SIWIS, Université d’Édimbourg, CC BY 4.0).</p></section>
   <section class="acard"><h3>♻️ Remise à zéro</h3><p class="hint">Efface pièces, niveaux, badges et statistiques. Les réglages, le code et les cadeaux sont conservés.</p><button class="btn r sm" data-act="reset">Tout remettre à zéro</button></section>`;
 }
 function importFile(file){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||typeof d!=='object'||!('xp' in d))throw 0;S=deepMerge(defaultState(),d);save();toast('Sauvegarde importée ✅');render();}catch(e){toast('Fichier non reconnu');}};r.readAsText(file);}
@@ -1334,6 +1346,10 @@ const ACT={
   quit(){queueModal('<div class="bigemoji sm">🤔</div><h2>Tu veux arrêter ?</h2><p>Cette partie ne sera pas comptée.</p><div class="row2"><button class="btn w" data-act="mclose">Je continue</button><button class="btn r" data-act="quitok">Arrêter</button></div>');},
   quitok(){closeAllModals();stopGame();go('home');},
   mclose(){nextModal();},
+  openlogin(){Acct.show('login');},authclose(){Acct.hide();},authsend(a){Acct.send(a==='again');},authverify(){Acct.verify();},
+  authview(v){Acct.view=v;Acct.draw();},authpw(){Acct.pwLogin();},authforgot(){Acct.forgotSend();},authpick(id){Acct.pick(id);},
+  acctlogout(){Acct.logout();},acctsetpw(id){Acct.setPw(id);},acctadd(){Acct.addProfile();},acctswitch(id){Acct.switchTo(id).then(()=>{adminTab='compte';render();});},
+  wstart(){const e=$('#wname');if(e&&e.value.trim()){S.name=e.value.trim().slice(0,20);save();}nextModal();render();},
   chest(){const t=today();if(!chestAvailable()){toast(t.chest?'Coffre déjà ouvert aujourd’hui. Reviens demain ! 🌙':'Termine ta mission du jour pour ouvrir le coffre 🎁');return;}queueModal('<div class="chestbig" data-act="chestopen">🎁</div><h2>Coffre du jour</h2><p>Touche le coffre pour l’ouvrir !</p>');},
   chestopen(){
     if(!chestAvailable())return;const d=dayKey();S.days[d].chest=true;S.stats.chests=(S.stats.chests||0)+1;
@@ -1382,6 +1398,7 @@ const ACT={
 
 // ---------- Écouteurs ----------
 document.addEventListener('pointerdown',()=>{Sound.unlock();Voice.unlock();},{passive:true});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest&&e.target.closest('#auth')){const b=document.querySelector('#auth .btn.p');if(b)b.click();}});
 document.addEventListener('click',e=>{
   const tipEl=e.target.closest&&e.target.closest('[data-tip]');if(tipEl)showTip(tipEl);
   const el=e.target.closest&&e.target.closest('[data-act]');if(!el)return;
@@ -1399,10 +1416,160 @@ document.addEventListener('keydown',e=>{
   }else if(SCR==='pin'&&/^[0-9]$/.test(e.key))ACT.pin(e.key);
 });
 
+// ---------- Compte parent (Supabase) : on joue d'abord en invité, on se connecte ensuite ----------
+const SB_URL='https://fcfkfuqzgsmckkxqfwuo.supabase.co',SB_KEY='sb_publishable_a3SNrQOSCH20T5sKsJxuAA_s7H4yCSR',WALL_AFTER=2;
+const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:'email',email:'',forgot:false,wait:0,_l:null,
+  guestN(){return S.sessions.length-(S.gs0||0);},
+  wall(){return !this.user&&this.guestN()>=WALL_AFTER;},
+  hasLocal(){return S.xp>0||S.sessions.length>0;},
+  lib(){if(this.sb)return Promise.resolve(this.sb);
+    return this._l||(this._l=new Promise((ok,ko)=>{
+      const mk=()=>{try{this.sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});ok(this.sb);}catch(e){this._l=null;ko(e);}};
+      if(window.supabase)return mk();
+      const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';s.onload=mk;s.onerror=()=>{this._l=null;ko(new Error('réseau'));};document.head.appendChild(s);}));},
+  async init(){
+    window.__dirty=()=>this.dirty();
+    if(S.gs0==null){S.gs0=S.sessions.length;save();}
+    const qp=new URLSearchParams(location.search),th=qp.get('th'),ty=qp.get('ty');
+    const has=Object.keys(localStorage).some(k=>/^sb-.*-auth-token$/.test(k));
+    if(!th&&!has)return;
+    try{
+      const sb=await this.lib();
+      if(th){history.replaceState(null,'',location.pathname);this.mode='login';this.view='load';this.draw();
+        let r={error:1};for(const t of [ty,'magiclink','email','signup'].filter((x,i,a)=>x&&a.indexOf(x)===i)){r=await sb.auth.verifyOtp({token_hash:th,type:t});if(!r.error)break;}
+        if(r.error||!r.data.session){this.view='email';this.draw();this.setMsg('Ce lien a expiré : demande un nouveau code');return;}
+        this.user=r.data.session.user;await this.signedIn();return;}
+      const {data}=await sb.auth.getSession();
+      if(data&&data.session){this.user=data.session.user;await this.afterLogin(false);}
+    }catch(e){}
+  },
+  // ----- écran de connexion -----
+  show(mode){this.mode=mode;this.view='email';this.forgot=false;this.draw();},
+  hide(){clearInterval(this.tk);const el=$('#auth');el.className='auth hidden';el.innerHTML='';},
+  setMsg(t,ok){const m=$('#amsg');if(!m)return;m.textContent=t||'';m.className='amsg'+(ok?' ok':'');},
+  draw(){
+    const el=$('#auth'),w=this.mode==='wall'&&!this.user;el.className='auth';
+    const head=`<img class="alogo" src="logo.svg" alt="">`+(w?`<h2>Bravo ! 🎉</h2><p>Pour continuer à jouer et garder la progression, <b>un parent</b> se connecte (gratuit, 1 minute).</p>`:`<h2>Connexion</h2><p>Un parent se connecte pour retrouver la progression sur tous les appareils.</p>`);
+    let body='';const v=this.view;
+    if(v==='email')body=`<label class="fld">E-mail du parent<input id="aEmail" type="email" inputmode="email" autocomplete="email" placeholder="parent@exemple.fr" value="${esc(this.email)}"></label><button class="btn p sm block" data-act="authsend">Recevoir mon code ✉️</button><button class="alink" data-act="authview" data-arg="pw">J’ai un mot de passe</button>`;
+    else if(v==='code')body=`<p>Un code a été envoyé à <b>${esc(this.email)}</b>.<br>Pense à regarder les courriers indésirables.</p><label class="fld">Code à 6 chiffres<input id="aCode" class="acode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="······"></label><button class="btn p sm block" data-act="authverify">Valider</button><button class="alink" id="aResend" data-act="authsend" data-arg="again" ${this.wait>0?'disabled':''}>${this.wait>0?`Renvoyer le code (${this.wait} s)`:'Renvoyer le code'}</button><button class="alink" data-act="authview" data-arg="email">Changer d’adresse</button>`;
+    else if(v==='pw')body=`<label class="fld">E-mail<input id="aEmail" type="email" inputmode="email" autocomplete="email" value="${esc(this.email)}"></label><label class="fld">Mot de passe<input id="aPw" type="password" autocomplete="current-password"></label><button class="btn p sm block" data-act="authpw">Se connecter</button><button class="alink" data-act="authforgot">Mot de passe oublié ? Recevoir un code</button><button class="alink" data-act="authview" data-arg="email">Connexion par code e-mail</button>`;
+    else if(v==='pick')body=`<p>Quel profil utiliser sur cet appareil ?</p>${this.list.map(r=>`<button class="btn sm o block" style="margin-bottom:8px" data-act="authpick" data-arg="${r.id}">${esc(r.nom)} · niv. ${levelInfo((r.data&&r.data.xp)||0).level}</button>`).join('')}<button class="btn sm block" data-act="authpick" data-arg="local">➕ Garder la progression de cet appareil (${esc(S.name||'Champion')}) comme nouveau profil</button>`;
+    else body=`<p>Connexion en cours…</p>`;
+    const close=w||v==='load'?'':`<button class="xbtn aclose" data-act="authclose" aria-label="Fermer">✕</button>`;
+    el.innerHTML=`<div class="abox">${close}${head}<div id="amsg" class="amsg"></div>${body}</div>`;
+    clearInterval(this.tk);if(v==='code'&&this.wait>0)this.tk=setInterval(()=>{this.wait--;const b=$('#aResend');if(!b){clearInterval(this.tk);return;}if(this.wait<=0){clearInterval(this.tk);b.disabled=false;b.textContent='Renvoyer le code';}else b.textContent=`Renvoyer le code (${this.wait} s)`;},1000);
+    const f=$('#aEmail')||$('#aCode');if(f&&v!=='load')setTimeout(()=>{try{f.focus();}catch(e){}},50);
+  },
+  // ----- envoi et vérification du code -----
+  async send(again){
+    const em=again?this.email:(($('#aEmail')||{}).value||'').trim().toLowerCase();
+    if(!/^\S+@\S+\.\S+$/.test(em))return this.setMsg('Vérifie ton adresse e-mail');
+    this.email=em;this.setMsg('Envoi du code…',1);
+    try{
+      const r=await fetch(SB_URL+'/functions/v1/code-connexion',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY},body:JSON.stringify({email:em})});
+      const j=await r.json().catch(()=>({}));
+      if(r.ok&&j.ok){this.view='code';this.wait=40;this.draw();this.setMsg('Code envoyé ✅',1);return;}
+      if(j.error==='trop_vite'){this.view='code';this.wait=30;this.draw();this.setMsg('Un code vient d’être envoyé : patiente un peu avant d’en demander un autre.');return;}
+      if(j.error==='trop_de_demandes')return this.setMsg('Trop de demandes pour cette adresse. Réessaie dans une heure.');
+      this.setMsg('Envoi impossible pour le moment. Réessaie dans un instant.');
+    }catch(e){this.setMsg('Pas de connexion internet.');}
+  },
+  async verify(){
+    const code=((($('#aCode')||{}).value)||'').replace(/\D/g,'');
+    if(code.length!==6)return this.setMsg('Saisis les 6 chiffres du code');
+    this.setMsg('Vérification…',1);
+    try{const sb=await this.lib();
+      let r={error:1};for(const t of ['email','magiclink','signup']){r=await sb.auth.verifyOtp({email:this.email,token:code,type:t});if(!r.error)break;}
+      if(r.error||!r.data.session)return this.setMsg('Code incorrect ou expiré. Demande-en un nouveau.');
+      this.user=r.data.session.user;await this.signedIn();
+    }catch(e){this.setMsg('Pas de connexion internet.');}
+  },
+  async pwLogin(){
+    const em=(($('#aEmail')||{}).value||'').trim().toLowerCase(),pw=($('#aPw')||{}).value||'';this.email=em;
+    if(!/^\S+@\S+\.\S+$/.test(em)||!pw)return this.setMsg('Saisis ton e-mail et ton mot de passe');
+    this.setMsg('Connexion…',1);
+    try{const sb=await this.lib();const r=await sb.auth.signInWithPassword({email:em,password:pw});
+      if(r.error||!r.data.session)return this.setMsg('E-mail ou mot de passe incorrect.');
+      this.user=r.data.session.user;await this.signedIn();
+    }catch(e){this.setMsg('Pas de connexion internet.');}
+  },
+  async forgotSend(){this.forgot=true;this.email=(($('#aEmail')||{}).value||this.email||'').trim().toLowerCase();await this.send(true);},
+  async signedIn(){
+    this.view='load';this.draw();
+    await this.afterLogin(true);
+    if(this.view==='pick')return;
+    this.hide();toast('Connecté ✅');
+    if(this.forgot){this.forgot=false;queueModal(`<div class="bigemoji">🔑</div><h2>Nouveau mot de passe</h2><p>Choisis un mot de passe pour te connecter plus facilement la prochaine fois (facultatif).</p><label class="fld" style="text-align:left"><input id="npw" type="password" autocomplete="new-password" placeholder="8 caractères minimum"></label><button class="btn p sm block" style="margin-top:10px" data-act="acctsetpw" data-arg="npw">Enregistrer</button><button class="alink" data-act="mclose">Plus tard</button>`);}
+  },
+  // ----- profils enfants et synchronisation -----
+  async afterLogin(fresh){
+    const sb=this.sb,{data,error}=await sb.from('profils').select('id,nom,data,updated_at,created_at').order('created_at');
+    if(error){toast('Connecté, mais la sauvegarde est indisponible pour le moment');return;}
+    this.list=data||[];
+    const saved=localStorage.getItem('malino_pid');
+    if(!this.list.length){await this.createFromLocal();return;}
+    if(fresh&&this.hasLocal()){this.view='pick';this.draw();return;}
+    this.use(this.list.find(r=>r.id===saved)||this.list[0],!fresh);
+  },
+  async createFromLocal(){
+    const {data,error}=await this.sb.from('profils').insert({owner:this.user.id,nom:S.name||'Champion',data:S}).select('id,nom,data,updated_at,created_at').single();
+    if(error){toast('Profil non créé : réessaie plus tard');return;}
+    this.list.push(data);this.pid=data.id;localStorage.setItem('malino_pid',data.id);
+  },
+  use(row,cmp){
+    this.pid=row.id;localStorage.setItem('malino_pid',row.id);
+    if(cmp&&(S.ts||0)>(Date.parse(row.updated_at)||0)+1500){this.push();return;}   // l'appareil a des changements plus récents
+    localStorage.setItem(STORE_KEY,JSON.stringify(row.data||{}));load();
+    if(!S.name&&row.nom&&row.nom!=='Champion'){S.name=row.nom;}
+    save();SCR='home';render();
+  },
+  async pick(id){
+    if(id==='local'){await this.createFromLocal();}
+    else{const r=this.list.find(x=>x.id===id);if(r)this.use(r,false);}
+    this.hide();toast('Connecté ✅');
+  },
+  dirty(){clearTimeout(this.t);this.t=setTimeout(()=>this.push(),2500);},
+  push(){if(!this.user||!this.pid||!this.sb)return;this.sb.from('profils').update({data:S,nom:S.name||'Champion'}).eq('id',this.pid).then(r=>{if(r.error)console.warn('sync',r.error.message);});},
+  async switchTo(id){
+    if(id===this.pid)return;this.push();
+    const {data,error}=await this.sb.from('profils').select('id,nom,data,updated_at,created_at').eq('id',id).single();
+    if(error||!data)return toast('Profil introuvable');
+    this.use(data,false);toast(`Profil : ${data.nom}`);
+  },
+  async addProfile(){
+    const el=$('#newprof'),nom=((el&&el.value)||'').trim().slice(0,20);if(!nom)return toast('Écris un prénom');
+    this.push();const st=defaultState();st.name=nom;st.welcomed=true;st.gs0=0;
+    const {data,error}=await this.sb.from('profils').insert({owner:this.user.id,nom,data:st}).select('id,nom,data,updated_at,created_at').single();
+    if(error)return toast(error.message.includes('Maximum')?'8 profils maximum':'Profil non créé');
+    this.list.push(data);this.use(data,false);toast(`Profil « ${nom} » créé ✅`);adminTab='compte';render();
+  },
+  async setPw(id){
+    const v=((document.getElementById(id)||{}).value)||'';if(v.length<8)return toast('8 caractères minimum');
+    const {error}=await this.sb.auth.updateUser({password:v});
+    if(error)return toast('Mot de passe refusé : '+error.message);
+    toast('Mot de passe enregistré ✅');if(id==='npw')nextModal();else{const e=document.getElementById(id);if(e)e.value='';}
+  },
+  async logout(){
+    if(!confirm('Se déconnecter de cet appareil ? Les profils restent enregistrés dans le compte.'))return;
+    this.push();try{await this.sb.auth.signOut({scope:'local'});}catch(e){}
+    this.user=null;this.pid=null;this.list=[];localStorage.removeItem('malino_pid');localStorage.removeItem(STORE_KEY);
+    S=defaultState();S.gs0=0;save();adminOk=false;go('home');toast('Déconnecté');
+  }
+};
+function paneAccount(){
+  if(!Acct.user)return `<section class="acard"><h3>👤 Compte parent</h3><p class="hint">Sans compte, la progression reste sur cet appareil. Avec un compte (gratuit), elle est sauvegardée et on la retrouve sur toutes les tablettes. Après ${WALL_AFTER} séances, la connexion est demandée pour continuer.</p><button class="btn p sm" data-act="openlogin">Se connecter / créer un compte</button></section>`;
+  return `<section class="acard"><h3>👤 Compte parent</h3><p class="hint">Connecté : <b>${esc(Acct.user.email||'')}</b>. La progression est sauvegardée automatiquement.</p></section>
+  <section class="acard"><h3>🧒 Profils enfants</h3><div class="seg" style="flex-wrap:wrap">${Acct.list.map(r=>`<button class="${r.id===Acct.pid?'on':''}" data-act="acctswitch" data-arg="${r.id}">${r.id===Acct.pid?'✅ ':''}${esc(r.id===Acct.pid?(S.name||r.nom):r.nom)}</button>`).join('')}</div>
+  <label class="fld" style="margin-top:10px">Ajouter un profil<input id="newprof" maxlength="20" placeholder="Prénom de l’enfant" autocomplete="off"></label><button class="btn p sm" style="margin-top:8px" data-act="acctadd">➕ Ajouter</button></section>
+  <section class="acard"><h3>🔑 Mot de passe</h3><p class="hint">Facultatif : pour se connecter sans attendre un code par e-mail.</p><label class="fld"><input id="apw" type="password" autocomplete="new-password" placeholder="Nouveau mot de passe (8 caractères min.)"></label><button class="btn p sm" style="margin-top:8px" data-act="acctsetpw" data-arg="apw">Enregistrer</button></section>
+  <section class="acard"><button class="btn r sm" data-act="acctlogout">Se déconnecter</button></section>`;
+}
+
 // ---------- Démarrage ----------
 try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
-Rec.load();Pack.load();load();Voice.init();Neural.init();Confetti.init();render();
-if(!S.welcomed){S.welcomed=true;save();queueModal(`<div class="mav">${avatarSVG(S.avatar)}</div><h2>Salut ${nm()} ! 👋</h2><p>Chaque jour :<br><b>1.</b> Entraîne-toi en maths 🔢<br><b>2.</b> Fais ta lecture 📖<br><b>3.</b> Ouvre ton coffre 🎁</p><p>Gagne des pièces 🪙 pour habiller ton personnage et débloquer des surprises !</p><button class="btn g block" data-act="mclose">C’est parti ! 🚀</button>`);}
+Rec.load();Pack.load();load();Voice.init();Neural.init();Confetti.init();render();Acct.init();
+if(!S.welcomed){S.welcomed=true;save();queueModal(`<div class="mav">${avatarSVG(S.avatar)}</div><h2>Salut ${nm()} ! 👋</h2>${S.name?'':'<label class="fld" style="text-align:left">Comment tu t’appelles ?<input id="wname" maxlength="20" autocomplete="off" placeholder="Ton prénom"></label>'}<p>Chaque jour :<br><b>1.</b> Entraîne-toi en maths 🔢<br><b>2.</b> Fais ta lecture 📖<br><b>3.</b> Ouvre ton coffre 🎁</p><p>Gagne des pièces 🪙 pour habiller ton personnage et débloquer des surprises !</p><button class="btn g block" data-act="wstart">C’est parti ! 🚀</button>`);}
 else checkGifts().forEach(giftModal);
 </script>
 </body>
