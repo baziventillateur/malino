@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9B7BFF"/>
+      <stop offset="0.55" stop-color="#6B4DF5"/>
+      <stop offset="1" stop-color="#3D2FD0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.3" cy="0.15" r="0.8">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="body" cx="0.35" cy="0.25" r="0.85">
+      <stop offset="0" stop-color="#FFE17A"/>
+      <stop offset="0.5" stop-color="#FFA927"/>
+      <stop offset="1" stop-color="#EC6C12"/>
+    </radialGradient>
+    <linearGradient id="wing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF9B1F"/>
+      <stop offset="1" stop-color="#D9560B"/>
+    </linearGradient>
+    <radialGradient id="belly" cx="0.5" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#FFFBE6"/>
+      <stop offset="1" stop-color="#FFE29A"/>
+    </radialGradient>
+    <radialGradient id="eye" cx="0.4" cy="0.35" r="0.8">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DDE3FF"/>
+    </radialGradient>
+    <radialGradient id="pupil" cx="0.4" cy="0.35" r="0.8">
+      <stop offset="0" stop-color="#4A3A9A"/>
+      <stop offset="1" stop-color="#1E1550"/>
+    </radialGradient>
+    <linearGradient id="beak" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFC247"/>
+      <stop offset="1" stop-color="#F26A00"/>
+    </linearGradient>
+    <radialGradient id="star" cx="0.5" cy="0.4" r="0.7">
+      <stop offset="0" stop-color="#FFF8C2"/>
+      <stop offset="1" stop-color="#FFC531"/>
+    </radialGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="10" stdDeviation="9" flood-color="#1A0E66" flood-opacity="0.45"/>
+    </filter>
+    <filter id="sh2" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#1A0E66" flood-opacity="0.35"/>
+    </filter>
+    <filter id="blur"><feGaussianBlur stdDeviation="9"/></filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="3"/></filter>
+    <clipPath id="r"><rect width="512" height="512" rx="116"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#r)">
+    <rect width="512" height="512" fill="url(#bg)"/>
+    <rect width="512" height="512" fill="url(#glow)"/>
+    <!-- bokeh -->
+    <circle cx="70" cy="420" r="70" fill="#fff" opacity="0.07"/>
+    <circle cx="455" cy="120" r="55" fill="#fff" opacity="0.08"/>
+    <circle cx="430" cy="440" r="40" fill="#FF7BD0" opacity="0.18"/>
+    <!-- ground shadow -->
+    <ellipse cx="256" cy="448" rx="128" ry="17" fill="#150A5E" opacity="0.5" filter="url(#blur)"/>
+
+    <!-- floating tiles (maths + lecture) -->
+    <g filter="url(#sh2)">
+      <g transform="rotate(-14 82 150)">
+        <rect x="42" y="112" width="78" height="78" rx="22" fill="#38D6A0"/>
+        <rect x="42" y="112" width="78" height="40" rx="22" fill="#fff" opacity="0.22"/>
+        <path d="M81 131v40M61 151h40" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
+      </g>
+      <g transform="rotate(13 438 160)">
+        <rect x="398" y="120" width="80" height="80" rx="22" fill="#FF6FA8"/>
+        <rect x="398" y="120" width="80" height="40" rx="22" fill="#fff" opacity="0.22"/>
+        <text x="438" y="177" font-family="Fredoka,Nunito,Arial Rounded MT Bold,Arial,sans-serif" font-weight="700" font-size="52" fill="#fff" text-anchor="middle">A</text>
+      </g>
+    </g>
+
+    <!-- ears / tufts -->
+    <path d="M138 178 C118 130 128 92 160 84 C186 96 204 124 206 158 Z" fill="url(#wing)" filter="url(#sh2)"/>
+    <path d="M374 178 C394 130 384 92 352 84 C326 96 308 124 306 158 Z" fill="url(#wing)" filter="url(#sh2)"/>
+
+    <!-- body -->
+    <ellipse cx="256" cy="282" rx="156" ry="162" fill="url(#body)" filter="url(#sh)"/>
+    <ellipse cx="210" cy="190" rx="95" ry="52" fill="#fff" opacity="0.28" filter="url(#soft)" transform="rotate(-22 210 190)"/>
+
+    <!-- wings -->
+    <path d="M112 262 C70 300 82 372 150 392 C168 362 164 300 138 262 Z" fill="url(#wing)"/>
+    <path d="M400 262 C442 300 430 372 362 392 C344 362 348 300 374 262 Z" fill="url(#wing)"/>
+
+    <!-- belly -->
+    <ellipse cx="256" cy="344" rx="92" ry="92" fill="url(#belly)"/>
+    <g fill="none" stroke="#F5B54A" stroke-width="7" stroke-linecap="round" opacity="0.7">
+      <path d="M222 336q16 14 32 0"/><path d="M258 336q16 14 32 0"/>
+      <path d="M204 366q16 14 32 0"/><path d="M240 372q16 14 32 0"/><path d="M276 366q16 14 32 0"/>
+    </g>
+
+    <!-- face disc -->
+    <ellipse cx="256" cy="244" rx="120" ry="82" fill="#FFF3C9" opacity="0.95"/>
+    <!-- eyes -->
+    <g filter="url(#sh2)">
+      <circle cx="206" cy="238" r="52" fill="url(#eye)"/>
+      <circle cx="306" cy="238" r="52" fill="url(#eye)"/>
+    </g>
+    <circle cx="212" cy="244" r="28" fill="url(#pupil)"/>
+    <circle cx="312" cy="244" r="28" fill="url(#pupil)"/>
+    <circle cx="222" cy="233" r="10" fill="#fff"/>
+    <circle cx="322" cy="233" r="10" fill="#fff"/>
+    <circle cx="203" cy="256" r="5" fill="#fff" opacity="0.8"/>
+    <circle cx="303" cy="256" r="5" fill="#fff" opacity="0.8"/>
+    <!-- cheeks -->
+    <ellipse cx="148" cy="288" rx="20" ry="12" fill="#FF6FA8" opacity="0.55"/>
+    <ellipse cx="364" cy="288" rx="20" ry="12" fill="#FF6FA8" opacity="0.55"/>
+    <!-- beak -->
+    <path d="M232 280 Q256 268 280 280 Q272 312 256 322 Q240 312 232 280 Z" fill="url(#beak)" filter="url(#sh2)"/>
+    <path d="M241 285 Q256 278 271 285" stroke="#fff" stroke-opacity="0.55" stroke-width="5" stroke-linecap="round" fill="none"/>
+
+    <!-- feet -->
+    <g fill="#F26A00">
+      <ellipse cx="218" cy="441" rx="30" ry="14"/>
+      <ellipse cx="294" cy="441" rx="30" ry="14"/>
+    </g>
+    <g fill="#fff" opacity="0.35"><ellipse cx="212" cy="436" rx="14" ry="4"/><ellipse cx="288" cy="436" rx="14" ry="4"/></g>
+
+    <!-- idea star -->
+    <g filter="url(#sh2)" transform="translate(256 62)">
+      <path d="M0 -42 L12 -12 L44 -10 L19 10 L28 42 L0 24 L-28 42 L-19 10 L-44 -10 L-12 -12 Z" fill="url(#star)" stroke="#FFE680" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M-6 -24 L2 -8" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
+    </g>
+    <g stroke="#FFE680" stroke-width="7" stroke-linecap="round" opacity="0.9">
+      <path d="M190 52l-18-12"/><path d="M322 52l18-12"/><path d="M256 -2v0"/>
+    </g>
+
+    <!-- gloss -->
+    <path d="M0 0H512V170C400 140 110 140 0 180Z" fill="#fff" opacity="0.05"/>
+  </g>
+</svg>

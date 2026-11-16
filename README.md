@@ -1,4 +1,4 @@
-# SuperCerveau 🧠
+# Malino 🦉
 
 Appli de maths et de lecture pour les enfants de 5 à 8 ans : calcul mental répété et accéléré, lecture syllabique (s + e = se, puis mots de 2 et 3 syllabes), avatar à personnaliser, badges, série de jours, coffre du jour et cadeaux fixés par les parents.
 
