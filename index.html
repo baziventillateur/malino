@@ -17,12 +17,12 @@
 <meta property="og:locale" content="fr_FR">
 <meta property="og:title" content="Malino · Maths & Lecture">
 <meta property="og:description" content="Des jeux de calcul mental et de lecture pour les 5-8 ans. Niveaux, badges, récompenses !">
-<meta property="og:url" content="https://baziventillateur.github.io/malino/">
-<meta property="og:image" content="https://baziventillateur.github.io/malino/og.jpg">
+<meta property="og:url" content="https://malino.paceapp.fr/">
+<meta property="og:image" content="https://malino.paceapp.fr/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://baziventillateur.github.io/malino/og.jpg">
+<meta name="twitter:image" content="https://malino.paceapp.fr/og.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -103,6 +103,7 @@ h1,h2,h3,h4{font-weight:700}
 .mini{background:#fff;border-radius:20px;padding:12px 6px;box-shadow:0 5px 0 #D6DAEA;font-weight:700;font-size:15px;display:flex;flex-direction:column;align-items:center;gap:4px}
 .mini span{font-size:32px}
 .mini:active{transform:translateY(4px);box-shadow:0 1px 0 #D6DAEA}
+.parentrow{display:flex;gap:8px;justify-content:center;margin-top:6px}.parentrow .parentbtn{margin:0;display:inline-block;text-decoration:none}
 .parentbtn{display:block;margin:6px auto 0;color:var(--ink2);font-weight:600;font-size:15px;padding:10px 16px;border-radius:12px;background:rgba(255,255,255,.6)}
 
 /* Jeu */
@@ -519,7 +520,7 @@ const itemKey=x=>typeof x==='string'?x:(x.k||x.w||x.s);
 const snd=k=>Rec.has(k)?{rec:k}:(PHON[k]&&PHON[k].tts?{say:PHON[k].tts,rate:.8}:null);
 const others=(pool,n,avoid)=>shuffle(pool.filter(p=>!avoid.includes(p))).slice(0,n);
 function similarWords(w,list,n){return list.filter(x=>x!==w).map(x=>({x,s:(x[0]===w[0]?2:0)+(x.length===w.length?1:0)+(x.slice(-1)===w.slice(-1)?1:0)+Math.random()*1.5})).sort((a,b)=>b.s-a.s).slice(0,n).map(o=>o.x);}
-function sylChain(x){const st=[];x.sy.forEach((s,i)=>st.push({fn:()=>syOn(i)},{say:sylSay(s),rate:.8}));st.push({fn:()=>syOn(-1)},{say:x.w});return st;}
+function sylChain(x){if(Neural.syl(x.w))return [{nsyl:x.w}];const st=[];x.sy.forEach((s,i)=>st.push({fn:()=>syOn(i)},{say:sylSay(s),rate:.8}));st.push({fn:()=>syOn(-1)},{say:x.w});return st;}
 function syOn(i){const fx=$('#fix'),root=fx&&!fx.classList.contains('hidden')?fx:$('#qcard');if(root)$$('.sy',root).forEach((el,k)=>el.classList.toggle('hl',k===i));}
 function tileOn(i){$$('#qcard .tile').forEach((el,k)=>el.classList.toggle('on',k===i));}
 function frQ(lv,x){
@@ -776,7 +777,7 @@ const thumb=i=>avatarSVG(Object.assign({},S.avatar,{[i.cat]:i.id}));
 // ---------- État & sauvegarde ----------
 const STORE_KEY='supercerveau_v1';
 function defaultState(){
-  return {v:1,name:'Nael',avatar:Object.assign({},DEFAULT_AV),owned:[],xp:0,coins:20,
+  return {v:1,name:'',avatar:Object.assign({},DEFAULT_AV),owned:[],xp:0,coins:20,
     settings:{mathLevel:1,nQ:10,target:8,mode:'choices',sprintSec:60,aid:true,sound:true,voice:true,voiceQ:false,frOn:true,frAfterMath:true,frLevel:1,frNQ:8,sndMode:'max',thNQ:8,thAfterMath:true,thAuto:true,lv:{money:1,logic:1,code:1,monde:1,anglais:1},thOn:{money:true,logic:true,code:true,monde:true,anglais:true}},
     pin:null,facts:{},fr:{},frFlashMs:2000,sessions:[],days:{},streak:{cur:0,best:0,last:null},badges:{},
     stats:{ok:0,n:0,ms:0,bestCombo:0,sprintBest:{},chests:0},
@@ -894,24 +895,48 @@ const Sound={ctx:null,buf:{},loaded:false,last:{},
 };
 
 // ---------- Voix (synthèse vocale du navigateur) ----------
+// Voix pré-enregistrée (Piper, voix « siwis ») : fichiers dans sons/, repli sur la voix du navigateur
+const Neural={m:null,buf:{},rd:{},act:[],tok:0,
+  init(){try{fetch('sons/index.json').then(r=>r.ok?r.json():null).then(j=>{if(j&&j.c)this.m=j;}).catch(()=>{});}catch(e){}},
+  key:t=>'fr|'+String(t).replace('… ⚡','').trim(),
+  ent(t,o){return this.m&&!(o&&o.lang)&&t?this.m.c[this.key(t)]||null:null;},
+  syl(w){return this.m&&this.m.s?this.m.s[w]||null:null;},
+  can(t,o){return !!(this.ent(t,o)&&Sound.ctx);},
+  get(file){let p=this.buf[file];if(p)return p;const ks=Object.keys(this.buf);if(ks.length>160){delete this.buf[ks[0]];delete this.rd[ks[0]];}
+    p=this.buf[file]=fetch('sons/'+file).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();}).then(b=>new Promise((ok,ko)=>Sound.ctx.decodeAudioData(b,ok,ko))).then(b=>{this.rd[file]=1;return b;}).catch(()=>{delete this.buf[file];return null;});return p;},
+  busy(){return this.act.length>0;},
+  stop(){this.tok++;this.act.forEach(a=>{try{a.stop();}catch(e){}});this.act=[];},
+  playFile(file,fail){const ctx=Sound.ctx,k=this.tok;if(!ctx)return;
+    this.get(file).then(b=>{if(k!==this.tok)return;if(!b){if(fail)fail();return;}
+      if(ctx.state==='suspended')ctx.resume();const src=ctx.createBufferSource();src.buffer=b;src.connect(ctx.destination);
+      src.onended=()=>{this.act=this.act.filter(x=>x!==src);};this.act.push(src);src.start();});},
+  speak(t,o){const e=this.ent(t,o);if(!e||!Sound.ctx)return false;this.playFile(e[0],()=>Voice.speak(t,Object.assign({},o,{noNeural:1})));return true;},
+  need(steps){const r=[];(steps||[]).forEach(st=>{if(!st)return;if(st.say){const e=this.ent(st.say,st);if(e&&Sound.ctx&&!this.rd[e[0]])r.push(this.get(e[0]));}else if(st.nsyl){const e=this.syl(st.nsyl);if(e&&Sound.ctx&&!this.rd[e[0]])r.push(this.get(e[0]));}});return r;}
+};
 const Voice={v:null,ok:'speechSynthesis' in window,warm:false,t:0,cur:null,
   init(){if(!this.ok)return;const pv=()=>{const es=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));this.en=es.find(v=>/en[-_]GB/i.test(v.lang))||es.find(v=>/en[-_]US/i.test(v.lang))||es[0]||null;const vs=speechSynthesis.getVoices().filter(v=>/^fr/i.test(v.lang));this.v=vs.find(v=>/fr[-_]FR/i.test(v.lang)&&/google|amélie|amelie|audrey|thomas|marie|hortense|denise|julie/i.test(v.name))||vs.find(v=>/fr[-_]FR/i.test(v.lang))||vs[0]||null;};pv();try{speechSynthesis.addEventListener?speechSynthesis.addEventListener('voiceschanged',pv):(speechSynthesis.onvoiceschanged=pv);}catch(e){}},
   unlock(){Rec.unlock();if(!this.ok||this.warm)return;this.warm=true;try{const u=new SpeechSynthesisUtterance(' ');u.lang='fr-FR';u.volume=0;speechSynthesis.speak(u);}catch(e){}},
   busy(){try{return this.ok&&(speechSynthesis.speaking||speechSynthesis.pending);}catch(e){return false;}},
-  speak(text,o){if(!this.ok||!text)return;o=o||{};try{const u=new SpeechSynthesisUtterance(text);u.lang=o.lang||'fr-FR';const vv=o.lang?this.en:this.v;if(vv)u.voice=vv;u.rate=o.rate||.9;u.pitch=1.05;u.volume=1;this.cur=u;if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(u);}catch(e){}},
-  hush(){clearTimeout(this.t);try{if(this.busy())speechSynthesis.cancel();}catch(e){}},
+  speak(text,o){if(!text)return;o=o||{};if(!o.noNeural&&Neural.speak(text,o))return;if(!this.ok)return;try{const u=new SpeechSynthesisUtterance(text);u.lang=o.lang||'fr-FR';const vv=o.lang?this.en:this.v;if(vv)u.voice=vv;u.rate=o.rate||.9;u.pitch=1.05;u.volume=1;this.cur=u;if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(u);}catch(e){}},
+  hush(){clearTimeout(this.t);Neural.stop();try{if(this.busy())speechSynthesis.cancel();}catch(e){}},
   // Annuler puis parler immédiatement fait taire certains navigateurs : on laisse 90 ms entre les deux
-  say(text,o){Chain.stop();Rec.stopPlay();if(!this.ok||!text)return;const b=this.busy();this.hush();if(b)this.t=setTimeout(()=>this.speak(text,o),90);else this.speak(text,o);},
+  say(text,o){Chain.stop();Rec.stopPlay();if(!text||(!this.ok&&!Neural.can(text,o)))return;const b=this.busy();this.hush();if(b)this.t=setTimeout(()=>this.speak(text,o),90);else this.speak(text,o);},
   stop(){Chain.stop();this.hush();Rec.stopPlay();},
   label(){if(!this.ok)return '❌ Voix non disponible sur ce navigateur';return this.v?`✅ Voix : ${this.v.name}`:'⚠️ Pas de voix française trouvée';}
 };
 const estMs=(t,r)=>Math.round((320+String(t).length*72)/(r||.9));
 // Enchaîne voix, sons enregistrés et effets visuels (ex. « s… e… se »)
-const Chain={t:[],
-  run(steps,done){Voice.stop();let at=Voice.busy()?120:30;const add=(fn,d)=>this.t.push(setTimeout(fn,d));
-    (steps||[]).forEach(st=>{if(!st)return;if(st.fn)add(st.fn,at);else if(st.say){const tx=st.say,r=st.rate,lg=st.lang;add(()=>Voice.speak(tx,{rate:r,lang:lg}),at);at+=estMs(tx,r);}else if(st.rec){const k=st.rec;add(()=>Rec.play(k),at);at+=1050;}else if(st.wait)at+=st.wait;});
-    if(done)add(done,at);return at;},
-  stop(){this.t.forEach(clearTimeout);this.t=[];}
+const Chain={t:[],g:0,
+  run(steps,done){Voice.stop();const g=++this.g;let at=Voice.busy()?120:30;const plan=[],add=(fn,d)=>plan.push([fn,d]);
+    (steps||[]).forEach(st=>{if(!st)return;if(st.fn)add(st.fn,at);
+      else if(st.nsyl){const e=Neural.syl(st.nsyl);if(e){add(()=>Neural.playFile(e[0]),at);e[1].forEach((ms,i)=>add(()=>syOn(i),at+ms));add(()=>syOn(-1),at+e[2]);at+=e[3]+80;}}
+      else if(st.say){const tx=st.say,r=st.rate,lg=st.lang,e=Neural.ent(tx,st);add(()=>Voice.speak(tx,{rate:r,lang:lg}),at);at+=e&&Sound.ctx?e[1]+60:estMs(tx,r);}
+      else if(st.rec){const k=st.rec;add(()=>Rec.play(k),at);at+=1050;}else if(st.wait)at+=st.wait;});
+    if(done)add(done,at);
+    const go=()=>{if(g!==this.g)return;plan.forEach(([fn,d])=>this.t.push(setTimeout(fn,d)));};
+    const need=Neural.need(steps);if(need.length)Promise.race([Promise.all(need),new Promise(r=>setTimeout(r,1500))]).then(go);else go();
+    return at;},
+  stop(){this.g++;this.t.forEach(clearTimeout);this.t=[];}
 };
 // Sons enregistrés par les parents (stockés sur l'appareil)
 const Rec={key:'supercerveau_sons',map:{},el:null,unlocked:false,rec:null,
@@ -1131,7 +1156,7 @@ function endGame(){
   const after=levelInfo(S.xp).level,badges=checkBadges(sess),gifts=checkGifts();
   go('result');Sound.play(G.mode==='sprint'?(G.record&&G.score?'level':Sound.custom('fail').length?'fail':'end'):'end');
   if(G.mode==='sprint'?G.record:G.stars>=2)setTimeout(()=>Confetti.burst(130),250);
-  if(S.settings.voice){const nmv=S.name||'';Voice.say(G.mode==='sprint'?`${G.score} calculs justes ! ${G.record?'Nouveau record !':''}`:`Bravo ${nmv} ! ${G.stars} étoile${G.stars>1?'s':''} !`);}
+  if(S.settings.voice){const nmv=S.name||'';Voice.say(G.mode==='sprint'?`${G.score} calculs justes ! ${G.record?'Nouveau record !':''}`:`Bravo ! ${G.stars} étoile${G.stars>1?'s':''} !`);}
   setTimeout(()=>{if(thUp)queueModal(`<div class="bigemoji">${thT.e}</div><h2>${thT.n} : niveau ${thUp} !</h2><p>${thT.levels[thUp-1].e} ${thT.levels[thUp-1].n}</p><button class="btn y block" data-act="mclose">Super ! 🎉</button>`,()=>{Sound.play('level');Confetti.burst(100);});if(after>before)levelUpModal(before,after);badges.forEach(badgeModal);gifts.forEach(giftModal);},1300);
 }
 
@@ -1156,7 +1181,7 @@ function renderHome(){
   ${st.frOn?`<button class="play ${frLocked?'locked':''} ${!frLocked&&!t.fr?'pulse':''}" style="--c:var(--p);--d:var(--pd)" data-act="startfr"><span class="ico">📖</span><span class="tx"><span class="t1">Lecture</span><span class="t2">${frLocked?'Après ton entraînement de maths':`Niveau ${st.frLevel} · ${fl.n}`}</span></span>${frLocked?'<span class="lock">🔒</span>':''}</button>`:''}
   ${themesHTML()}
   <div class="minis"><button class="mini" data-act="shop"><span>🎨</span>Mon perso</button><button class="mini" data-act="badges"><span>🏆</span>Badges ${nb}/${BADGES.length}</button><button class="mini" data-act="gifts"><span>🎁</span>Cadeaux</button></div>
-  <button class="parentbtn" data-act="parent">🔒 Espace parents</button>`;
+  <div class="parentrow"><button class="parentbtn" data-act="parent">🔒 Espace parents</button><a class="parentbtn" href="aide.html" target="_blank" rel="noopener">💬 Aide</a></div>`;
 }
 function renderGame(){
   return `<div class="game"><div class="gtop"><button class="xbtn" data-act="quit" aria-label="Arrêter">✕</button>${G.mode==='sprint'?`<div class="clock" id="clock">⏱ ${S.settings.sprintSec}</div>`:'<div class="gprog"><i id="gprog"></i></div>'}<div class="combo" id="combo"></div></div>
@@ -1376,7 +1401,7 @@ document.addEventListener('keydown',e=>{
 
 // ---------- Démarrage ----------
 try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
-Rec.load();Pack.load();load();Voice.init();Confetti.init();render();
+Rec.load();Pack.load();load();Voice.init();Neural.init();Confetti.init();render();
 if(!S.welcomed){S.welcomed=true;save();queueModal(`<div class="mav">${avatarSVG(S.avatar)}</div><h2>Salut ${nm()} ! 👋</h2><p>Chaque jour :<br><b>1.</b> Entraîne-toi en maths 🔢<br><b>2.</b> Fais ta lecture 📖<br><b>3.</b> Ouvre ton coffre 🎁</p><p>Gagne des pièces 🪙 pour habiller ton personnage et débloquer des surprises !</p><button class="btn g block" data-act="mclose">C’est parti ! 🚀</button>`);}
 else checkGifts().forEach(giftModal);
 </script>

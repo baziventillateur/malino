@@ -1,0 +1,4 @@
+Voix des sons de cette appli : moteur Piper TTS (rhasspy, MIT) avec la voix française « siwis »
+(fr_FR-siwis-medium), entraînée sur le jeu de données SIWIS de l'Université d'Édimbourg,
+licence CC BY 4.0 : https://datashare.is.ed.ac.uk/handle/10283/2353
+Les fichiers audio de ce dossier sont des enregistrements synthétisés avec cette voix.
