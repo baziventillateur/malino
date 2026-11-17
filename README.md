@@ -10,7 +10,12 @@ Appli de maths et de lecture pour les enfants de 5 à 8 ans : calcul mental rép
 
 
 ## Voix
-Les consignes, syllabes, mots et phrases sont lus par des fichiers audio pré-générés (dossier `sons/`) avec **Piper TTS** et la voix française « siwis » (jeu de données SIWIS, Université d'Édimbourg, licence CC BY 4.0). Si un son manque ou ne charge pas, l'appli utilise la voix du navigateur.
+
+Voix de synthèse du navigateur (SpeechSynthesis), en français. Les sons des consonnes peuvent être enregistrés par un parent dans l’Espace parents.
+
+## Bruitages communs
+
+Les sons rigolos partagés par tous les comptes sont dans `bruitages/` et listés dans `bruitages/index.json` (`f` fichier, `n` nom, `c` catégorie : bad, fail, combo, level, go, fast). Ils passent en réglage « Beaucoup ».
 
 ## Aide
 La page `aide.html` ouvre le chat de support (Tidio) ; le script du chat n'est chargé que sur cette page.

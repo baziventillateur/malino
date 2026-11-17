@@ -581,7 +581,7 @@ const itemKey=x=>typeof x==='string'?x:(x.k||x.w||x.s);
 const snd=k=>Rec.has(k)?{rec:k}:(PHON[k]&&PHON[k].tts?{say:PHON[k].tts,rate:.8}:null);
 const others=(pool,n,avoid)=>shuffle(pool.filter(p=>!avoid.includes(p))).slice(0,n);
 function similarWords(w,list,n){return list.filter(x=>x!==w).map(x=>({x,s:(x[0]===w[0]?2:0)+(x.length===w.length?1:0)+(x.slice(-1)===w.slice(-1)?1:0)+Math.random()*1.5})).sort((a,b)=>b.s-a.s).slice(0,n).map(o=>o.x);}
-function sylChain(x){if(Neural.syl(x.w))return [{nsyl:x.w}];const st=[];x.sy.forEach((s,i)=>st.push({fn:()=>syOn(i)},{say:sylSay(s),rate:.8}));st.push({fn:()=>syOn(-1)},{say:x.w});return st;}
+function sylChain(x){const st=[];x.sy.forEach((s,i)=>st.push({fn:()=>syOn(i)},{say:sylSay(s),rate:.8}));st.push({fn:()=>syOn(-1)},{say:x.w});return st;}
 function syOn(i){const fx=$('#fix'),root=fx&&!fx.classList.contains('hidden')?fx:$('#qcard');if(root)$$('.sy',root).forEach((el,k)=>el.classList.toggle('hl',k===i));}
 function tileOn(i){$$('#qcard .tile').forEach((el,k)=>el.classList.toggle('on',k===i));}
 function frQ(lv,x){
@@ -991,10 +991,12 @@ const Pack={key:'supercerveau_pack',list:[],
 const Sound={ctx:null,buf:{},loaded:false,last:{},
   dec(k,b64){if(!this.ctx||!b64)return;try{const bin=atob(b64),u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);this.ctx.decodeAudioData(u8.buffer,b=>{this.buf[k]=b;},()=>{});}catch(e){}},
   unlock(){try{if(!this.ctx){const AC=window.AudioContext||window.webkitAudioContext;if(AC)this.ctx=new AC();}if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();this.load();}catch(e){}},
-  load(){if(this.loaded||!this.ctx)return;this.loaded=true;Object.entries(SFX_DATA).forEach(([k,b64])=>this.dec(k,b64));Pack.list.forEach(p=>this.dec('u:'+p.id,String(p.d).split(',')[1]));},
+  load(){if(this.loaded||!this.ctx)return;this.loaded=true;Object.entries(SFX_DATA).forEach(([k,b64])=>this.dec(k,b64));Pack.list.forEach(p=>this.dec('u:'+p.id,String(p.d).split(',')[1]));this.loadShared();},
   sample(k,when,vol,max){const b=this.buf[k];if(!b)return false;try{const s=this.ctx.createBufferSource(),g=this.ctx.createGain();g.gain.value=vol||.7;s.buffer=b;s.connect(g);g.connect(this.ctx.destination);const t=this.ctx.currentTime+(when||0);s.start(t);if(max&&b.duration>max){g.gain.setValueAtTime(vol||.7,t+max-.2);g.gain.linearRampToValueAtTime(0.0001,t+max);s.stop(t+max+.02);}return true;}catch(e){return false;}},
   tone(f,t0,dur,type,vol,f2){const c=this.ctx;if(!c)return;const o=c.createOscillator(),g=c.createGain(),t=c.currentTime+t0;o.type=type||'sine';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol||.18,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+dur+.05);},
-  custom(n){return S.settings.sndMode==='max'?Pack.list.filter(p=>p.cat===n&&this.buf['u:'+p.id]).map(p=>'u:'+p.id):[];},
+  custom(n){if(S.settings.sndMode!=='max')return [];return Pack.list.filter(p=>p.cat===n&&this.buf['u:'+p.id]).map(p=>'u:'+p.id).concat(this.shared.filter(p=>p.c===n&&this.buf['p:'+p.f]).map(p=>'p:'+p.f));},
+  shared:[],
+  loadShared(){fetch('bruitages/index.json').then(r=>r.ok?r.json():[]).then(l=>{this.shared=Array.isArray(l)?l:[];this.shared.forEach(p=>fetch('bruitages/'+encodeURIComponent(p.f)).then(r=>r.ok?r.arrayBuffer():null).then(b=>{if(b&&this.ctx)this.ctx.decodeAudioData(b,x=>{this.buf['p:'+p.f]=x;},()=>{});}).catch(()=>{}));}).catch(()=>{});},
   play(n){if(!S||!S.settings.sound||S.settings.sndMode==='off')return;this.unlock();if(!this.ctx)return;
     if(n==='chest'){if(this.sample('unlock')){this.sample('reward',.35);return;}}
     else{const md=S.settings.sndMode,cust=this.custom(n);let base=(SVAR[n]||[n]).filter(k=>this.buf[k]);if(md==='classic')base=base.slice(0,1);
@@ -1018,48 +1020,24 @@ const Sound={ctx:null,buf:{},loaded:false,last:{},
 };
 
 // ---------- Voix (synthèse vocale du navigateur) ----------
-// Voix pré-enregistrée (Piper, voix « siwis ») : fichiers dans sons/, repli sur la voix du navigateur
-const Neural={m:null,buf:{},rd:{},act:[],tok:0,
-  init(){try{fetch('sons/index.json').then(r=>r.ok?r.json():null).then(j=>{if(j&&j.c)this.m=j;}).catch(()=>{});}catch(e){}},
-  key:t=>'fr|'+String(t).replace('… ⚡','').trim(),
-  ent(t,o){return this.m&&!(o&&o.lang)&&t?this.m.c[this.key(t)]||null:null;},
-  syl(w){return this.m&&this.m.s?this.m.s[w]||null:null;},
-  can(t,o){return !!(this.ent(t,o)&&Sound.ctx);},
-  get(file){let p=this.buf[file];if(p)return p;const ks=Object.keys(this.buf);if(ks.length>160){delete this.buf[ks[0]];delete this.rd[ks[0]];}
-    p=this.buf[file]=fetch('sons/'+file).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();}).then(b=>new Promise((ok,ko)=>Sound.ctx.decodeAudioData(b,ok,ko))).then(b=>{this.rd[file]=1;return b;}).catch(()=>{delete this.buf[file];return null;});return p;},
-  busy(){return this.act.length>0;},
-  stop(){this.tok++;this.act.forEach(a=>{try{a.stop();}catch(e){}});this.act=[];},
-  playFile(file,fail){const ctx=Sound.ctx,k=this.tok;if(!ctx)return;
-    this.get(file).then(b=>{if(k!==this.tok)return;if(!b){if(fail)fail();return;}
-      if(ctx.state==='suspended')ctx.resume();const src=ctx.createBufferSource();src.buffer=b;src.connect(ctx.destination);
-      src.onended=()=>{this.act=this.act.filter(x=>x!==src);};this.act.push(src);src.start();});},
-  speak(t,o){const e=this.ent(t,o);if(!e||!Sound.ctx)return false;this.playFile(e[0],()=>Voice.speak(t,Object.assign({},o,{noNeural:1})));return true;},
-  need(steps){const r=[];(steps||[]).forEach(st=>{if(!st)return;if(st.say){const e=this.ent(st.say,st);if(e&&Sound.ctx&&!this.rd[e[0]])r.push(this.get(e[0]));}else if(st.nsyl){const e=this.syl(st.nsyl);if(e&&Sound.ctx&&!this.rd[e[0]])r.push(this.get(e[0]));}});return r;}
-};
 const Voice={v:null,ok:'speechSynthesis' in window,warm:false,t:0,cur:null,
   init(){if(!this.ok)return;const pv=()=>{const es=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));this.en=es.find(v=>/en[-_]GB/i.test(v.lang))||es.find(v=>/en[-_]US/i.test(v.lang))||es[0]||null;const vs=speechSynthesis.getVoices().filter(v=>/^fr/i.test(v.lang));this.v=vs.find(v=>/fr[-_]FR/i.test(v.lang)&&/google|amélie|amelie|audrey|thomas|marie|hortense|denise|julie/i.test(v.name))||vs.find(v=>/fr[-_]FR/i.test(v.lang))||vs[0]||null;};pv();try{speechSynthesis.addEventListener?speechSynthesis.addEventListener('voiceschanged',pv):(speechSynthesis.onvoiceschanged=pv);}catch(e){}},
   unlock(){Rec.unlock();if(!this.ok||this.warm)return;this.warm=true;try{const u=new SpeechSynthesisUtterance(' ');u.lang='fr-FR';u.volume=0;speechSynthesis.speak(u);}catch(e){}},
   busy(){try{return this.ok&&(speechSynthesis.speaking||speechSynthesis.pending);}catch(e){return false;}},
-  speak(text,o){if(!text)return;o=o||{};if(!o.noNeural&&Neural.speak(text,o))return;if(!this.ok)return;try{const u=new SpeechSynthesisUtterance(text);u.lang=o.lang||'fr-FR';const vv=o.lang?this.en:this.v;if(vv)u.voice=vv;u.rate=o.rate||.9;u.pitch=1.05;u.volume=1;this.cur=u;if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(u);}catch(e){}},
-  hush(){clearTimeout(this.t);Neural.stop();try{if(this.busy())speechSynthesis.cancel();}catch(e){}},
+  speak(text,o){if(!this.ok||!text)return;o=o||{};try{const u=new SpeechSynthesisUtterance(text);u.lang=o.lang||'fr-FR';const vv=o.lang?this.en:this.v;if(vv)u.voice=vv;u.rate=o.rate||.9;u.pitch=1.05;u.volume=1;this.cur=u;if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(u);}catch(e){}},
+  hush(){clearTimeout(this.t);try{if(this.busy())speechSynthesis.cancel();}catch(e){}},
   // Annuler puis parler immédiatement fait taire certains navigateurs : on laisse 90 ms entre les deux
-  say(text,o){Chain.stop();Rec.stopPlay();if(!text||(!this.ok&&!Neural.can(text,o)))return;const b=this.busy();this.hush();if(b)this.t=setTimeout(()=>this.speak(text,o),90);else this.speak(text,o);},
+  say(text,o){Chain.stop();Rec.stopPlay();if(!this.ok||!text)return;const b=this.busy();this.hush();if(b)this.t=setTimeout(()=>this.speak(text,o),90);else this.speak(text,o);},
   stop(){Chain.stop();this.hush();Rec.stopPlay();},
   label(){if(!this.ok)return '❌ Voix non disponible sur ce navigateur';return this.v?`✅ Voix : ${this.v.name}`:'⚠️ Pas de voix française trouvée';}
 };
 const estMs=(t,r)=>Math.round((320+String(t).length*72)/(r||.9));
 // Enchaîne voix, sons enregistrés et effets visuels (ex. « s… e… se »)
-const Chain={t:[],g:0,
-  run(steps,done){Voice.stop();const g=++this.g;let at=Voice.busy()?120:30;const plan=[],add=(fn,d)=>plan.push([fn,d]);
-    (steps||[]).forEach(st=>{if(!st)return;if(st.fn)add(st.fn,at);
-      else if(st.nsyl){const e=Neural.syl(st.nsyl);if(e){add(()=>Neural.playFile(e[0]),at);e[1].forEach((ms,i)=>add(()=>syOn(i),at+ms));add(()=>syOn(-1),at+e[2]);at+=e[3]+80;}}
-      else if(st.say){const tx=st.say,r=st.rate,lg=st.lang,e=Neural.ent(tx,st);add(()=>Voice.speak(tx,{rate:r,lang:lg}),at);at+=e&&Sound.ctx?e[1]+60:estMs(tx,r);}
-      else if(st.rec){const k=st.rec;add(()=>Rec.play(k),at);at+=1050;}else if(st.wait)at+=st.wait;});
-    if(done)add(done,at);
-    const go=()=>{if(g!==this.g)return;plan.forEach(([fn,d])=>this.t.push(setTimeout(fn,d)));};
-    const need=Neural.need(steps);if(need.length)Promise.race([Promise.all(need),new Promise(r=>setTimeout(r,1500))]).then(go);else go();
-    return at;},
-  stop(){this.g++;this.t.forEach(clearTimeout);this.t=[];}
+const Chain={t:[],
+  run(steps,done){Voice.stop();let at=Voice.busy()?120:30;const add=(fn,d)=>this.t.push(setTimeout(fn,d));
+    (steps||[]).forEach(st=>{if(!st)return;if(st.fn)add(st.fn,at);else if(st.say){const tx=st.say,r=st.rate,lg=st.lang;add(()=>Voice.speak(tx,{rate:r,lang:lg}),at);at+=estMs(tx,r);}else if(st.rec){const k=st.rec;add(()=>Rec.play(k),at);at+=1050;}else if(st.wait)at+=st.wait;});
+    if(done)add(done,at);return at;},
+  stop(){this.t.forEach(clearTimeout);this.t=[];}
 };
 // Sons enregistrés par les parents (stockés sur l'appareil)
 const Rec={key:'supercerveau_sons',map:{},el:null,unlocked:false,rec:null,
@@ -1380,7 +1358,7 @@ function paneSettings(){
    <div class="lvls">${FR_LEVELS.map((L,i)=>{const n=i+1,mm=levelMastery('fr',n);return `<button class="lvl ${n===st.frLevel?'on':''}" data-act="setfr" data-arg="${n}"><span class="le">${L.e}</span><span class="ln"><b>${n}. ${L.n}</b><small>${L.items.length} éléments · ${pct(mm)} maîtrisés</small><span class="mbar2"><i style="width:${mm*100}%"></i></span></span>${n===st.frLevel?'<span class="cur">Actuel</span>':''}</button>`;}).join('')}</div></section>
   <section class="acard"><h3>🎙️ Sons des lettres</h3><p class="hint">La voix de la tablette lit bien les voyelles, les syllabes et les mots, mais pas une consonne seule (elle dit « èsse » au lieu de « sss »). Enregistrez vos propres sons : ils remplacent la voix dans les exercices. Appuyez sur ●, puis dites le son tout de suite (1,5 s).</p><div class="snds">${Object.keys(PHON).map(k=>{const r=Rec.rec&&Rec.rec.k===k;return `<div class="snd ${Rec.has(k)?'has':''}"><b class="read">${k}</b><small>${PHON[k].e} ${PHON[k].ex}</small><button class="${r?'recing':''}" data-act="recsnd" data-arg="${k}" aria-label="Enregistrer">${r?'🔴':'●'}</button><button data-act="playsnd" data-arg="${k}" aria-label="Écouter">▶︎</button>${Rec.has(k)?`<button data-act="delsnd" data-arg="${k}" aria-label="Effacer">✕</button>`:''}</div>`;}).join('')}</div><p class="hint">Case verte = son enregistré (✕ pour l’effacer). Sans enregistrement, ▶︎ fait entendre la voix de la tablette.</p></section>
   <section class="acard"><h3>🎵 Mes sons</h3><p class="hint">Ajoutez vos propres bruitages (mp3). Ils restent sur cet appareil et se mélangent aux sons de l’appli : le même son ne passe jamais deux fois de suite. Chaque son est classé d’après son nom, et vous pouvez changer sa catégorie.</p><button class="btn w sm" data-act="packadd">➕ Ajouter des fichiers</button><input type="file" id="packFile" accept="audio/*,.mp3,.wav,.ogg,.m4a" multiple class="hidden">${Pack.list.length?`<div class="plist">${Pack.list.map(p=>`<div class="prow"><b>${esc(p.name)}</b><select data-pack="${p.id}">${Object.entries(PCATS).map(([k,l])=>`<option value="${k}" ${p.cat===k?'selected':''}>${l}</option>`).join('')}</select><button data-act="packplay" data-arg="${p.id}" aria-label="Écouter">▶︎</button><button data-act="packdel" data-arg="${p.id}" aria-label="Retirer">✕</button></div>`).join('')}</div>`:''}</section>
-  <section class="acard"><h3>🔊 Son et voix</h3><div class="row" style="margin-top:0"><span>Bruitages</span>${seg('sndMode',[['off','Aucun'],['classic','Classique'],['soft','Varié'],['max','Maximum']])}<small class="hint" style="margin:0">Classique : toujours les mêmes sons, comme au début. Varié : plusieurs sons par événement, en alternance. Maximum : varié + « Mes sons » (mèmes), environ une fois sur trois pour les erreurs et les réponses rapides.</small></div>${tog('voice','Voix : corrections et félicitations')}${tog('voiceQ','Lire aussi chaque calcul à voix haute','Utile s’il ne lit pas encore bien les nombres')}<div class="tog"><span>${Voice.label()}</span><button class="btn w sm" data-act="testvoice">Tester</button></div></section>
+  <section class="acard"><h3>🔊 Son et voix</h3><div class="row" style="margin-top:0"><span>Bruitages</span>${seg('sndMode',[['off','Pas de son'],['classic','Un peu'],['soft','Moyen'],['max','Beaucoup']])}<small class="hint" style="margin:0">Un peu : un seul son discret par action. Moyen : des sons variés. Beaucoup : sons variés + sons rigolos (mèmes), environ une fois sur trois pour les erreurs et les réponses rapides.</small></div>${tog('voice','Voix : corrections et félicitations')}${tog('voiceQ','Lire aussi chaque calcul à voix haute','Utile s’il ne lit pas encore bien les nombres')}<div class="tog"><span>${Voice.label()}</span><button class="btn w sm" data-act="testvoice">Tester</button></div></section>
   <section class="acard"><h3>🔒 Code parent</h3><button class="btn w sm" data-act="changepin">Changer le code</button></section>`;
 }
 function aggDays(list){const m={};list.forEach(s=>{const x=m[s.d]||(m[s.d]={d:s.d,n:0,ok:0,t:0,tn:0});x.n+=s.n||0;x.ok+=s.ok||0;if(s.avgMs){x.t+=s.avgMs*(s.ok||1);x.tn+=(s.ok||1);}});return Object.values(m).sort((a,b)=>a.d<b.d?-1:1).slice(-30).map(x=>({d:x.d,acc:x.n?x.ok/x.n:0,avg:x.tn?x.t/x.tn:0}));}
@@ -1433,7 +1411,7 @@ function paneGifts(){
 function paneData(){
   return `<section class="acard"><h3>🪙 Bonus des parents</h3><p class="hint">Pour récompenser un effort de la vraie vie.</p><div class="seg"><button data-act="bonus" data-arg="10">+10 🪙</button><button data-act="bonus" data-arg="25">+25 🪙</button><button data-act="bonus" data-arg="50">+50 🪙</button><button data-act="bonus" data-arg="100">+100 🪙</button></div></section>
   <section class="acard"><h3>💾 Sauvegarde</h3><p class="hint">La progression est enregistrée dans ce navigateur, sur cet appareil. Exportez-la pour la garder ou la transférer sur une autre tablette.</p><div class="seg"><button data-act="export">⬇️ Exporter</button><button data-act="import">⬆️ Importer</button></div><input type="file" id="importFile" accept="application/json,.json" class="hidden"></section>
-  <section class="acard"><h3>ℹ️ Crédits</h3><p class="hint">Bruitages : pack « uisfx », thème arcade, domaine public (CC0). Voix : Piper TTS, voix « siwis » (jeu de données SIWIS, Université d’Édimbourg, CC BY 4.0).</p></section>
+  <section class="acard"><h3>ℹ️ Crédits</h3><p class="hint">Bruitages : pack « uisfx », thème arcade, domaine public (CC0).</p></section>
   <section class="acard"><h3>♻️ Remise à zéro</h3><p class="hint">Efface pièces, niveaux, badges et statistiques. Les réglages, le code et les cadeaux sont conservés.</p><button class="btn r sm" data-act="reset">Tout remettre à zéro</button></section>`;
 }
 function importFile(file){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||typeof d!=='object'||!('xp' in d))throw 0;S=deepMerge(defaultState(),d);save();toast('Sauvegarde importée ✅');render();}catch(e){toast('Fichier non reconnu');}};r.readAsText(file);}
@@ -1874,7 +1852,7 @@ const Onb={i:0,d:{},
 
 // ---------- Démarrage ----------
 try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
-Rec.load();Pack.load();load();Voice.init();Plan.load();Neural.init();Confetti.init();render();Acct.init().then(()=>Offre.fromUrl());
+Rec.load();Pack.load();load();Voice.init();Plan.load();Confetti.init();render();Acct.init().then(()=>Offre.fromUrl());
 if(S.refund){const r=S.refund;S.refund=0;save();queueModal(`<div class="bigemoji sm">🛍️</div><h2>Nouvelle boutique !</h2><p>Des objets en bois, cuivre, argent, or… jusqu’au <b>Plasma</b> !</p><p>Certains anciens objets sont partis : tu récupères <b>${r} 🪙</b>.</p><button class="btn y block" data-act="mclose">Super !</button>`);}
 if(!S.welcomed){S.welcomed=true;save();queueModal(`<div class="mav">${avatarSVG(S.avatar)}</div><h2>Salut ${nm()} ! 👋</h2>${S.name?'':'<label class="fld" style="text-align:left">Comment tu t’appelles ?<input id="wname" maxlength="20" autocomplete="off" placeholder="Ton prénom"></label>'}<p>Chaque jour :<br><b>1.</b> Entraîne-toi en maths 🔢<br><b>2.</b> Fais ta lecture 📖<br><b>3.</b> Ouvre ton coffre 🎁</p><p>Gagne des pièces 🪙 pour habiller ton personnage et débloquer des surprises !</p><button class="btn g block" data-act="wstart">C’est parti ! 🚀</button>`);}
 else checkGifts().forEach(giftModal);
