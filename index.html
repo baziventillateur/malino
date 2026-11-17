@@ -923,7 +923,7 @@ const thumb=i=>i.cat==='obj'&&i.k?objThumb(i):i.cat==='pet'&&i.emoji?petThumb(i)
 const STORE_KEY='supercerveau_v1';
 function defaultState(){
   return {v:1,name:'',avatar:Object.assign({},DEFAULT_AV),owned:[],xp:0,coins:20,
-    settings:{mathLevel:1,nQ:10,target:8,mode:'choices',sprintSec:60,aid:true,sound:true,voice:true,voiceQ:false,frOn:true,frAfterMath:true,frLevel:1,frNQ:8,sndMode:'max',thNQ:8,thAfterMath:true,thAuto:true,lv:{money:1,logic:1,code:1,monde:1,anglais:1},thOn:{money:true,logic:true,code:true,monde:true,anglais:true}},
+    settings:{mathLevel:1,nQ:10,target:8,mode:'choices',sprintSec:60,aid:true,sound:true,voice:true,voiceQ:false,frOn:true,frAfterMath:true,frLevel:1,frNQ:8,mathAuto:true,frAuto:true,sndMode:'max',thNQ:8,thAfterMath:true,thAuto:true,lv:{money:1,logic:1,code:1,monde:1,anglais:1},thOn:{money:true,logic:true,code:true,monde:true,anglais:true}},
     pin:null,facts:{},fr:{},frFlashMs:2000,sessions:[],days:{},streak:{cur:0,best:0,last:null},badges:{},
     stats:{ok:0,n:0,ms:0,bestCombo:0,sprintBest:{},chests:0},
     gifts:[{id:'g1',emoji:'🍦',title:'Une glace',type:'streak',target:5,reached:null,given:false},{id:'g2',emoji:'🎡',title:'Une sortie au parc',type:'level',target:10,reached:null,given:false}],
@@ -945,6 +945,12 @@ const chestAvailable=()=>{const t=today();return !!t.math&&(!!t.fr||!S.settings.
 function recordStat(store,key,ok,ms,fast){const s=store[key]||(store[key]={n:0,ok:0,st:0,err:0,ms:0});s.n++;s.last=Date.now();s.lo=ok?1:0;if(ok){s.ok++;s.ms=s.ms?Math.round(s.ms*.6+ms*.4):Math.round(ms);if(fast)s.st=Math.min(s.st+1,5);}else{s.err++;s.st=0;s.le=Date.now();}}
 function wOf(store,key){const s=store[key];if(!s||!s.n)return 3;let w=s.st>=3?.5:s.st===2?1.5:s.st===1?2.5:4;if(s.le&&Date.now()-s.le<3*864e5)w+=2;return w;}
 const factStatus=s=>!s||!s.n?'new':s.st>=3?'ok':(s.st>=1||s.lo)?'mid':'weak';
+function autoUp(){const st=S.settings,ups=[];
+  if(st.mathAuto!==false&&st.mathLevel<MATH_LEVELS.length&&levelMastery('math',st.mathLevel)>=.8){st.mathLevel++;ups.push(['math',st.mathLevel]);}
+  if(st.frAuto!==false&&st.frLevel<FR_LEVELS.length&&levelMastery('fr',st.frLevel)>=.8){st.frLevel++;ups.push(['fr',st.frLevel]);}
+  if(ups.length)save();return ups;}
+function autoUpModal(ups){(ups||[]).forEach(([k,n])=>{const L=(k==='math'?MATH_LEVELS:FR_LEVELS)[n-1],t=k==='math'?`Monde ${n} débloqué !`:`Lecture : niveau ${n} !`;
+  queueModal(`<div class="bigemoji">${L.e}</div><h2>${t}</h2><p>Bravo ${nm()}, tu as maîtrisé le niveau d’avant ! Nouveau défi :</p><p><b>${esc(L.n)}</b></p><button class="btn y block" data-act="mclose">C’est parti ! 🚀</button>`,()=>{Sound.play('epic');Confetti.burst(150);if(S.settings.voice)Voice.say(`${t} Nouveau défi : ${L.n.replace(/[()]/g,'')}`);});});}
 function levelMastery(sub,lv){const keys=sub==='math'?mathFacts(lv).map(f=>f.key):subLevels(sub)[lv-1].items.map(x=>keyOf(sub,lv,x));const st=sub==='math'?S.facts:S.fr;let m=0;keys.forEach(k=>{const s=st[k];if(s&&s.st>=3)m++;});return keys.length?m/keys.length:0;}
 function wPick(arr,w){let tot=0;const ws=arr.map(x=>{const v=w(x);tot+=v;return v;});let r=Math.random()*tot;for(let i=0;i<arr.length;i++){r-=ws[i];if(r<=0)return arr[i];}return arr[arr.length-1];}
 // File de questions : quelques calculs « focus » répétés 2 fois + révisions pondérées par la faiblesse
@@ -1296,13 +1302,13 @@ function endGame(){
   }
   S.sessions.push(sess);if(S.sessions.length>800)S.sessions.splice(0,S.sessions.length-800);
   S.stats.bestCombo=Math.max(S.stats.bestCombo,G.bestCombo);S.xp+=G.xp;S.coins+=G.coins;G.sess=sess;
-  let thUp=0,thLock=0;if(THEMES[G.sub]&&S.settings.thAuto){const lv=S.settings.lv[G.sub];if(lv<THEMES[G.sub].levels.length&&levelMastery(G.sub,lv)>=.8){if(lv+1<=Plan.thMax(G.sub))S.settings.lv[G.sub]=thUp=lv+1;else thLock=lv+1;}}const thT=THEMES[G.sub];
+  const ups=G.mode==='sprint'?[]:autoUp();let thUp=0,thLock=0;if(THEMES[G.sub]&&S.settings.thAuto){const lv=S.settings.lv[G.sub];if(lv<THEMES[G.sub].levels.length&&levelMastery(G.sub,lv)>=.8){if(lv+1<=Plan.thMax(G.sub))S.settings.lv[G.sub]=thUp=lv+1;else thLock=lv+1;}}const thT=THEMES[G.sub];
   save();
   const after=levelInfo(S.xp).level,badges=checkBadges(sess),gifts=checkGifts();
   go('result');setTimeout(()=>{if(Acct.wall()&&SCR==='result')Acct.show('wall');},3800);Sound.play(G.mode==='sprint'?(G.record&&G.score?'level':Sound.custom('fail').length?'fail':'end'):'end');
   if(G.mode==='sprint'?G.record:G.stars>=2)setTimeout(()=>Confetti.burst(130),250);
   if(S.settings.voice){const nmv=S.name||'';Voice.say(G.mode==='sprint'?`${G.score} calculs justes ! ${G.record?'Nouveau record !':''}`:`Bravo ! ${G.stars} étoile${G.stars>1?'s':''} !`);}
-  setTimeout(()=>{if(thLock)Offre.lock(thT.n,thLock);if(thUp)queueModal(`<div class="bigemoji">${thT.e}</div><h2>${thT.n} : niveau ${thUp} !</h2><p>${thT.levels[thUp-1].e} ${thT.levels[thUp-1].n}</p><button class="btn y block" data-act="mclose">Super ! 🎉</button>`,()=>{Sound.play('epic');Confetti.burst(100);});if(after>before)levelUpModal(before,after);badges.forEach(badgeModal);gifts.forEach(giftModal);},1300);
+  setTimeout(()=>{autoUpModal(ups);if(thLock)Offre.lock(thT.n,thLock);if(thUp)queueModal(`<div class="bigemoji">${thT.e}</div><h2>${thT.n} : niveau ${thUp} !</h2><p>${thT.levels[thUp-1].e} ${thT.levels[thUp-1].n}</p><button class="btn y block" data-act="mclose">Super ! 🎉</button>`,()=>{Sound.play('epic');Confetti.burst(100);});if(after>before)levelUpModal(before,after);badges.forEach(badgeModal);gifts.forEach(giftModal);},1300);
 }
 
 // ---------- Écrans ----------
@@ -1322,7 +1328,7 @@ function renderHome(){
   <div class="week card">${weekHTML()}</div>${Plan.banner()}
   ${reached.length?`<div class="giftban" data-act="gifts">🎁 Tu as gagné : <b>${esc(reached[0].title)}</b> ! Montre-le à papa ou maman.</div>`:''}
   <div class="mission card"><div class="mtx"><h3>Mission du jour</h3><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${st.frOn?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'🎉':'🎁'}</button></div>
-  <button class="play ${!t.math?'pulse':''}" style="--c:var(--b);--d:var(--bd)" data-act="startmath"><span class="ico">🔢</span><span class="tx"><span class="t1">Maths</span><span class="t2">Monde ${st.mathLevel} · ${ml.n}</span><span class="mbar"><i style="width:${Math.round(mm*100)}%"></i></span><span class="t3">${Math.round(mm*mf)} / ${mf} calculs maîtrisés${mm>=1?' · 🏆 Monde terminé !':mm>=.8?' · Bientôt le monde suivant !':''}</span></span></button>
+  <button class="play ${!t.math?'pulse':''}" style="--c:var(--b);--d:var(--bd)" data-act="startmath"><span class="ico">🔢</span><span class="tx"><span class="t1">Maths</span><span class="t2">Monde ${st.mathLevel} · ${ml.n}</span><span class="mbar"><i style="width:${Math.round(mm*100)}%"></i></span><span class="t3">${Math.round(mm*mf)} / ${mf} calculs maîtrisés${mm>=1?' · 🏆 Monde terminé !':mm>=.8?' · Le monde suivant arrive à la fin de la partie !':''}</span></span></button>
   <button class="play ${sprintLocked?'locked':''}" style="--c:var(--o);--d:var(--od)" data-act="startsprint"><span class="ico">⚡</span><span class="tx"><span class="t1">Défi éclair</span><span class="t2">${sprintLocked?'Après ton entraînement de maths':best?`Record : ${best} calculs en ${st.sprintSec} s`:`Le plus de calculs en ${st.sprintSec} s !`}</span></span>${sprintLocked?'<span class="lock">🔒</span>':''}</button>
   ${st.frOn?`<button class="play ${frLocked?'locked':''} ${!frLocked&&!t.fr?'pulse':''}" style="--c:var(--p);--d:var(--pd)" data-act="startfr"><span class="ico">📖</span><span class="tx"><span class="t1">Lecture</span><span class="t2">${frLocked?'Après ton entraînement de maths':`Niveau ${st.frLevel} · ${fl.n}`}</span></span>${frLocked?'<span class="lock">🔒</span>':''}</button>`:''}
   ${themesHTML()}
@@ -1390,14 +1396,14 @@ function paneSettings(){
   const frec=fm>=.8&&st.frLevel<FR_LEVELS.length?`<div class="reco">✅ ${pct(fm)} du niveau de lecture ${st.frLevel} maîtrisé.<button class="btn g sm" data-act="setfr" data-arg="${st.frLevel+1}">Passer au niveau ${st.frLevel+1}</button></div>`:'';
   return `<section class="acard"><h3>💡 La méthode</h3><ul class="tips"><li>10 minutes par jour suffisent : maths, puis lecture, puis le coffre.</li><li>Lecture (méthode syllabique) : le son des lettres → j’assemble (s + e = se) → mots de 2 syllabes → mots de 3 syllabes. Les syllabes sont en couleurs alternées, avec les lettres muettes en gris.</li><li>Chaque partie répète quelques calculs plusieurs fois. Une erreur ? Correction à l’écran et à voix haute, il refait le calcul tout de suite, puis on le lui repose plus loin.</li><li>Un calcul est « maîtrisé » après 3 bonnes réponses rapides d’affilée.</li><li>Montez de niveau au-delà de 80 % de maîtrise. Ensuite, passez au clavier, puis baissez l’objectif de vitesse (8 s → 6 s → 4 s).</li></ul></section>
   <section class="acard"><h3>👦 Enfant</h3><label class="fld">Prénom<input data-field="name" value="${esc(S.name)}" maxlength="20" autocomplete="off"></label></section>
-  <section class="acard"><h3>🔢 Maths : niveau de difficulté</h3>${rec}<div class="lvls">${MATH_LEVELS.map((L,i)=>{const n=i+1,mm=levelMastery('math',n);return `<button class="lvl ${n===st.mathLevel?'on':''}" data-act="setlvl" data-arg="${n}"><span class="le">${L.e}</span><span class="ln"><b>${n}. ${L.n}</b><small>${mathFacts(n).length} calculs · ${pct(mm)} maîtrisés</small><span class="mbar2"><i style="width:${mm*100}%"></i></span></span>${n===st.mathLevel?'<span class="cur">Actuel</span>':''}</button>`;}).join('')}</div></section>
+  <section class="acard"><h3>🔢 Maths : niveau de difficulté</h3>${rec}<div class="lvls">${MATH_LEVELS.map((L,i)=>{const n=i+1,mm=levelMastery('math',n);return `<button class="lvl ${n===st.mathLevel?'on':''}" data-act="setlvl" data-arg="${n}"><span class="le">${L.e}</span><span class="ln"><b>${n}. ${L.n}</b><small>${mathFacts(n).length} calculs · ${pct(mm)} maîtrisés</small><span class="mbar2"><i style="width:${mm*100}%"></i></span></span>${n===st.mathLevel?'<span class="cur">Actuel</span>':''}</button>`;}).join('')}</div>${tog('mathAuto','Passer seul au monde suivant','Dès que 80 % des calculs du monde sont maîtrisés')}</section>
   <section class="acard"><h3>🎮 Partie de maths</h3>
    <div class="row"><span>Questions par partie</span>${seg('nQ',[[5,'5'],[10,'10'],[15,'15'],[20,'20'],[30,'30']])}</div>
    <div class="row"><span>Façon de répondre</span>${seg('mode',[['choices','3 choix (facile)'],['keys','Clavier (calcul mental)']])}</div>
    <div class="row"><span>Objectif de vitesse ⚡</span><small class="hint">Sous ce temps : bonus, et le calcul compte pour la maîtrise.</small>${seg('target',[[10,'10 s'],[8,'8 s'],[6,'6 s'],[5,'5 s'],[4,'4 s'],[3,'3 s'],[2,'2 s']])}</div>
    <div class="row"><span>Durée du défi éclair</span>${seg('sprintSec',[[30,'30 s'],[60,'1 min'],[90,'1 min 30']])}</div>
    ${tog('aid','Aide visuelle après une erreur','Objets à compter, cases à remplir, paquets')}</section>
-  <section class="acard"><h3>📖 Lecture</h3>${tog('frOn','Activer la lecture')}${tog('frAfterMath','Débloquée après les maths du jour')}
+  <section class="acard"><h3>📖 Lecture</h3>${tog('frOn','Activer la lecture')}${tog('frAfterMath','Débloquée après les maths du jour')}${tog('frAuto','Passer seul au niveau suivant','Dès que 80 % du niveau est maîtrisé')}
    <div class="row"><span>Questions par partie</span>${seg('frNQ',[[5,'5'],[8,'8'],[10,'10'],[15,'15']])}</div>${frec}
    <div class="lvls">${FR_LEVELS.map((L,i)=>{const n=i+1,mm=levelMastery('fr',n);return `<button class="lvl ${n===st.frLevel?'on':''}" data-act="setfr" data-arg="${n}"><span class="le">${L.e}</span><span class="ln"><b>${n}. ${L.n}</b><small>${L.items.length} éléments · ${pct(mm)} maîtrisés</small><span class="mbar2"><i style="width:${mm*100}%"></i></span></span>${n===st.frLevel?'<span class="cur">Actuel</span>':''}</button>`;}).join('')}</div></section>
   <section class="acard"><h3>🎙️ Sons des lettres</h3><p class="hint">La voix de la tablette lit bien les voyelles, les syllabes et les mots, mais pas une consonne seule (elle dit « èsse » au lieu de « sss »). Enregistrez vos propres sons : ils remplacent la voix dans les exercices. Appuyez sur ●, puis dites le son tout de suite (1,5 s).</p><div class="snds">${Object.keys(PHON).map(k=>{const r=Rec.rec&&Rec.rec.k===k;return `<div class="snd ${Rec.has(k)?'has':''}"><b class="read">${k}</b><small>${PHON[k].e} ${PHON[k].ex}</small><button class="${r?'recing':''}" data-act="recsnd" data-arg="${k}" aria-label="Enregistrer">${r?'🔴':'●'}</button><button data-act="playsnd" data-arg="${k}" aria-label="Écouter">▶︎</button>${Rec.has(k)?`<button data-act="delsnd" data-arg="${k}" aria-label="Effacer">✕</button>`:''}</div>`;}).join('')}</div><p class="hint">Case verte = son enregistré (✕ pour l’effacer). Sans enregistrement, ▶︎ fait entendre la voix de la tablette.</p></section>
@@ -1903,7 +1909,7 @@ const Onb={i:0,d:{},
 
 // ---------- Démarrage ----------
 try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
-Rec.load();Pack.load();load();Voice.init();Plan.load();Confetti.init();render();Acct.init().then(()=>Offre.fromUrl());
+Rec.load();Pack.load();load();Voice.init();Plan.load();Confetti.init();render();autoUpModal(autoUp());Acct.init().then(()=>Offre.fromUrl());
 if(S.refund){const r=S.refund;S.refund=0;save();queueModal(`<div class="bigemoji sm">🛍️</div><h2>Nouvelle boutique !</h2><p>Des objets en bois, cuivre, argent, or… jusqu’au <b>Plasma</b> !</p><p>Certains anciens objets sont partis : tu récupères <b>${r} 🪙</b>.</p><button class="btn y block" data-act="mclose">Super !</button>`);}
 if(!S.welcomed){S.welcomed=true;save();queueModal(`<div class="mav">${avatarSVG(S.avatar)}</div><h2>Salut ${nm()} ! 👋</h2>${S.name?'':'<label class="fld" style="text-align:left">Comment tu t’appelles ?<input id="wname" maxlength="20" autocomplete="off" placeholder="Ton prénom"></label>'}<p>Chaque jour :<br><b>1.</b> Entraîne-toi en maths 🔢<br><b>2.</b> Fais ta lecture 📖<br><b>3.</b> Ouvre ton coffre 🎁</p><p>Gagne des pièces 🪙 pour habiller ton personnage et débloquer des surprises !</p><button class="btn g block" data-act="wstart">C’est parti ! 🚀</button>`);}
 else checkGifts().forEach(giftModal);
