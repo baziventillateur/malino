@@ -2078,6 +2078,7 @@ const Onb={i:0,d:{},
   }
 };
 
+try{if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}catch(e){}
 // ---------- Origine de l'inscription ----------
 (function(){try{if(localStorage.getItem('malino_src'))return;const q=new URLSearchParams(location.search);let r='';try{r=document.referrer?new URL(document.referrer).hostname:'';}catch(e){}
 const t=[q.get('utm_source'),q.get('utm_campaign'),q.get('code')&&('code:'+q.get('code').toUpperCase().slice(0,24)),q.has('invite')&&'invitation',q.has('cadeau')&&'cadeau',r&&r!==location.hostname&&('ref:'+r)].filter(Boolean).join(' | ');
