@@ -493,6 +493,18 @@ h1,h2,h3,h4{font-weight:700}
 .badge em{font-style:normal;font-size:11px;color:var(--ink2);font-weight:700}
 .rtag{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
 .antag{position:absolute;left:6px;bottom:4px;font-size:10px;font-weight:800;background:#fff;color:#7B5CFF;border-radius:99px;padding:1px 6px;z-index:2}
+.mini{position:relative}
+.mini.blink{animation:blinkBox 1.2s ease-in-out infinite;box-shadow:0 5px 0 #D6DAEA,0 0 0 3px #FF5FA2}
+@keyframes blinkBox{0%,100%{transform:scale(1)}50%{transform:scale(1.07) rotate(-2deg)}}
+.mini .dot{position:absolute;top:-7px;right:-7px;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:#FF3B6B;color:#fff;font-size:12px;font-style:normal;font-weight:800;display:grid;place-items:center;animation:dotblink .8s steps(2,start) infinite}
+@keyframes dotblink{to{visibility:hidden}}
+.gcard.shine{position:relative;overflow:hidden;width:100%;text-align:left;border:3px solid var(--p);animation:glowG 1.6s ease-in-out infinite}
+.gcard.shine::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.85),transparent);animation:sweep 2.4s ease-in-out infinite}
+@keyframes sweep{0%{left:-60%}60%,100%{left:120%}}
+@keyframes glowG{50%{box-shadow:0 0 0 8px rgba(255,95,162,0),0 4px 0 var(--pd)}}
+.histg{margin-top:22px;color:#9aa0b5;font-size:13px}.histg h3{font-size:13px;margin:0 0 4px;font-weight:600}
+.hrow{display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #e6e8f0;filter:grayscale(.7);opacity:.7}
+.hrow .gt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.hrow .ge{font-size:18px}.hrow small{color:#9aa0b5;font-size:11px}
 </style>
 </head>
 <body>
@@ -1393,6 +1405,7 @@ function endGame(){
 
 // ---------- Écrans ----------
 let shopSeen=1,shopAnim=false,shopBought=null;
+let pinGift=null;
 let SCR='home',shopCat='obj',shopPrev=null,adminOk=false,adminTab='reglages',pinBuf='',pinStage='enter',pinFirst='',mapLevel=0,gateAns=0;
 function go(s){SCR=s;render();window.scrollTo(0,0);}
 function keepScroll(fn){const y=window.scrollY;fn();window.scrollTo(0,y);}
@@ -1406,13 +1419,13 @@ function renderHome(){
   const sprintLocked=!t.math,frLocked=st.frAfterMath&&!t.math,best=S.stats.sprintBest[st.mathLevel]||0,reached=S.gifts.filter(g=>g.reached&&!g.given),nb=Object.keys(S.badges).length,ready=chestAvailable();
   return `<div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills"><span class="pill">🪙 ${S.coins}</span><span class="pill">🔥 ${curStreak()}</span></div></div>
   <div class="week card">${weekHTML()}</div>${Plan.banner()}
-  ${reached.length?`<div class="giftban" data-act="gifts">🎁 Tu as gagné : <b>${esc(reached[0].title)}</b> ! Montre-le à papa ou maman.</div>`:''}
+  
   <div class="mission card"><div class="mtx"><h3>Mission du jour</h3><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${st.frOn?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'🎉':'🎁'}</button></div>
   <button class="play ${!t.math?'pulse':''}" style="--c:var(--b);--d:var(--bd)" data-act="startmath"><span class="ico">🔢</span><span class="tx"><span class="t1">Maths</span><span class="t2">Monde ${st.mathLevel} · ${ml.n}</span><span class="mbar"><i style="width:${Math.round(mm*100)}%"></i></span><span class="t3">${Math.round(mm*mf)} / ${mf} calculs maîtrisés${mm>=1?' · 🏆 Monde terminé !':mm>=.8?' · Le monde suivant arrive à la fin de la partie !':''}</span></span></button>
   <button class="play ${sprintLocked?'locked':''}" style="--c:var(--o);--d:var(--od)" data-act="startsprint"><span class="ico">⚡</span><span class="tx"><span class="t1">Défi éclair</span><span class="t2">${sprintLocked?'Après ton entraînement de maths':best?`Record : ${best} calculs en ${st.sprintSec} s`:`Le plus de calculs en ${st.sprintSec} s !`}</span></span>${sprintLocked?'<span class="lock">🔒</span>':''}</button>
   ${st.frOn?`<button class="play ${frLocked?'locked':''} ${!frLocked&&!t.fr?'pulse':''}" style="--c:var(--p);--d:var(--pd)" data-act="startfr"><span class="ico">📖</span><span class="tx"><span class="t1">Lecture</span><span class="t2">${frLocked?'Après ton entraînement de maths':`Niveau ${st.frLevel} · ${fl.n}`}</span></span>${frLocked?'<span class="lock">🔒</span>':''}</button>`:''}
   ${themesHTML()}
-  <div class="minis"><button class="mini" data-act="shop"><span>🎨</span>Mon perso</button><button class="mini" data-act="badges"><span>🏆</span>Badges ${nb}/${BADGES.length}</button><button class="mini" data-act="gifts"><span>🎁</span>Cadeaux</button></div>
+  <div class="minis"><button class="mini" data-act="shop"><span>🎨</span>Mon perso</button><button class="mini" data-act="badges"><span>🏆</span>Badges ${nb}/${BADGES.length}</button><button class="mini ${S.gifts.some(g=>g.reached&&!g.given)?'blink':''}" data-act="gifts"><span>🎁</span>Cadeaux${S.gifts.some(g=>g.reached&&!g.given)?`<i class="dot">${S.gifts.filter(g=>g.reached&&!g.given).length}</i>`:''}</button></div>
   <div class="parentrow"><button class="parentbtn" data-act="parent">🔒 Espace parents</button><a class="parentbtn" href="aide.html" target="_blank" rel="noopener">💬 Aide</a>${Acct.user?'':'<button class="parentbtn" data-act="openlogin">🔑 Connexion</button>'}${Plan.pill()}<button class="parentbtn" data-act="offrir">🎁 Offrir</button></div>`;
 }
 function renderGame(){
@@ -1453,15 +1466,22 @@ function renderShop(){setTimeout(()=>{shopAnim=false;shopBought=null;},700);
   <div class="items ${shopAnim?'anim':''}">${body}</div>`;
 }
 function renderBadges(){const got=BADGES.filter(b=>S.badges[b.id]).length;return `<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>Mes badges</h2><span class="pill">${got}/${BADGES.length}</span></div>`+Object.entries(RARITY).map(([k,R])=>{const L=BADGES.filter(b=>b.r===k),g=L.filter(b=>S.badges[b.id]).length;return `<div class="rarsec"><h3 class="rarh" style="color:${R.col}">${R.n}<small>${g}/${L.length}</small></h3><div class="badges">${L.map(b=>{const ok=!!S.badges[b.id],pr=!ok&&b.p?b.p():null;return `<div class="badge r-${k} ${ok?'got':''}" style="--rc:${R.col}"><span class="be">${b.e}</span><b>${esc(b.n)}</b><small>${esc(b.d)}</small>${pr?`<span class="bp"><i style="width:${Math.round(pr[0]/pr[1]*100)}%"></i></span><em>${pr[0]}/${pr[1]}</em>`:''}</div>`;}).join('')}</div></div>`;}).join('');}
+const fdate=t=>t?new Date(t).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}):'';
+function giftGiven(id){const g=S.gifts.find(x=>x.id===id);if(g&&!g.given){g.given=true;g.givenAt=Date.now();save();}pinBuf='';pinGift=null;toast('Cadeau remis ✅');go('gifts');}
 function renderGifts(){
+  const show=S.gifts.filter(g=>!g.given),hist=S.gifts.filter(g=>g.given).sort((a,b)=>(b.givenAt||0)-(a.givenAt||0));
+  const card=g=>{const pend=!!g.reached&&!g.given,v=Math.min(giftVal(g),g.target);return pend
+    ?`<button class="gcard won shine" data-act="giftcard" data-arg="${g.id}"><span class="ge">${esc(g.emoji)}</span><div class="gt"><b>${esc(g.title)}</b><small>Gagné le ${fdate(g.reached)}</small><small><b>Touche pour le montrer 🎉</b></small></div></button>`
+    :`<div class="gcard"><span class="ge">${esc(g.emoji)}</span><div class="gt"><b>${esc(g.title)}</b><small>${giftCond(g)}</small><span class="gbar"><i style="width:${Math.round(v/g.target*100)}%"></i></span><small>${v} / ${g.target}</small></div></div>`;};
   return `<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>Mes cadeaux</h2></div><p class="lead">Papa et maman ont prévu des cadeaux. Entraîne-toi pour les gagner !</p>
-  ${S.gifts.length?S.gifts.map(g=>{const done=!!g.reached||g.given,v=Math.min(giftVal(g),g.target);return `<div class="gcard ${done?'won':''} ${g.given?'given':''}"><span class="ge">${esc(g.emoji)}</span><div class="gt"><b>${esc(g.title)}</b><small>${giftCond(g)}</small><span class="gbar"><i style="width:${done?100:Math.round(v/g.target*100)}%"></i></span><small>${g.given?'Reçu ✅':done?'Gagné ! Montre-le à papa ou maman 🎉':`${v} / ${g.target}`}</small></div></div>`;}).join(''):'<div class="empty">Pas encore de cadeau. Papa ou maman peuvent en ajouter dans l’espace parents.</div>'}`;
+  ${show.length?show.map(card).join(''):(S.gifts.length?'':'<div class="empty">Pas encore de cadeau. Papa ou maman peuvent en ajouter dans l’espace parents.</div>')}
+  ${hist.length?`<div class="histg"><h3>Déjà reçus</h3>${hist.map(g=>`<div class="hrow"><span class="ge">${esc(g.emoji)}</span><div class="gt"><b>${esc(g.title)}</b><small>Gagné le ${fdate(g.reached)} · remis le ${fdate(g.givenAt||g.reached)}</small></div></div>`).join('')}</div>`:''}`;
 }
 
 // ---------- Espace parents ----------
 function renderPin(){
   const creating=!S.pin,title=creating?(pinStage==='confirm'?'Confirmez le code':'Créez un code parent'):'Code parent';
-  return `<div class="pinscr"><button class="xbtn" data-act="home" aria-label="Retour">←</button><div class="card pincard"><div class="bigemoji sm">🔒</div><h2>${title}</h2><p>${creating?'4 chiffres, pour que seuls les parents changent les réglages.':'Espace réservé aux parents.'}</p><div class="pindots">${[0,1,2,3].map(i=>`<i class="${i<pinBuf.length?'on':''}"></i>`).join('')}</div>${keypadHTML('pin')}${S.pin?'<button class="link" data-act="pinforgot">Code oublié ?</button>':''}</div></div>`;
+  return `<div class="pinscr"><button class="xbtn" data-act="home" aria-label="Retour">←</button><div class="card pincard"><div class="bigemoji sm">🔒</div><h2>${title}</h2><p>${creating?'4 chiffres, pour que seuls les parents changent les réglages.':(pinGift?'Papa ou maman : entrez le code pour valider que le cadeau est remis.':'Espace réservé aux parents.')}</p><div class="pindots">${[0,1,2,3].map(i=>`<i class="${i<pinBuf.length?'on':''}"></i>`).join('')}</div>${keypadHTML('pin')}${S.pin?'<button class="link" data-act="pinforgot">Code oublié ?</button>':''}</div></div>`;
 }
 function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class="${S.settings[k]==v?'on':''}" data-act="set" data-arg="${k}|${v}">${l}</button>`).join('')}</div>`;}
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
@@ -1560,7 +1580,9 @@ const ACT={
   setth(a){const [k,n]=a.split('|');if(+n>Plan.thMax(k))return Offre.open('theme');S.settings.lv[k]=+n;save();toast(`${THEMES[k].n} : niveau ${n}`);keepScroll(render);},
   togth(k){S.settings.thOn[k]=!S.settings.thOn[k];save();keepScroll(render);},
   shop(){shopPrev=null;shopSeen=S.shopSeen||1;S.shopSeen=levelInfo(S.xp).level;save();shopAnim=true;go('shop');},badges(){go('badges');},gifts(){go('gifts');},
-  parent(){pinBuf='';pinStage='enter';go(adminOk?'admin':'pin');},
+  giftcard(id){const g=S.gifts.find(x=>x.id===id);if(!g)return;queueModal(`<div class="bigemoji">${esc(g.emoji)}</div><h2>${esc(g.title)}</h2><p><b>Présente-la à papa et maman</b></p><p class="small mut">Gagné le ${fdate(g.reached)}</p><div class="stack"><button class="btn p block" data-act="giftpin" data-arg="${g.id}">Papa ou maman : valider</button><button class="btn w block" data-act="mclose">Plus tard</button></div>`);},
+  giftpin(id){closeAllModals();pinGift=id;pinBuf='';pinStage='enter';go('pin');},
+  parent(){pinBuf='';pinGift=null;pinStage='enter';go(adminOk?'admin':'pin');},
   key(a){if(!G||!G.cur||G.cur.done||G.cur.q.type!=='math')return;
     if(a==='del')G.input=G.input.slice(0,-1);
     else if(a==='ok'){if(G.input!=='')submit(parseInt(G.input,10));return;}
@@ -1618,7 +1640,7 @@ const ACT={
         if(pinStage==='enter'){pinFirst=pinBuf;pinStage='confirm';pinBuf='';render();}
         else if(pinBuf===pinFirst){S.pin=pinBuf;save();adminOk=true;pinBuf='';pinStage='enter';adminTab='reglages';go('admin');toast('Code enregistré ✅');}
         else{pinStage='enter';pinBuf='';render();toast('Les deux codes sont différents, recommencez');}
-      }else if(pinBuf===S.pin){adminOk=true;pinBuf='';go('admin');}
+      }else if(pinBuf===S.pin){if(pinGift){giftGiven(pinGift);return;}adminOk=true;pinBuf='';go('admin');}
       else{pinBuf='';render();toast('Code incorrect');}
     },150);
   },
@@ -1634,7 +1656,7 @@ const ACT={
   changepin(){S.pin=null;save();pinStage='enter';pinBuf='';adminOk=false;go('pin');},
   maplvl(n){mapLevel=+n;keepScroll(render);},
   giftadd(){const e=$('#gEmoji').value.trim()||'🎁',t=$('#gTitle').value.trim(),ty=$('#gType').value,n=parseInt($('#gTarget').value,10);if(!t||!n||n<1)return toast('Indiquez un cadeau et un nombre à atteindre');S.gifts.push({id:'g'+Date.now(),emoji:e,title:t,type:ty,target:ty==='tdays'?Math.min(7,n):n,reached:null,given:false});save();toast('Cadeau ajouté 🎁');keepScroll(render);},
-  giftgiven(id){const g=S.gifts.find(x=>x.id===id);if(g){g.given=true;save();}keepScroll(render);},
+  giftgiven(id){const g=S.gifts.find(x=>x.id===id);if(g){g.given=true;g.givenAt=Date.now();save();}keepScroll(render);},
   giftdel(id){S.gifts=S.gifts.filter(x=>x.id!==id);save();keepScroll(render);},
   bonus(n){S.coins+=+n;save();toast(`+${n} 🪙 pour ${S.name||'votre enfant'}`);},
   export(){const blob=new Blob([JSON.stringify(S)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`supercerveau-${(S.name||'sauvegarde').replace(/[^\w-]/g,'')}-${dayKey()}.json`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},600);},
@@ -2038,6 +2060,19 @@ Rec.load();Pack.load();load();Voice.init();Plan.load();Confetti.init();TimeT.ini
 if(S.refund){const r=S.refund;S.refund=0;save();queueModal(`<div class="bigemoji sm">🛍️</div><h2>Nouvelle boutique !</h2><p>Des objets en bois, cuivre, argent, or… jusqu’au <b>Plasma</b> !</p><p>Certains anciens objets sont partis : tu récupères <b>${r} 🪙</b>.</p><button class="btn y block" data-act="mclose">Super !</button>`);}
 if(!S.welcomed){S.welcomed=true;save();queueModal(`<div class="mav">${avatarSVG(S.avatar)}</div><h2>Salut ${nm()} ! 👋</h2>${S.name?'':'<label class="fld" style="text-align:left">Comment tu t’appelles ?<input id="wname" maxlength="20" autocomplete="off" placeholder="Ton prénom"></label>'}<p>Chaque jour :<br><b>1.</b> Entraîne-toi en maths 🔢<br><b>2.</b> Fais ta lecture 📖<br><b>3.</b> Ouvre ton coffre 🎁</p><p>Gagne des pièces 🪙 pour habiller ton personnage et débloquer des surprises !</p><button class="btn g block" data-act="wstart">C’est parti ! 🚀</button>`);}
 else checkGifts().forEach(giftModal);
+</script>
+<script>
+// Plein écran au premier toucher : Chrome Android masque alors sa barre du haut (retour possible via les réglages du navigateur)
+(function(){
+  var standalone=matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches||navigator.standalone;
+  if(standalone)return;
+  function go(){
+    var el=document.documentElement;
+    if(document.fullscreenElement||!el.requestFullscreen)return;
+    el.requestFullscreen({navigationUI:'hide'}).catch(function(){});
+  }
+  document.addEventListener('pointerdown',go,{once:true,passive:true});
+})();
 </script>
 </body>
 </html>
