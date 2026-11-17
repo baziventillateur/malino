@@ -839,7 +839,14 @@ const EXTRA_RETIRED={};
    T('sh_robot','Armure de robot',12000,12,'epique','robot',true),
    T('sh_dragon','Armure de dragon',28000,15,'diamant','dragon',true));
   CATALOG.forEach(i=>{if(['sh_galaxie','sh_cristal','sh_plasma','cape_cristal','cape_plasma','hat_plasma','hat_astronaute','o_sabre_e','o_sabre_p','o_epee_p','o_epee_d','o_baguette_d','o_trophee_d','o_marteau_e'].includes(i.id))i.an=true;});})();
-const fmtP=n=>Number(n).toLocaleString('fr-FR');
+// 1 234 -> 1,2K ; 15 400 -> 15K ; 1 250 000 -> 1,3M
+const fmtP=n=>{n=Math.round(Number(n)||0);const sg=n<0?'-':'';n=Math.abs(n);if(n<1000)return sg+n;
+  const f=(v,u)=>sg+(v<100?(Math.round(v*10)/10).toString().replace('.',','):Math.round(v))+u;
+  if(n<1e6){const v=n/1e3;return v>=999.5?f(1,'M').replace('1M','1M'):f(v,'K');}
+  if(n<1e9)return f(n/1e6,'M');return f(n/1e9,'Md');};
+// récompenses qui grandissent avec le niveau (x1 au niveau 1, x3 niveau 13, x15 niveau 30)
+const cmul=()=>Math.pow(1.1,levelInfo(S.xp).level-1);
+const cc=n=>n?Math.max(1,Math.round(n*cmul())):0;
 const ITEM=Object.fromEntries(CATALOG.map(i=>[i.id,i]));
 const CATN={skin:'Peau',hair:'Coiffure',hairColor:'Couleur des cheveux',eyes:'Yeux',glasses:'Lunettes',shirt:'T-shirts',cape:'Capes',hat:'Chapeaux',bg:'Fonds',pet:'Animaux',obj:'Objets'};
 const TABS=[['obj','Objets','⚔️',['obj']],['pet','Animaux','🦁',['pet']],['hat','Chapeaux','🎩',['hat']],['tenue','Tenues','👕',['shirt','cape']],['moi','Moi','🙂',['skin','hair','hairColor','eyes','glasses']]];
@@ -1084,7 +1091,7 @@ function dropItem(minP,maxP,force){
   if(!force&&S.lastDrop&&Date.now()-S.lastDrop<3*864e5)return null;
   const L=levelInfo(S.xp).level,c=CATALOG.filter(i=>i.price>=minP&&i.price<=maxP&&i.lvl<=L&&!S.owned.includes(i.id)&&!isPlusItem(i)&&i.cat!=='bg');
   if(!c.length)return null;const i=pick(c);S.owned.push(i.id);S.lastDrop=Date.now();return i;}
-function checkBadges(sess){const out=[];BADGES.forEach(b=>{if(S.badges[b.id])return;let ok=false;try{ok=b.t(sess);}catch(e){}if(ok){S.badges[b.id]=Date.now();S.coins+=REWARD[b.r]||10;let bb=b;if(b.r==='l'||b.r==='e'){const d=dropItem(b.r==='l'?3000:600,b.r==='l'?30000:6000,true);if(d)bb=Object.assign({},b,{drop:d});}out.push(bb);}});if(out.length)save();return out;}
+function checkBadges(sess){const out=[];BADGES.forEach(b=>{if(S.badges[b.id])return;let ok=false;try{ok=b.t(sess);}catch(e){}if(ok){S.badges[b.id]=Date.now();S.coins+=cc(REWARD[b.r]||10);let bb=b;if(b.r==='l'||b.r==='e'){const d=dropItem(b.r==='l'?3000:600,b.r==='l'?30000:6000,true);if(d)bb=Object.assign({},b,{drop:d});}out.push(bb);}});if(out.length)save();return out;}
 
 // ---------- Cadeaux des parents ----------
 const GIFT_TYPES={streak:'jours d’affilée',level:'niveau à atteindre',days:'jours d’entraînement au total',ok:'bonnes réponses au total',tdays:'jours dans la semaine avec 10 min de jeu (7 max)',tweek:'minutes de jeu dans la semaine',tfr:'minutes de lecture au total',ttot:'minutes de jeu au total'};
@@ -1221,7 +1228,7 @@ function levelUpModal(from,to){
   queueModal(`<div class="bigemoji">⭐</div><h2>Niveau ${to} !</h2><div class="mav">${avatarSVG(S.avatar)}</div>${dr?`<p>🎁 Objet offert : <b>${esc(dr.name)}</b></p><div class="mav">${thumb(dr)}</div>`:''}${un.length?`<p>Nouveaux objets dans ta boutique :</p><div class="unl">${un.slice(0,6).map(i=>`<span class="ui"><span class="ith">${thumb(i)}</span>${esc(i.name)}</span>`).join('')}</div>`:'<p>Continue comme ça !</p>'}<button class="btn y block" data-act="mclose">Super ! 🎉</button>`,
    ()=>{Sound.play(to%5===0?'epic':'level');Confetti.burst(160);if(S.settings.voice)Voice.say(`Bravo ! Tu passes au niveau ${to} !`);});
 }
-function badgeModal(b){const R=RARITY[b.r]||RARITY.c,big=b.r==='e'||b.r==='l';queueModal(`<div class="bigemoji">${b.e}</div><div class="rtag" style="color:${R.col}">${R.n}</div><h2>${big?'Badge exceptionnel !':'Nouveau badge !'}</h2><p><b>${esc(b.n)}</b><br>${esc(b.d)}</p><div class="gainline">+${REWARD[b.r]||10} 🪙</div>${b.drop?`<p>Et un objet offert : <b>${esc(b.drop.name)}</b> !</p><div class="mav">${thumb(b.drop)}</div>`:''}<button class="btn y block" data-act="mclose">Trop bien !</button>`,()=>{Sound.play(big?'epic':'badge');Confetti.burst(b.r==='l'?260:b.r==='e'?160:b.r==='r'?90:60);});}
+function badgeModal(b){const R=RARITY[b.r]||RARITY.c,big=b.r==='e'||b.r==='l';queueModal(`<div class="bigemoji">${b.e}</div><div class="rtag" style="color:${R.col}">${R.n}</div><h2>${big?'Badge exceptionnel !':'Nouveau badge !'}</h2><p><b>${esc(b.n)}</b><br>${esc(b.d)}</p><div class="gainline">+${fmtP(cc(REWARD[b.r]||10))} 🪙</div>${b.drop?`<p>Et un objet offert : <b>${esc(b.drop.name)}</b> !</p><div class="mav">${thumb(b.drop)}</div>`:''}<button class="btn y block" data-act="mclose">Trop bien !</button>`,()=>{Sound.play(big?'epic':'badge');Confetti.burst(b.r==='l'?260:b.r==='e'?160:b.r==='r'?90:60);});}
 function giftModal(g){queueModal(`<div class="bigemoji">${esc(g.emoji)}</div><h2>Cadeau gagné !</h2><p><b>${esc(g.title)}</b><br>Montre cet écran à papa ou maman 😊</p><button class="btn p block" data-act="mclose">Youpi !</button>`,()=>{Sound.play('level');Confetti.burst(140);if(S.settings.voice)Voice.say('Tu as gagné un cadeau : '+g.title);});}
 
 // ---------- Aide visuelle après une erreur ----------
@@ -1306,7 +1313,7 @@ function drawQ(){
     later(()=>{const w=$('#flashw');if(w)w.innerHTML='<span class="word gone">❓</span>';ans.classList.remove('veil');if(G.cur)G.cur.start=performance.now();},ms);
   }
 }
-function updateHud(){const c=$('#combo');if(c)c.textContent=G.combo>=2?`🔥 x${G.combo}`:'';const ss=$('#sscore');if(ss)ss.textContent=G.mode==='sprint'?`✅ ${G.score}`:`🪙 ${G.coins}`;}
+function updateHud(){const c=$('#combo');if(c)c.textContent=G.combo>=2?`🔥 x${G.combo}`:'';const ss=$('#sscore');if(ss)ss.textContent=G.mode==='sprint'?`✅ ${G.score}`:`🪙 ${fmtP(G.coins)}`;}
 function markAnswer(val,ok){
   const q=G.cur.q;
   if(q.type==='math'){const s=$('#slot');if(s){s.textContent=val;s.className='slot '+(ok?'ok':'ko');}$$('.choice').forEach(b=>{if(b.dataset.arg===String(val))b.classList.add(ok?'ok':'ko');});}
@@ -1331,11 +1338,11 @@ function submit(val){
   G.n++;S.stats.n++;if(kind==='main'){G.mainN++;if(ok)G.okFirst++;}
   if(ok){
     S.stats.ok++;S.stats.ms+=ms;G.times.push(ms);G.combo++;G.bestCombo=Math.max(G.bestCombo,G.combo);
-    let xp=10,coins=0;if(fast){xp+=5;coins+=1;if(kind==='main')G.fast++;}
+    let xp=10,coins=0;if(fast){xp+=5;coins+=cc(1);if(kind==='main')G.fast++;}
     G.xp+=xp;G.coins+=coins;
     Sound.play(fast?'fast':'good');praise(fast?'⚡ Rapide !':pick(PRAISE));
-    floatText(`+${coins} 🪙`,$('#sscore'));bounceAv();
-    if(G.combo%5===0){G.xp+=10;G.coins+=2;later(()=>{Sound.play(G.combo>=15?'combo3':G.combo>=10?'combo2':'combo');praise(`🔥 Combo x${G.combo} !`,'combo');},380);}
+    floatText(`+${fmtP(coins)} 🪙`,$('#sscore'));bounceAv();
+    if(G.combo%5===0){G.xp+=10;G.coins+=cc(2);later(()=>{Sound.play(G.combo>=15?'combo3':G.combo>=10?'combo2':'combo');praise(`🔥 Combo x${G.combo} !`,'combo');},380);}
     updateHud();
     reinforce(c.q);
     G.idx++;later(nextQ,c.q.afterDelay||(c.q.afterSay?1000:fast?600:800));
@@ -1373,7 +1380,7 @@ function sprintCountdown(){
 function sprintTick(){if(!G||G.ended)return;const left=Math.max(0,Math.ceil((G.endAt-Date.now())/1000)),el=$('#clock');if(el){el.textContent='⏱ '+left;el.classList.toggle('hurry',left<=10);}if(left<=0){clearInterval(G.clock);if(G.cur)G.cur.done=true;endGame();}}
 function sprintAnswer(ok,ms,fast,c){
   recordStat(S.facts,c.q.key,ok,ms,fast);S.stats.n++;
-  if(ok){S.stats.ok++;S.stats.ms+=ms;G.score++;G.times.push(ms);G.combo++;G.bestCombo=Math.max(G.bestCombo,G.combo);G.xp+=5;G.coins+=1;Sound.play(fast?'fast':'good');updateHud();if(G.combo%5===0)praise(`🔥 x${G.combo}`,'combo');later(nextQ,260);}
+  if(ok){S.stats.ok++;S.stats.ms+=ms;G.score++;G.times.push(ms);G.combo++;G.bestCombo=Math.max(G.bestCombo,G.combo);G.xp+=5;G.coins+=cc(1);Sound.play(fast?'fast':'good');updateHud();if(G.combo%5===0)praise(`🔥 x${G.combo}`,'combo');later(nextQ,260);}
   else{G.combo=0;G.wrong++;Sound.play('bad');updateHud();later(()=>{const s=$('#slot');if(s){s.textContent=c.q.ans;s.className='slot ok';}},380);later(nextQ,1150);}
 }
 function endGame(){
@@ -1382,11 +1389,11 @@ function endGame(){
   const before=levelInfo(S.xp).level;let sess;
   if(G.mode==='sprint'){
     const lv=S.settings.mathLevel,best=S.stats.sprintBest[lv]||0;G.prevBest=best;G.record=G.score>best;
-    if(G.record){S.stats.sprintBest[lv]=G.score;G.coins+=8;G.xp+=20;}
+    if(G.record){S.stats.sprintBest[lv]=G.score;G.coins+=cc(8);G.xp+=20;}
     sess={t:Date.now(),d:day,type:'sprint',lvl:lv,score:G.score,sec:S.settings.sprintSec,wrong:G.wrong,avgMs,xp:G.xp,coins:G.coins,dur:S.settings.sprintSec};
   }else{
     const acc=G.mainN?G.okFirst/G.mainN:0;G.stars=acc>=.9?3:acc>=.7?2:1;
-    G.xp+=20;G.coins+=[0,5,10,20][G.stars];
+    G.xp+=20;G.coins+=cc([0,5,10,20][G.stars]);
     const prev=S.sessions.slice().reverse().find(s=>s.type===G.sub&&s.avgMs);G.prevAvg=prev?prev.avgMs:0;
     sess={t:Date.now(),d:day,type:G.sub,lvl:G.sub==='math'?S.settings.mathLevel:subLevel(G.sub),n:G.mainN,ok:G.okFirst,avgMs,fast:G.fast,combo:G.bestCombo,stars:G.stars,xp:G.xp,coins:G.coins,dur};
     if(G.sub==='fr')sess.flash=S.frFlashMs;
@@ -1417,7 +1424,7 @@ function weekHTML(){const now=new Date(),dow=(now.getDay()+6)%7,mon=addDays(now,
 function renderHome(){
   const li=levelInfo(S.xp),st=S.settings,t=today(),ml=MATH_LEVELS[st.mathLevel-1],mm=levelMastery('math',st.mathLevel),mf=mathFacts(st.mathLevel).length,fl=FR_LEVELS[st.frLevel-1];
   const sprintLocked=!t.math,frLocked=st.frAfterMath&&!t.math,best=S.stats.sprintBest[st.mathLevel]||0,reached=S.gifts.filter(g=>g.reached&&!g.given),nb=Object.keys(S.badges).length,ready=chestAvailable();
-  return `<div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills"><span class="pill">🪙 ${S.coins}</span><span class="pill">🔥 ${curStreak()}</span></div></div>
+  return `<div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills"><span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span></div></div>
   <div class="week card">${weekHTML()}</div>${Plan.banner()}
   
   <div class="mission card"><div class="mtx"><h3>Mission du jour</h3><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${st.frOn?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'🎉':'🎁'}</button></div>
@@ -1435,7 +1442,7 @@ function renderGame(){
 }
 function renderResult(){
   const s=G.sess;
-  if(s.type==='sprint')return `<div class="result"><div class="bigemoji">⚡</div><h1>Défi éclair terminé !</h1><div class="bigscore">${s.score}</div><div class="rsub">calculs justes en ${s.sec} secondes</div>${G.record&&s.score?'<div class="newrec">🏆 Nouveau record !</div>':G.prevBest?`<div class="cmp">Ton record : ${G.prevBest} calculs</div>`:''}<div class="rgrid"><div class="rtile"><b>${s.wrong}</b><span>erreurs</span></div><div class="rtile"><b>${s.avgMs?sec(s.avgMs):'–'}</b><span>par calcul</span></div></div><div class="gains"><span>+${s.xp} XP</span><span>+${s.coins} 🪙</span></div><div class="stack"><button class="btn o block" data-act="startsprint">Rejouer ⚡</button><button class="btn g block" data-act="home">Accueil 🏠</button></div></div>`;
+  if(s.type==='sprint')return `<div class="result"><div class="bigemoji">⚡</div><h1>Défi éclair terminé !</h1><div class="bigscore">${s.score}</div><div class="rsub">calculs justes en ${s.sec} secondes</div>${G.record&&s.score?'<div class="newrec">🏆 Nouveau record !</div>':G.prevBest?`<div class="cmp">Ton record : ${G.prevBest} calculs</div>`:''}<div class="rgrid"><div class="rtile"><b>${s.wrong}</b><span>erreurs</span></div><div class="rtile"><b>${s.avgMs?sec(s.avgMs):'–'}</b><span>par calcul</span></div></div><div class="gains"><span>+${s.xp} XP</span><span>+${fmtP(s.coins)} 🪙</span></div><div class="stack"><button class="btn o block" data-act="startsprint">Rejouer ⚡</button><button class="btn g block" data-act="home">Accueil 🏠</button></div></div>`;
   const t=today();let cmp='';
   if(G.prevAvg&&s.avgMs){const d=G.prevAvg-s.avgMs;cmp=d>150?`🚀 Plus rapide que la dernière fois !<br><small>${sec(G.prevAvg)} → ${sec(s.avgMs)} par réponse</small>`:d<-300?`🐢 Un peu plus lent que la dernière fois<br><small>${sec(G.prevAvg)} → ${sec(s.avgMs)} — on s’entraîne et ça va accélérer !</small>`:`⚖️ Même vitesse que la dernière fois<br><small>${sec(s.avgMs)} par réponse</small>`;}
   const title=s.stars===3?`Parfait ${nm()} !`:s.stars===2?`Bravo ${nm()} !`:`Bien joué ${nm()} !`;
@@ -1443,7 +1450,7 @@ function renderResult(){
   return `<div class="result"><div class="stars">${[1,2,3].map(i=>`<span class="st ${i<=s.stars?'on':''}" style="animation-delay:${i*.25}s">⭐</span>`).join('')}</div><h1>${title}</h1>
   <div class="rgrid"><div class="rtile"><b>${s.ok}/${s.n}</b><span>du premier coup</span></div><div class="rtile"><b>⚡ ${s.fast}</b><span>réponses rapides</span></div><div class="rtile"><b>${s.avgMs?sec(s.avgMs):'–'}</b><span>temps moyen</span></div><div class="rtile"><b>🔥 ${s.combo}</b><span>meilleur combo</span></div></div>
   ${cmp?`<div class="cmp">${cmp}</div>`:''}${chestAvailable()?'<div class="cmp">🎁 Mission du jour terminée ! Ton coffre t’attend à l’accueil.</div>':''}
-  <div class="gains"><span>+${s.xp} XP</span><span>+${s.coins} 🪙</span></div><div class="stack">${next}</div></div>`;
+  <div class="gains"><span>+${s.xp} XP</span><span>+${fmtP(s.coins)} 🪙</span></div><div class="stack">${next}</div></div>`;
 }
 function renderShop(){setTimeout(()=>{shopAnim=false;shopBought=null;},700);
   const L=levelInfo(S.xp).level,pv=shopPrev?ITEM[shopPrev]:null,av=pv?Object.assign({},S.avatar,{[pv.cat]:pv.id}):S.avatar;
@@ -1459,7 +1466,7 @@ function renderShop(){setTimeout(()=>{shopAnim=false;shopBought=null;},700);
     return `<button class="item ${i.r?'r-'+i.r:''} ${eq?'eq':''} ${lk?'locked':''} ${af?'afford':''} ${shopPrev===i.id?'sel':''} ${shopBought===i.id?'justbought':''}" style="--i:${n++}" data-act="${lk?'itemlk':'item'}" data-arg="${i.id}">${i.r?`<span class="rchip">${RAR[i.r].n}</span>`:''}${i.an?'<span class="antag">✨ Animé</span>':''}${nw?'<span class="newtag">NOUVEAU</span>':''}<span class="ith">${thumb(i)}</span>${lk?'<span class="lockov">🔒</span>':''}<span class="iname">${lk?'???':esc(i.name)}</span><span class="iprice">${eq?'✅ Porté':own?'À toi':lvlk?`Niveau ${i.lvl}`:pl?'👑 Malino+':`${fmtP(i.price)} 🪙`}</span></button>`;};
   const sorted=c=>CATALOG.filter(i=>i.cat===c).sort((a,b)=>(RORD.indexOf(a.r)-RORD.indexOf(b.r))||(a.lvl-b.lvl)||(a.price-b.price));
   const body=tab[3].length>1?tab[3].map(c=>`<div class="shsec">${CATN[c]}</div>${sorted(c).map(card).join('')}`).join(''):sorted(tab[3][0]).map(card).join('');
-  return `<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>Mon perso</h2><span class="pill">🪙 ${S.coins}</span></div>
+  return `<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>Mon perso</h2><span class="pill">🪙 ${fmtP(S.coins)}</span></div>
   <div class="bigav ${pv?'trying':''}">${avatarSVG(av)}</div>${bar}
   <div class="cats">${TABS.map(([c,n,e])=>`<button class="cat ${c===tab[0]?'on':''}" data-act="cat" data-arg="${c}"><span>${e}</span>${n}</button>`).join('')}</div>
   <div class="rlegend">${RORD.map(r=>`<span class="rtag t-${r}">${RAR[r].n}</span>`).join('<i>›</i>')}</div>
@@ -1622,10 +1629,10 @@ const ACT={
   chestopen(){
     if(!chestAvailable())return;const d=dayKey();S.days[d].chest=true;S.stats.chests=(S.stats.chests||0)+1;
     const wk=dayKey(addDays(new Date(),-((new Date().getDay()+6)%7))),gold=Plan.plus()&&S.goldW!==wk;if(gold)S.goldW=wk;
-    const stk=curStreak(),coins=(rand(8,18)+Math.min(14,stk*2))*(gold?3:1);let item=null;
+    const stk=curStreak(),coins=cc((rand(8,18)+Math.min(14,stk*2))*(gold?3:1));let item=null;
     if(gold||(stk>0&&stk%14===0)||Math.random()<.07)item=dropItem(gold?400:60,gold?2500:700,gold||stk%14===0);
     S.coins+=coins;save();Sound.play(gold?'epic':'chest');Confetti.burst(160);
-    $('#modal .mbox').innerHTML=`<div class="bigemoji">${gold?'👑':'✨'}</div>${gold?'<p><b>Coffre doré de la semaine !</b></p>':''}<h2>+${coins} 🪙</h2>${stk>1?`<p>Bonus de série : 🔥 ${stk} jours !</p>`:''}${item?`<p>Et un objet surprise : <b>${esc(item.name)}</b> !</p><div class="mav">${thumb(item)}</div><div class="stack"><button class="btn p block" data-act="equipgift" data-arg="${item.id}">Le mettre tout de suite</button><button class="btn y block" data-act="mclose">Super !</button></div>`:'<button class="btn y block" data-act="mclose">Super !</button>'}`;
+    $('#modal .mbox').innerHTML=`<div class="bigemoji">${gold?'👑':'✨'}</div>${gold?'<p><b>Coffre doré de la semaine !</b></p>':''}<h2>+${fmtP(coins)} 🪙</h2>${stk>1?`<p>Bonus de série : 🔥 ${stk} jours !</p>`:''}${item?`<p>Et un objet surprise : <b>${esc(item.name)}</b> !</p><div class="mav">${thumb(item)}</div><div class="stack"><button class="btn p block" data-act="equipgift" data-arg="${item.id}">Le mettre tout de suite</button><button class="btn y block" data-act="mclose">Super !</button></div>`:'<button class="btn y block" data-act="mclose">Super !</button>'}`;
     if(S.settings.voice)Voice.say(`Tu gagnes ${coins} pièces !`);
     checkBadges(null).forEach(badgeModal);if(SCR==='home')render();
   },
@@ -2072,7 +2079,7 @@ const Onb={i:0,d:{},
 // ---------- Démarrage ----------
 try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
 Rec.load();Pack.load();load();Voice.init();Plan.load();Confetti.init();TimeT.init();render();autoUpModal(autoUp());Acct.init().then(()=>Offre.fromUrl());
-if(S.refund){const r=S.refund;S.refund=0;save();queueModal(`<div class="bigemoji sm">🛍️</div><h2>Nouvelle boutique !</h2><p>Des objets en bois, cuivre, argent, or… jusqu’au <b>Plasma</b> !</p><p>Certains anciens objets sont partis : tu récupères <b>${r} 🪙</b>.</p><button class="btn y block" data-act="mclose">Super !</button>`);}
+if(S.refund){const r=S.refund;S.refund=0;save();queueModal(`<div class="bigemoji sm">🛍️</div><h2>Nouvelle boutique !</h2><p>Des objets en bois, cuivre, argent, or… jusqu’au <b>Plasma</b> !</p><p>Certains anciens objets sont partis : tu récupères <b>${fmtP(r)} 🪙</b>.</p><button class="btn y block" data-act="mclose">Super !</button>`);}
 if(!S.welcomed){S.welcomed=true;save();queueModal(`<div class="mav">${avatarSVG(S.avatar)}</div><h2>Salut ${nm()} ! 👋</h2>${S.name?'':'<label class="fld" style="text-align:left">Comment tu t’appelles ?<input id="wname" maxlength="20" autocomplete="off" placeholder="Ton prénom"></label>'}<p>Chaque jour :<br><b>1.</b> Entraîne-toi en maths 🔢<br><b>2.</b> Fais ta lecture 📖<br><b>3.</b> Ouvre ton coffre 🎁</p><p>Gagne des pièces 🪙 pour habiller ton personnage et débloquer des surprises !</p><button class="btn g block" data-act="wstart">C’est parti ! 🚀</button>`);}
 else checkGifts().forEach(giftModal);
 </script>
