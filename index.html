@@ -1902,6 +1902,7 @@ const Plan={info:null,
     const {data,error}=await Acct.sb.rpc('mon_compte');if(error||!data)return null;
     const before=this.kind();this.set(data);
     if(data.prenom){Offre.gp=Offre.gp||data.prenom;Offre.ip=Offre.ip||data.prenom;}
+    try{const k='malino_src_sent_'+Acct.user.id;if(!localStorage.getItem(k))Acct.sb.rpc('maj_source',{p_source:localStorage.getItem('malino_src')||'direct'}).then(r=>{if(!r.error)localStorage.setItem(k,'1');});}catch(e){}
     if(Onb.should()&&SCR!=='game')setTimeout(()=>{if(Onb.should())Onb.start();},500);
     if(data.cadeaux>0&&!quiet)queueModal(`<div class="bigemoji sm">🎁</div><h2>Cadeau activé !</h2><p>Malino+ est débloqué jusqu’au <b>${fmtDate(data.plus_jusqua)}</b>.</p><button class="btn g block" data-act="mclose">Génial ! 🎉</button>`,()=>Confetti.burst(140));
     if(before!==this.kind()&&SCR!=='game')render();
@@ -2036,7 +2037,7 @@ const Onb={i:0,d:{},
         <p>${k==='plus'?`Tout est débloqué${pi.plus_jusqua?` jusqu’au <b>${fmtDate(pi.plus_jusqua)}</b>`:''}.`:`Jusqu’au <b>${fin}</b>, profitez de presque tout, sans carte bancaire.`}</p>
         <div class="ocmp"><div><b>Toujours gratuit</b><span>✅ Maths et lecture</span><span>✅ Monnaie et Logique</span><span>✅ Récompenses</span></div><div class="p"><b>👑 Malino+</b><span>🎲 Tous les jeux et niveaux</span><span>👨‍👩‍👧 Jusqu’à 4 enfants</span><span>📊 Suivi détaillé</span><span>💎 Objets Plasma</span></div></div>
         ${k!=='plus'?'<p class="otip">👥 Invitez 2 amis : <b>+7 jours</b> pour chaque ami inscrit. Ensuite : 2,50 €/mois avec l’offre annuelle.</p>':''}`
-    ];
+    ].slice(0,2);
   },
   draw(){
     const st=this.steps(),n=st.length,i=this.i,el=$('#onb');
@@ -2073,9 +2074,14 @@ const Onb={i:0,d:{},
     if(Acct.sb)Acct.sb.rpc('maj_parent',{p_prenom:d.prenom||'',p_onb:true}).then(()=>{});
     if(Acct.push)Acct.push();
     go('home');
+    if(!S.sessions.length)setTimeout(()=>{try{startGame('math','train');}catch(e){}},350);
   }
 };
 
+// ---------- Origine de l'inscription ----------
+(function(){try{if(localStorage.getItem('malino_src'))return;const q=new URLSearchParams(location.search);let r='';try{r=document.referrer?new URL(document.referrer).hostname:'';}catch(e){}
+const t=[q.get('utm_source'),q.get('utm_campaign'),q.get('code')&&('code:'+q.get('code').toUpperCase().slice(0,24)),q.has('invite')&&'invitation',q.has('cadeau')&&'cadeau',r&&r!==location.hostname&&('ref:'+r)].filter(Boolean).join(' | ');
+localStorage.setItem('malino_src',(t||'direct').slice(0,120));}catch(e){}})();
 // ---------- Démarrage ----------
 try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
 Rec.load();Pack.load();load();Voice.init();Plan.load();Confetti.init();TimeT.init();render();autoUpModal(autoUp());Acct.init().then(()=>Offre.fromUrl());
