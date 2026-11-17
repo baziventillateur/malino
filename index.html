@@ -1007,12 +1007,13 @@ const Sound={ctx:null,buf:{},loaded:false,last:{},
     this.shared=[];
     fetch('bruitages/index.json').then(r=>r.ok?r.json():[]).then(l=>add(l,'bruitages/')).catch(()=>{}).then(()=>fetch(SB_URL+'/rest/v1/bruitages?select=f,n,c',{headers:{apikey:SB_KEY}})).then(r=>r&&r.ok?r.json():[]).then(l=>add(l.map(p=>Object.assign({},p,{db:1})),SB_URL+'/storage/v1/object/public/bruitages/')).catch(()=>{});},
   play(n){if(!S||!S.settings.sound||S.settings.sndMode==='off')return;this.unlock();if(!this.ctx)return;
+    if(n==='badge'){[392,523,659,784].forEach((f,i)=>this.tone(f,i*.1,.32,'sine',.07));return;}
     if(n==='good'||n==='fast'){const c=n==='fast'?this.custom('fast'):[];if(c.length&&Math.random()<.3){let k=pick(c),z=0;while(c.length>1&&k===this.last.fast&&z++<20)k=pick(c);this.last.fast=k;if(this.sample(k,0,.55,SMAX.fast))return;}this.soft(n);return;}
     if((n==='combo2'||n==='combo3'||n==='epic')&&!this.custom(n).length)n=n==='epic'?'level':'combo';
-    if(n==='chest'){if(this.sample('unlock')){this.sample('reward',.35);return;}}
+    if(n==='chest'){if(this.sample('unlock',0,.45)){this.sample('reward',.35,.35);return;}}
     else{const md=S.settings.sndMode,cust=this.custom(n);let base=(SVAR[n]||[n]).filter(k=>this.buf[k]);if(md==='classic')base=base.slice(0,1);
       const pool=!cust.length?base:(n==='bad'||n==='fast')?(Math.random()<.4||!base.length?cust:base):base.concat(cust);
-      if(pool.length){let k=pick(pool),z=0;while(pool.length>1&&k===this.last[n]&&z++<20)k=pick(pool);this.last[n]=k;const u=k.startsWith('u:')||k.startsWith('p:');if(this.sample(k,0,n==='tap'?.45:n==='bad'&&!u?.5:u?.6:.7,u?(SMAX[n]||2.5):0))return;}}
+      if(pool.length){let k=pick(pool),z=0;while(pool.length>1&&k===this.last[n]&&z++<20)k=pick(pool);this.last[n]=k;const u=k.startsWith('u:')||k.startsWith('p:');if(this.sample(k,0,n==='tap'?.45:n==='bad'&&!u?.5:u?.6:['level','end','coin','combo','go'].includes(n)?.45:.7,u?(SMAX[n]||2.5):0))return;}}
     const T=(...a)=>this.tone(...a);
     switch(n){
       case 'good':T(660,0,.12,'triangle',.2);T(880,.08,.16,'triangle',.2);break;
