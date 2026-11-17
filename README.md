@@ -32,3 +32,7 @@ Domaine personnalisé : `malino.paceapp.fr` (fichier `CNAME`).
 - **Parrainage** : +7 jours par ami inscrit (2 maximum) ; l'ami a 21 jours d'essai.
 - **Panel admin** : `admin.html` (comptes listés dans la table `admins`).
 - Supabase : tables `comptes`, `paiements`, `cadeaux`, `parrainages`, `stops`, `journal` ; fonctions `malino-api`, `stripe-malino` (webhook), `code-connexion`.
+
+## Temps de jeu
+
+Le temps actif est compté à la seconde (`S.time[jour]={m,f,o}` : maths, lecture, autres) : rien n'est compté si l'écran est masqué ou sans toucher l'écran depuis 20 s (40 s pendant une question). Graphique dans Espace parents › Progrès, limite par jour et rappel de pause dans Réglages, objectifs de cadeau liés au temps.

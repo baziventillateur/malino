@@ -127,6 +127,7 @@ h1,h2,h3,h4{font-weight:700}
 .onav .btn.o{background:#EEE9FF;color:var(--vd);box-shadow:0 3px 0 #D6CCFF}
 .onav{display:flex;justify-content:space-between;gap:8px;margin-top:4px}.onav .btn{flex:1}.onav span{flex:1}
 .shbox{margin-top:12px;padding-top:10px;border-top:1px dashed #DDD6F7}.shbox .prow small{color:var(--mut);font-size:12px;margin-left:auto}
+.tleg{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;font-size:12px;color:var(--ink2);margin-top:4px}.tleg span{display:flex;align-items:center;gap:4px}.tleg i{width:10px;height:10px;border-radius:3px;display:inline-block}.tleg small{margin-left:auto;color:var(--mut)}
 .anote{background:#FFF3C9;color:#6A4A00;border-radius:12px;padding:8px 10px;font-size:14px!important;font-weight:600}
 .parentbtn.plan{background:linear-gradient(90deg,#FFE27A,#FFC83D);color:#5C3D00}.parentbtn.plan.on{background:linear-gradient(90deg,#B58AFF,#7B3CFF);color:#fff}
 .planban{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;text-align:left;background:linear-gradient(100deg,#FFF3C9,#FFE08A);border-radius:16px;padding:9px 12px;margin:0 0 10px;box-shadow:0 3px 0 #E5B93A;color:#5C3D00}
@@ -923,7 +924,7 @@ const thumb=i=>i.cat==='obj'&&i.k?objThumb(i):i.cat==='pet'&&i.emoji?petThumb(i)
 const STORE_KEY='supercerveau_v1';
 function defaultState(){
   return {v:1,name:'',avatar:Object.assign({},DEFAULT_AV),owned:[],xp:0,coins:20,
-    settings:{mathLevel:1,nQ:10,target:8,mode:'choices',sprintSec:60,aid:true,sound:true,voice:true,voiceQ:false,frOn:true,frAfterMath:true,frLevel:1,frNQ:8,mathAuto:true,frAuto:true,sndMode:'max',thNQ:8,thAfterMath:true,thAuto:true,lv:{money:1,logic:1,code:1,monde:1,anglais:1},thOn:{money:true,logic:true,code:true,monde:true,anglais:true}},
+    settings:{mathLevel:1,nQ:10,target:8,mode:'choices',sprintSec:60,aid:true,sound:true,voice:true,voiceQ:false,frOn:true,frAfterMath:true,frLevel:1,frNQ:8,mathAuto:true,frAuto:true,dayLimit:0,pauseTip:true,sndMode:'max',thNQ:8,thAfterMath:true,thAuto:true,lv:{money:1,logic:1,code:1,monde:1,anglais:1},thOn:{money:true,logic:true,code:true,monde:true,anglais:true}},
     pin:null,facts:{},fr:{},frFlashMs:2000,sessions:[],days:{},streak:{cur:0,best:0,last:null},badges:{},
     stats:{ok:0,n:0,ms:0,bestCombo:0,sprintBest:{},chests:0},
     gifts:[{id:'g1',emoji:'🍦',title:'Une glace',type:'streak',target:5,reached:null,given:false},{id:'g2',emoji:'🎡',title:'Une sortie au parc',type:'level',target:10,reached:null,given:false}],
@@ -996,9 +997,9 @@ const BADGES=[
 function checkBadges(sess){const out=[];BADGES.forEach(b=>{if(S.badges[b.id])return;let ok=false;try{ok=b.t(sess);}catch(e){}if(ok){S.badges[b.id]=Date.now();S.coins+=15;out.push(b);}});if(out.length)save();return out;}
 
 // ---------- Cadeaux des parents ----------
-const GIFT_TYPES={streak:'jours d’affilée',level:'niveau à atteindre',days:'jours d’entraînement au total',ok:'bonnes réponses au total'};
-function giftCond(g){return g.type==='level'?`Atteindre le niveau ${g.target}`:g.type==='streak'?`${g.target} jours d’affilée`:g.type==='days'?`${g.target} jours d’entraînement`:`${g.target} bonnes réponses`;}
-function giftVal(g){switch(g.type){case 'streak':return curStreak();case 'level':return levelInfo(S.xp).level;case 'days':return Object.values(S.days).filter(dayDone).length;case 'ok':return S.stats.ok;}return 0;}
+const GIFT_TYPES={streak:'jours d’affilée',level:'niveau à atteindre',days:'jours d’entraînement au total',ok:'bonnes réponses au total',tdays:'jours dans la semaine avec 10 min de jeu (7 max)',tweek:'minutes de jeu dans la semaine',tfr:'minutes de lecture au total',ttot:'minutes de jeu au total'};
+function giftCond(g){if(g.type==='tdays')return `10 min par jour, ${g.target} jour${g.target>1?'s':''} dans la semaine`;if(g.type==='tweek')return `${g.target} min de jeu dans la semaine`;if(g.type==='tfr')return `${g.target} min de lecture au total`;if(g.type==='ttot')return `${g.target} min de jeu au total`;return g.type==='level'?`Atteindre le niveau ${g.target}`:g.type==='streak'?`${g.target} jours d’affilée`:g.type==='days'?`${g.target} jours d’entraînement`:`${g.target} bonnes réponses`;}
+function giftVal(g){switch(g.type){case 'streak':return curStreak();case 'level':return levelInfo(S.xp).level;case 'days':return Object.values(S.days).filter(dayDone).length;case 'ok':return S.stats.ok;case 'tdays':return TimeT.weekDays(600);case 'tweek':return Math.floor(TimeT.weekSec()/60);case 'tfr':return Math.floor(TimeT.all('f')/60);case 'ttot':return Math.floor(TimeT.all()/60);}return 0;}
 function checkGifts(){const out=[];S.gifts.forEach(g=>{if(!g.reached&&!g.given&&giftVal(g)>=g.target){g.reached=Date.now();out.push(g);}});if(out.length)save();return out;}
 
 // Effets sonores : pack « uisfx », thème arcade (github.com/romainsimon/uisfx), domaine public CC0
@@ -1154,6 +1155,7 @@ function later(fn,ms){const g=G;if(!g)return;const t=setTimeout(()=>{if(G===g&&!
 function stopGame(){if(G){G.ended=true;G.timers.forEach(clearTimeout);if(G.clock)clearInterval(G.clock);}G=null;Voice.stop();$('#tip').classList.add('hidden');}
 function startGame(sub,mode){
   if(Acct.wall()){Acct.show('wall');return;}
+  if(TimeT.limited()){queueModal(`<div class="bigemoji">🌙</div><h2>Bravo ${nm()} !</h2><p>Tu as bien joué aujourd’hui : <b>${fmtDur(TimeT.sec())}</b>. C’est fini pour aujourd’hui, à demain !</p><button class="btn y block" data-act="mclose">À demain 👋</button>`,()=>{if(S.settings.voice)Voice.say('Bravo ! C’est fini pour aujourd’hui. À demain !');});return;}
   if(THEMES[sub]&&S.settings.lv[sub]>Plan.thMax(sub)){S.settings.lv[sub]=Plan.thMax(sub);save();toast('🔒 Les niveaux suivants sont dans Malino+');}
   stopGame();const st=S.settings;
   G={sub,mode,queue:[],idx:0,n:0,mainN:0,okFirst:0,combo:0,bestCombo:0,fast:0,times:[],xp:0,coins:0,wrong:0,score:0,t0:Date.now(),reviews:{},timers:[],cur:null,input:'',ended:false};
@@ -1302,13 +1304,13 @@ function endGame(){
   }
   S.sessions.push(sess);if(S.sessions.length>800)S.sessions.splice(0,S.sessions.length-800);
   S.stats.bestCombo=Math.max(S.stats.bestCombo,G.bestCombo);S.xp+=G.xp;S.coins+=G.coins;G.sess=sess;
-  const ups=G.mode==='sprint'?[]:autoUp();let thUp=0,thLock=0;if(THEMES[G.sub]&&S.settings.thAuto){const lv=S.settings.lv[G.sub];if(lv<THEMES[G.sub].levels.length&&levelMastery(G.sub,lv)>=.8){if(lv+1<=Plan.thMax(G.sub))S.settings.lv[G.sub]=thUp=lv+1;else thLock=lv+1;}}const thT=THEMES[G.sub];
+  TimeT.flush();const ups=G.mode==='sprint'?[]:autoUp();let thUp=0,thLock=0;if(THEMES[G.sub]&&S.settings.thAuto){const lv=S.settings.lv[G.sub];if(lv<THEMES[G.sub].levels.length&&levelMastery(G.sub,lv)>=.8){if(lv+1<=Plan.thMax(G.sub))S.settings.lv[G.sub]=thUp=lv+1;else thLock=lv+1;}}const thT=THEMES[G.sub];
   save();
   const after=levelInfo(S.xp).level,badges=checkBadges(sess),gifts=checkGifts();
   go('result');setTimeout(()=>{if(Acct.wall()&&SCR==='result')Acct.show('wall');},3800);Sound.play(G.mode==='sprint'?(G.record&&G.score?'level':Sound.custom('fail').length?'fail':'end'):'end');
   if(G.mode==='sprint'?G.record:G.stars>=2)setTimeout(()=>Confetti.burst(130),250);
   if(S.settings.voice){const nmv=S.name||'';Voice.say(G.mode==='sprint'?`${G.score} calculs justes ! ${G.record?'Nouveau record !':''}`:`Bravo ! ${G.stars} étoile${G.stars>1?'s':''} !`);}
-  setTimeout(()=>{autoUpModal(ups);if(thLock)Offre.lock(thT.n,thLock);if(thUp)queueModal(`<div class="bigemoji">${thT.e}</div><h2>${thT.n} : niveau ${thUp} !</h2><p>${thT.levels[thUp-1].e} ${thT.levels[thUp-1].n}</p><button class="btn y block" data-act="mclose">Super ! 🎉</button>`,()=>{Sound.play('epic');Confetti.burst(100);});if(after>before)levelUpModal(before,after);badges.forEach(badgeModal);gifts.forEach(giftModal);},1300);
+  setTimeout(()=>{autoUpModal(ups);if(S.settings.pauseTip!==false&&TimeT.cont>=1200&&!TimeT.tipped&&!TimeT.limited()){TimeT.tipped=true;queueModal(`<div class="bigemoji">🧃</div><h2>Une petite pause ?</h2><p>Ça fait 20 minutes que tu joues, bravo ! Bouge un peu, bois de l’eau, et reviens quand tu veux.</p><button class="btn y block" data-act="mclose">D’accord 👍</button>`);}if(thLock)Offre.lock(thT.n,thLock);if(thUp)queueModal(`<div class="bigemoji">${thT.e}</div><h2>${thT.n} : niveau ${thUp} !</h2><p>${thT.levels[thUp-1].e} ${thT.levels[thUp-1].n}</p><button class="btn y block" data-act="mclose">Super ! 🎉</button>`,()=>{Sound.play('epic');Confetti.burst(100);});if(after>before)levelUpModal(before,after);badges.forEach(badgeModal);gifts.forEach(giftModal);},1300);
 }
 
 // ---------- Écrans ----------
@@ -1403,6 +1405,7 @@ function paneSettings(){
    <div class="row"><span>Objectif de vitesse ⚡</span><small class="hint">Sous ce temps : bonus, et le calcul compte pour la maîtrise.</small>${seg('target',[[10,'10 s'],[8,'8 s'],[6,'6 s'],[5,'5 s'],[4,'4 s'],[3,'3 s'],[2,'2 s']])}</div>
    <div class="row"><span>Durée du défi éclair</span>${seg('sprintSec',[[30,'30 s'],[60,'1 min'],[90,'1 min 30']])}</div>
    ${tog('aid','Aide visuelle après une erreur','Objets à compter, cases à remplir, paquets')}</section>
+  <section class="acard"><h3>⏳ Temps d’écran</h3><p class="hint">Limite de jeu par jour. Une fois atteinte, ${nm()} ne peut plus lancer de partie jusqu’au lendemain (la partie en cours se termine). Aujourd’hui : ${fmtDur(TimeT.sec())}.</p>${seg('dayLimit',[[0,'Aucune'],[15,'15 min'],[30,'30 min'],[45,'45 min'],[60,'1 h']])}${tog('pauseTip','Proposer une pause','Après 20 minutes de jeu d’affilée')}</section>
   <section class="acard"><h3>📖 Lecture</h3>${tog('frOn','Activer la lecture')}${tog('frAfterMath','Débloquée après les maths du jour')}${tog('frAuto','Passer seul au niveau suivant','Dès que 80 % du niveau est maîtrisé')}
    <div class="row"><span>Questions par partie</span>${seg('frNQ',[[5,'5'],[8,'8'],[10,'10'],[15,'15']])}</div>${frec}
    <div class="lvls">${FR_LEVELS.map((L,i)=>{const n=i+1,mm=levelMastery('fr',n);return `<button class="lvl ${n===st.frLevel?'on':''}" data-act="setfr" data-arg="${n}"><span class="le">${L.e}</span><span class="ln"><b>${n}. ${L.n}</b><small>${L.items.length} éléments · ${pct(mm)} maîtrisés</small><span class="mbar2"><i style="width:${mm*100}%"></i></span></span>${n===st.frLevel?'<span class="cur">Actuel</span>':''}</button>`;}).join('')}</div></section>
@@ -1444,6 +1447,7 @@ function paneProgressFull(){
   const tMax=Math.max(4,Math.ceil(Math.max(0,...md.map(x=>x.avg/1000))*1.2)),spMax=Math.max(10,Math.ceil(Math.max(0,...sp.map(s=>s.score*60/s.sec))*1.2/5)*5);
   const lv=mapLevel||S.settings.mathLevel,last=S.sessions.slice(-12).reverse();
   return `<section class="acard"><h3>📊 En bref</h3><div class="tiles"><div class="tile"><b>${worked}</b><small>jours travaillés</small></div><div class="tile"><b>🔥 ${curStreak()}</b><small>série (record ${S.streak.best})</small></div><div class="tile"><b>${S.stats.ok}</b><small>bonnes réponses</small></div><div class="tile"><b>${pct(acc)}</b><small>précision</small></div><div class="tile"><b>${totalMin} min</b><small>d’entraînement</small></div><div class="tile"><b>${li.level}</b><small>niveau joueur</small></div></div></section>
+  ${timeSection()}
   <section class="acard"><h3>🎯 Réussite en maths</h3><p class="hint">Bonnes réponses du premier coup, par jour.</p>${lineChart(md.map(x=>({lab:fmtD(x.d),y:Math.round(x.acc*100)})),{yMin:0,yMax:100,fmt:v=>Math.round(v)+' %',color:'#7B5CFF',title:'Réussite en maths par jour'})}</section>
   <section class="acard"><h3>⏱️ Vitesse en maths</h3><p class="hint">Temps moyen par bonne réponse. Plus la courbe descend, plus ${nm()} calcule vite.</p>${lineChart(md.filter(x=>x.avg).map(x=>({lab:fmtD(x.d),y:x.avg/1000})),{yMin:0,yMax:tMax,fmt:v=>v.toFixed(1).replace('.',',')+' s',color:'#7B5CFF',title:'Temps moyen par jour'})}</section>
   <section class="acard"><h3>⚡ Défi éclair</h3><p class="hint">Calculs justes par minute à chaque défi : c’est la mesure de l’accélération.</p>${lineChart(sp.map(s=>({lab:fmtD(s.d),tip:fmtD(s.d)+' · niveau '+s.lvl,y:Math.round(s.score*60/s.sec)})),{yMin:0,yMax:spMax,fmt:v=>Math.round(v)+'/min',color:'#7B5CFF',title:'Calculs par minute'})}</section>
@@ -1456,7 +1460,7 @@ function paneProgressFull(){
 function paneGifts(){
   return `<section class="acard"><h3>🎁 Cadeaux à gagner</h3><p class="hint">Fixez de vraies récompenses. ${nm()} voit sa progression vers chacune, et une fête s’affiche quand l’objectif est atteint.</p>
   ${S.gifts.length?S.gifts.map(g=>`<div class="giftrow"><span class="ge">${esc(g.emoji)}</span><div class="gt"><b>${esc(g.title)}</b><small>${giftCond(g)} · actuellement ${giftVal(g)}</small></div>${g.given?'<span class="tag">Donné ✅</span>':g.reached?`<button class="btn g sm" data-act="giftgiven" data-arg="${g.id}">Donné ✓</button>`:''}<button class="del" data-act="giftdel" data-arg="${g.id}" aria-label="Supprimer">🗑️</button></div>`).join(''):'<div class="empty">Aucun cadeau.</div>'}</section>
-  <section class="acard"><h3>➕ Ajouter un cadeau</h3><div class="gform"><input id="gEmoji" class="ginput" value="🎁" maxlength="4" aria-label="Émoji"><input id="gTitle" class="ginput" placeholder="Ex. : choisir le dessert" maxlength="40"><select id="gType" class="ginput full">${Object.entries(GIFT_TYPES).map(([k,l])=>`<option value="${k}">Objectif : ${l}</option>`).join('')}</select><input id="gTarget" class="ginput full" type="number" min="1" inputmode="numeric" placeholder="Nombre à atteindre (ex. 7)"><button class="btn g full" data-act="giftadd">Ajouter</button></div><p class="hint">Idées : une glace, choisir le dessert, une sortie au parc, un autocollant, 15 min de dessin animé, inviter un copain…</p></section>`;
+  <section class="acard"><h3>➕ Ajouter un cadeau</h3><div class="gform"><input id="gEmoji" class="ginput" value="🎁" maxlength="4" aria-label="Émoji"><input id="gTitle" class="ginput" placeholder="Ex. : choisir le dessert" maxlength="40"><select id="gType" class="ginput full">${Object.entries(GIFT_TYPES).map(([k,l])=>`<option value="${k}">Objectif : ${l}</option>`).join('')}</select><input id="gTarget" class="ginput full" type="number" min="1" inputmode="numeric" placeholder="Nombre à atteindre (ex. 7)"><button class="btn g full" data-act="giftadd">Ajouter</button></div><p class="hint">Conseil : récompensez la régularité plutôt que la durée, par exemple « 10 min par jour, 5 jours dans la semaine ».</p><p class="hint">Idées : une glace, choisir le dessert, une sortie au parc, un autocollant, 15 min de dessin animé, inviter un copain…</p></section>`;
 }
 function paneData(){
   return `<section class="acard"><h3>🪙 Bonus des parents</h3><p class="hint">Pour récompenser un effort de la vraie vie.</p><div class="seg"><button data-act="bonus" data-arg="10">+10 🪙</button><button data-act="bonus" data-arg="25">+25 🪙</button><button data-act="bonus" data-arg="50">+50 🪙</button><button data-act="bonus" data-arg="100">+100 🪙</button></div></section>
@@ -1551,7 +1555,7 @@ const ACT={
   testvoice(){Voice.say(`Bonjour ${S.name||''} ! Deux plus deux égale quatre.`);},
   changepin(){S.pin=null;save();pinStage='enter';pinBuf='';adminOk=false;go('pin');},
   maplvl(n){mapLevel=+n;keepScroll(render);},
-  giftadd(){const e=$('#gEmoji').value.trim()||'🎁',t=$('#gTitle').value.trim(),ty=$('#gType').value,n=parseInt($('#gTarget').value,10);if(!t||!n||n<1)return toast('Indiquez un cadeau et un nombre à atteindre');S.gifts.push({id:'g'+Date.now(),emoji:e,title:t,type:ty,target:n,reached:null,given:false});save();toast('Cadeau ajouté 🎁');keepScroll(render);},
+  giftadd(){const e=$('#gEmoji').value.trim()||'🎁',t=$('#gTitle').value.trim(),ty=$('#gType').value,n=parseInt($('#gTarget').value,10);if(!t||!n||n<1)return toast('Indiquez un cadeau et un nombre à atteindre');S.gifts.push({id:'g'+Date.now(),emoji:e,title:t,type:ty,target:ty==='tdays'?Math.min(7,n):n,reached:null,given:false});save();toast('Cadeau ajouté 🎁');keepScroll(render);},
   giftgiven(id){const g=S.gifts.find(x=>x.id===id);if(g){g.given=true;save();}keepScroll(render);},
   giftdel(id){S.gifts=S.gifts.filter(x=>x.id!==id);save();keepScroll(render);},
   bonus(n){S.coins+=+n;save();toast(`+${n} 🪙 pour ${S.name||'votre enfant'}`);},
@@ -1696,7 +1700,7 @@ const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:
   },
   dirty(){clearTimeout(this.t);this.t=setTimeout(()=>this.push(),2500);},
   push(){if(!this.user||!this.pid||!this.sb)return;this.sb.from('profils').update({data:S,nom:S.name||'Champion'}).eq('id',this.pid).then(r=>{if(r.error)console.warn('sync',r.error.message);});},
-  async switchTo(id){
+  async switchTo(id){TimeT.flush();
     if(id===this.pid)return;this.push();
     const {data,error}=await this.sb.from('profils').select('id,nom,data,updated_at,created_at').eq('id',id).single();
     if(error||!data)return toast('Profil introuvable');
@@ -1731,6 +1735,49 @@ function paneAccount(){
   <label class="fld" style="margin-top:10px">Ajouter un profil<input id="newprof" maxlength="20" placeholder="Prénom de l’enfant" autocomplete="off"></label><button class="btn p sm" style="margin-top:8px" data-act="acctadd">➕ Ajouter</button></section>
   <section class="acard"><h3>🔑 Mot de passe</h3><p class="hint">Facultatif : pour se connecter sans attendre un code par e-mail.</p><label class="fld"><input id="apw" type="password" autocomplete="new-password" placeholder="Nouveau mot de passe (8 caractères min.)"></label><button class="btn p sm" style="margin-top:8px" data-act="acctsetpw" data-arg="apw">Enregistrer</button></section>
   <section class="acard"><button class="btn r sm" data-act="acctlogout">Se déconnecter</button></section>`;
+}
+
+// ---------- Temps de jeu actif (ne compte ni l'écran éteint, ni l'appli laissée ouverte) ----------
+const fmtDur=s=>{const m=Math.floor(s/60);return m<1?(s>0?'< 1 min':'0 min'):m<60?m+' min':Math.floor(m/60)+' h '+pad2(m%60);};
+const TimeT={last:0,acc:{m:0,f:0,o:0},n:0,cont:0,lastAct:0,tipped:false,
+  touch(){this.last=Date.now();},
+  d(k){k=k||dayKey();const x=(S.time&&S.time[k])||{},a=k===dayKey()?this.acc:{m:0,f:0,o:0};return {m:(x.m||0)+a.m,f:(x.f||0)+a.f,o:(x.o||0)+a.o};},
+  tot(d){return d.m+d.f+d.o;},
+  sec(k){return this.tot(this.d(k));},
+  weekKeys(){const d=new Date(),mon=addDays(d,-((d.getDay()+6)%7));return Array.from({length:7},(_,i)=>dayKey(addDays(mon,i)));},
+  weekSec(){return this.weekKeys().reduce((a,k)=>a+this.sec(k),0);},
+  weekDays(min){return this.weekKeys().filter(k=>this.sec(k)>=min).length;},
+  all(c){let t=0;Object.keys(S.time||{}).forEach(k=>{if(k!==dayKey()){const x=S.time[k];t+=c?(x[c]||0):(x.m||0)+(x.f||0)+(x.o||0);}});const d=this.d();return t+(c?d[c]:this.tot(d));},
+  tick(){
+    if(document.visibilityState!=='visible'||SCR==='admin'||!$('#auth').classList.contains('hidden')||!$('#onb').classList.contains('hidden'))return;
+    const now=Date.now();if(now-this.last>(SCR==='game'?40000:20000))return;
+    this.acc[SCR==='game'&&G?(G.sub==='math'?'m':G.sub==='fr'?'f':'o'):'o']++;
+    if(now-this.lastAct>300000){this.cont=0;this.tipped=false;}this.lastAct=now;this.cont++;
+    if(++this.n>=30)this.flush();
+  },
+  flush(){const a=this.acc;this.n=0;if(!(a.m+a.f+a.o))return;if(!S.time)S.time={};const k=dayKey(),d=S.time[k]||(S.time[k]={m:0,f:0,o:0});d.m=(d.m||0)+a.m;d.f=(d.f||0)+a.f;d.o=(d.o||0)+a.o;this.acc={m:0,f:0,o:0};
+    const ks=Object.keys(S.time).sort();while(ks.length>120)delete S.time[ks.shift()];save();},
+  init(){['pointerdown','keydown'].forEach(e=>document.addEventListener(e,()=>this.touch(),{passive:true,capture:true}));setInterval(()=>this.tick(),1000);
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible')this.flush();});window.addEventListener('pagehide',()=>this.flush());},
+  limited(){const dl=+S.settings.dayLimit||0;return dl>0&&this.sec()>=dl*60;}
+};
+function timeChart(){
+  const ks=Array.from({length:14},(_,i)=>dayKey(addDays(new Date(),i-13))),D=ks.map(k=>TimeT.d(k)),mxM=Math.max(10,Math.ceil(Math.max(...D.map(d=>TimeT.tot(d)))/300)*5),W=320,H=118,L=30,bw=13,step=(W-L-bw-4)/13,C={m:'#2EA3FF',f:'#7B5CFF',o:'#FF9A1F'},N={m:'maths',f:'lecture',o:'autres jeux'},JS=['dim.','lun.','mar.','mer.','jeu.','ven.','sam.'];
+  const y=s=>H-(s/60)/mxM*(H-8);
+  let g=[0,mxM/2,mxM].map(v=>`<line x1="${L}" x2="${W}" y1="${y(v*60)}" y2="${y(v*60)}" stroke="#E9E6F5" stroke-width="1"/><text x="${L-5}" y="${y(v*60)+3.5}" font-size="9.5" text-anchor="end" fill="#9094AE">${v%1?v.toFixed(1).replace('.',','):v}</text>`).join('');
+  ks.forEach((k,i)=>{const d=D[i],x=L+4+i*step;let base=0,segs='';['m','f','o'].forEach(c=>{if(d[c]<30)return;const h=(d[c]/60)/mxM*(H-8),hh=Math.max(2,h-(base?2:0));segs+=`<rect x="${x}" y="${H-base-h}" width="${bw}" height="${hh}" rx="3" fill="${C[c]}"/>`;base+=h;});
+    const dt=new Date(k+'T12:00:00'),tip=`${JS[dt.getDay()]} ${fmtD(k)} : ${fmtDur(TimeT.tot(d))}`+(TimeT.tot(d)>=60?` (${['m','f','o'].filter(c=>d[c]>=30).map(c=>N[c]+' '+fmtDur(d[c])).join(', ')})`:'');
+    g+=`<g><title>${tip}</title><rect x="${x-3}" y="0" width="${bw+6}" height="${H+14}" fill="transparent"/>${segs||`<rect x="${x}" y="${H-1.5}" width="${bw}" height="1.5" rx=".75" fill="#D9D5EA"/>`}<text x="${x+bw/2}" y="${H+12}" font-size="9" text-anchor="middle" fill="${i===13?'#24263A':'#9094AE'}" font-weight="${i===13?700:400}">${i===13?'auj.':i%2?fmtD(k).slice(0,2):''}</text></g>`;});
+  return `<svg viewBox="0 0 ${W} ${H+16}" role="img" aria-label="Temps de jeu actif par jour, en minutes, sur 14 jours" style="width:100%;height:auto;display:block">${g}</svg><div class="tleg"><span><i style="background:${C.m}"></i>Maths</span><span><i style="background:${C.f}"></i>Lecture</span><span><i style="background:${C.o}"></i>Autres jeux</span><small>minutes par jour</small></div>`;
+}
+function timeSection(){
+  const wk=TimeT.weekKeys(),ws=TimeT.weekSec(),wd=TimeT.weekDays(60),agg={m:0,f:0,o:0};wk.forEach(k=>{const d=TimeT.d(k);agg.m+=d.m;agg.f+=d.f;agg.o+=d.o;});
+  const ks=Array.from({length:14},(_,i)=>dayKey(addDays(new Date(),i-13))).map(k=>TimeT.sec(k)).filter(s=>s>=60),avg=ks.length?ks.reduce((a,b)=>a+b,0)/ks.length:0;
+  const top=ws>=120?Object.entries(agg).sort((a,b)=>b[1]-a[1])[0][0]:'',dl=+S.settings.dayLimit||0;
+  return `<section class="acard"><h3>🕒 Temps de jeu</h3><p class="hint">Seul le temps où ${nm()} joue vraiment est compté : pas l’écran éteint, ni l’appli laissée ouverte sans y toucher.</p>
+  <div class="tiles"><div class="tile"><b>${fmtDur(TimeT.sec())}</b><small>aujourd’hui${dl?` · limite ${dl} min`:''}</small></div><div class="tile"><b>${fmtDur(ws)}</b><small>cette semaine</small></div><div class="tile"><b>${fmtDur(Math.round(avg))}</b><small>par jour joué</small></div></div>
+  ${ws>=60?`<p class="hint" style="margin-top:8px">Cette semaine : <b>${fmtDur(ws)}</b> sur ${wd} jour${wd>1?'s':''}${top?`, surtout ${{m:'en maths',f:'en lecture',o:'sur les autres jeux'}[top]}`:''}.</p>`:''}
+  ${Plan.kind()==='gratuit'?`<p class="hint" style="margin-top:8px">📊 Le graphique jour par jour est inclus dans Malino+. <button class="alink" style="display:inline;margin:0;padding:0" data-act="offre" data-arg="temps">Débloquer</button></p>`:timeChart()}</section>`;
 }
 
 // ---------- Malino+ : formules, essai, cadeaux, parrainage ----------
@@ -1839,7 +1886,7 @@ const Offre={after:null,
 // ---------- Accueil des parents (première connexion) ----------
 const Onb={i:0,d:{},
   PRIZES:[['🍦','Une glace'],['📚','Une histoire en plus'],['🎮','30 min de jeu'],['🎡','Une sortie au parc'],['🍕','Choisir le repas']],
-  GOALS:[['streak',3,'3 jours d’affilée'],['days',5,'5 jours d’entraînement'],['level',5,'Atteindre le niveau 5']],
+  GOALS:[['streak',3,'3 jours d’affilée'],['tdays',4,'10 min par jour, 4 jours cette semaine'],['days',5,'5 jours d’entraînement'],['level',5,'Atteindre le niveau 5']],
   should(){const u=Acct.user,i=Plan.info;return !!(u&&i&&i.onb===false&&!localStorage.getItem('malino_onb_'+u.id));},
   start(){if(this.on)return;this.on=true;const i=Plan.info||{};this.i=0;this.d={prenom:i.prenom||'',enfant:S.name||'',classe:'',prize:0,custom:'',goal:0};this.draw();},
   keep(){const v=id=>{const e=document.getElementById(id);return e?e.value.trim():null;};
@@ -1909,7 +1956,7 @@ const Onb={i:0,d:{},
 
 // ---------- Démarrage ----------
 try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
-Rec.load();Pack.load();load();Voice.init();Plan.load();Confetti.init();render();autoUpModal(autoUp());Acct.init().then(()=>Offre.fromUrl());
+Rec.load();Pack.load();load();Voice.init();Plan.load();Confetti.init();TimeT.init();render();autoUpModal(autoUp());Acct.init().then(()=>Offre.fromUrl());
 if(S.refund){const r=S.refund;S.refund=0;save();queueModal(`<div class="bigemoji sm">🛍️</div><h2>Nouvelle boutique !</h2><p>Des objets en bois, cuivre, argent, or… jusqu’au <b>Plasma</b> !</p><p>Certains anciens objets sont partis : tu récupères <b>${r} 🪙</b>.</p><button class="btn y block" data-act="mclose">Super !</button>`);}
 if(!S.welcomed){S.welcomed=true;save();queueModal(`<div class="mav">${avatarSVG(S.avatar)}</div><h2>Salut ${nm()} ! 👋</h2>${S.name?'':'<label class="fld" style="text-align:left">Comment tu t’appelles ?<input id="wname" maxlength="20" autocomplete="off" placeholder="Ton prénom"></label>'}<p>Chaque jour :<br><b>1.</b> Entraîne-toi en maths 🔢<br><b>2.</b> Fais ta lecture 📖<br><b>3.</b> Ouvre ton coffre 🎁</p><p>Gagne des pièces 🪙 pour habiller ton personnage et débloquer des surprises !</p><button class="btn g block" data-act="wstart">C’est parti ! 🚀</button>`);}
 else checkGifts().forEach(giftModal);
