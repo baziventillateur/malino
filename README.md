@@ -17,3 +17,13 @@ La page `aide.html` ouvre le chat de support (Tidio) ; le script du chat n'est c
 
 ## Adresse
 Domaine personnalisé : `malino.paceapp.fr` (fichier `CNAME`).
+
+## Malino+ (freemium)
+
+- **Gratuit pour toujours** : maths, lecture, Monnaie et Logique, 1 enfant.
+- **Essai de 14 jours** sans carte bancaire, dès la création du compte : niveaux 1 à 3 des autres thématiques, 2 enfants.
+- **Malino+** : 3,99 €/mois ou 29,99 €/an (Stripe, compte Pace, produit « Malino+ ») : tout débloqué, 4 enfants, suivi détaillé, objets Plasma, coffre doré chaque semaine.
+- **Cadeau** : 3 mois (9,99 €) ou 6 mois (17,99 €), sans compte, depuis le bouton « Offrir » ou `?offrir`.
+- **Parrainage** : +7 jours par ami inscrit (2 maximum) ; l'ami a 21 jours d'essai.
+- **Panel admin** : `admin.html` (comptes listés dans la table `admins`).
+- Supabase : tables `comptes`, `paiements`, `cadeaux`, `parrainages`, `stops`, `journal` ; fonctions `malino-api`, `stripe-malino` (webhook), `code-connexion`.

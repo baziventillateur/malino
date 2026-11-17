@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Malino · Admin</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<style>
+:root{--v:#7B5CFF;--vd:#5A3BE0;--ink:#24263A;--ink2:#5B5E78;--mut:#9094AE;--bg:#F4F1FF;--g:#16A34A;--r:#E03A45;--y:#B98200}
+*{box-sizing:border-box}body{margin:0;font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff;box-shadow:0 1px 0 #E3DEF8}
+header img{width:28px;height:28px;border-radius:8px}header h1{font-size:16px;margin:0;flex:1}
+main{max-width:980px;margin:0 auto;padding:10px}
+button,select,input{font:inherit}button{cursor:pointer;border:0;border-radius:9px;padding:6px 10px;background:var(--v);color:#fff;font-weight:600}
+button.o{background:#EEE9FF;color:var(--vd)}button.r{background:#FFE4E6;color:var(--r)}button:disabled{opacity:.5}
+input,select{border:1px solid #D9D3F3;border-radius:9px;padding:6px 8px;background:#fff;min-width:0}
+.card{background:#fff;border-radius:14px;padding:10px 12px;margin:0 0 10px;box-shadow:0 1px 3px rgba(40,20,120,.06)}
+.card h2{font-size:15px;margin:0 0 8px;display:flex;align-items:center;gap:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;margin-bottom:10px}
+.kpi{background:#fff;border-radius:12px;padding:8px 10px;box-shadow:0 1px 3px rgba(40,20,120,.06)}.kpi b{display:block;font-size:20px}.kpi small{color:var(--ink2);font-size:12px}
+.kpi.hl{background:linear-gradient(135deg,#7B5CFF,#A27BFF);color:#fff}.kpi.hl small{color:#EDE6FF}
+table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;color:var(--mut);font-weight:600;font-size:12px;padding:4px 6px;border-bottom:1px solid #EEE}
+td{padding:6px;border-bottom:1px solid #F3F1FA;vertical-align:top}tr:last-child td{border-bottom:0}
+.tag{display:inline-block;border-radius:999px;padding:1px 7px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.t-plus{background:#EFE4FF;color:#5A22C8}.t-essai{background:#FFF3C9;color:#7A5200}.t-gratuit{background:#EEF0F5;color:#5B5E78}.t-echec,.t-rembourse{background:#FFE4E6;color:var(--r)}.t-paye{background:#DCFCE7;color:var(--g)}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.row input[type=email]{flex:1;min-width:180px}
+.mut{color:var(--mut)}.small{font-size:12px}.scroll{overflow-x:auto}
+.alert{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid #F3F1FA;font-size:13px}.alert:last-child{border-bottom:0}
+.fam{padding:8px 0;border-bottom:1px solid #F3F1FA}.fam:last-child{border-bottom:0}
+.kids{display:flex;flex-wrap:wrap;gap:4px}.kid{background:#F4F1FF;border-radius:8px;padding:1px 6px;font-size:12px}
+#login{max-width:360px;margin:40px auto;text-align:center}#login input{width:100%;margin:8px 0;padding:10px;font-size:16px}#login button{width:100%;padding:10px}
+.msg{min-height:18px;color:var(--r);font-weight:600;font-size:13px}.msg.ok{color:var(--g)}
+details summary{cursor:pointer;font-weight:700;font-size:15px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header><img src="logo.svg" alt=""><h1>Malino · Admin</h1><button class="o" id="refresh" title="Actualiser">↻</button><a href="./" style="font-size:13px;color:var(--vd);font-weight:600;text-decoration:none">Appli</a></header>
+<main id="app"><p class="mut">Chargement…</p></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SB_URL='https://fcfkfuqzgsmckkxqfwuo.supabase.co',SB_KEY='sb_publishable_a3SNrQOSCH20T5sKsJxuAA_s7H4yCSR',API=SB_URL+'/functions/v1/malino-api';
+const sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+const $=s=>document.querySelector(s),app=$('#app');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const eur=c=>(c/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
+const d=x=>x?new Date(x).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—';
+const dh=x=>x?new Date(x).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+const ago=x=>{if(!x)return '—';const m=(Date.now()-Date.parse(x))/6e4;return m<60?Math.round(m)+' min':m<1440?Math.round(m/60)+' h':Math.round(m/1440)+' j';};
+const lvl=xp=>{let L=1,r=xp||0;while(r>=80+40*L){r-=80+40*L;L++;}return L;};
+const jours=x=>Math.max(0,Math.ceil((Date.parse(x)-Date.now())/864e5));
+let D=null,email='',q='';
+
+function loginView(step,msg){
+  app.innerHTML=`<div id="login" class="card"><img src="logo.svg" width="56" height="56" style="border-radius:14px"><h2 style="justify-content:center">Connexion admin</h2>
+  ${step==='code'?`<p class="small mut">Code envoyé à <b>${esc(email)}</b></p><input id="code" inputmode="numeric" autocomplete="one-time-code" placeholder="Code reçu par e-mail" maxlength="10"><button id="go">Valider</button>`
+  :`<input id="mail" type="email" placeholder="ton e-mail admin" value="${esc(email)}" autocomplete="email"><button id="go">Recevoir un code</button>`}
+  <p class="msg" id="msg">${esc(msg||'')}</p></div>`;
+  $('#go').onclick=async()=>{
+    if(step!=='code'){email=$('#mail').value.trim().toLowerCase();$('#msg').textContent='Envoi…';
+      const r=await fetch(SB_URL+'/functions/v1/code-connexion',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY},body:JSON.stringify({email})}).then(r=>r.json()).catch(()=>({}));
+      if(r.ok||r.error==='trop_vite')return loginView('code',r.ok?'':'Un code vient déjà d’être envoyé');return $('#msg').textContent='Envoi impossible';}
+    const code=$('#code').value.replace(/\D/g,'');let r={error:1};
+    for(const t of ['email','magiclink','signup']){r=await sb.auth.verifyOtp({email,token:code,type:t});if(!r.error)break;}
+    if(r.error)return $('#msg').textContent='Code incorrect ou expiré';load();
+  };
+}
+
+async function load(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)return loginView('mail');
+  app.innerHTML='<p class="mut">Chargement…</p>';
+  const {data,error}=await sb.rpc('admin_tableau');
+  if(error){app.innerHTML=`<div class="card"><h2>Accès refusé</h2><p>Le compte <b>${esc(session.user.email)}</b> n’est pas administrateur.</p><button id="out" class="o">Changer de compte</button></div>`;$('#out').onclick=async()=>{await sb.auth.signOut({scope:'local'});loginView('mail');};return;}
+  D=data;draw();
+}
+
+function draw(){
+  const F=D.familles,P=D.paiements,now=Date.now(),mois=new Date();mois.setDate(1);mois.setHours(0,0,0,0);
+  const enfants=F.reduce((a,f)=>a+f.enfants.length,0),actifs=F.filter(f=>now-Date.parse(f.derniere_activite)<7*864e5).length;
+  const plus=F.filter(f=>f.plan==='plus'),abos=plus.filter(f=>f.abo_statut&&['active','trialing','past_due'].includes(f.abo_statut));
+  const mrr=abos.reduce((a,f)=>a+(f.abo_formule==='annuel'?2999/12:399),0);
+  const ok=P.filter(p=>p.statut==='paye'),total=ok.reduce((a,p)=>a+p.montant,0),dumois=ok.filter(p=>Date.parse(p.cree_le)>=mois).reduce((a,p)=>a+p.montant,0);
+  const alertTypes={paiement_echoue:'💳 Paiement échoué',envoi_code_echec:'✉️ Code non envoyé',envoi_cadeau_echec:'✉️ Cadeau non envoyé',envoi_invitation_echec:'✉️ Invitation non envoyée',webhook_erreur:'⚠️ Erreur Stripe',abonne_sans_compte:'❓ Abonné sans compte',cadeau_sans_formulaire:'❓ Cadeau sans destinataire',resiliation:'👋 Résiliation',resiliation_prevue:'👋 Résiliation prévue',remboursement:'↩️ Remboursement'};
+  const alerts=D.journal.filter(j=>alertTypes[j.type]&&now-Date.parse(j.cree_le)<30*864e5);
+  const flt=F.filter(f=>!q||f.email.includes(q)||f.enfants.some(k=>(k.nom||'').toLowerCase().includes(q)));
+  const st=f=>f.plan==='plus'?`<span class="tag t-plus">👑 ${f.abo_statut?'Abonné '+(f.abo_formule||''):'Offert → '+d(f.plus_jusqua)}</span>${f.abo_statut==='past_due'?' <span class="tag t-echec">impayé</span>':''}`:f.plan==='essai'?`<span class="tag t-essai">Essai · ${jours(f.essai_fin)} j</span>`:'<span class="tag t-gratuit">Gratuit</span>';
+  app.innerHTML=`
+  <div class="kpis">
+    <div class="kpi hl"><b>${eur(dumois)}</b><small>encaissé ce mois-ci</small></div>
+    <div class="kpi hl"><b>${eur(total)}</b><small>total encaissé</small></div>
+    <div class="kpi"><b>${eur(Math.round(mrr))}</b><small>revenu mensuel récurrent</small></div>
+    <div class="kpi"><b>${abos.length}</b><small>abonnés payants</small></div>
+    <div class="kpi"><b>${plus.length-abos.length}</b><small>Malino+ offerts</small></div>
+    <div class="kpi"><b>${F.filter(f=>f.plan==='essai').length}</b><small>en essai</small></div>
+    <div class="kpi"><b>${F.length}</b><small>familles inscrites</small></div>
+    <div class="kpi"><b>${enfants}</b><small>enfants</small></div>
+    <div class="kpi"><b>${actifs}</b><small>actives sur 7 jours</small></div>
+    <div class="kpi"><b>${D.parrainages.inscrits}/${D.parrainages.envoyes}</b><small>parrainages réussis</small></div>
+  </div>
+  <div class="card"><h2>🚨 À traiter <span class="tag ${alerts.length?'t-echec':'t-paye'}">${alerts.length}</span></h2>${alerts.length?alerts.slice(0,15).map(a=>`<div class="alert"><span class="mut small" style="min-width:76px">${dh(a.cree_le)}</span><span><b>${alertTypes[a.type]}</b> ${esc(a.email||'')}<br><span class="small mut">${esc(a.detail||'')}</span></span></div>`).join(''):'<p class="mut small" style="margin:0">Rien à signaler sur les 30 derniers jours ✅</p>'}</div>
+  <div class="card"><h2>🎁 Offrir Malino+</h2><div class="row"><input type="email" id="gEmail" placeholder="e-mail de la famille"><select id="gMois"><option value="1">1 mois</option><option value="3">3 mois</option><option value="6">6 mois</option><option value="12">12 mois</option></select></div><div class="row" style="margin-top:6px"><input id="gMsg" placeholder="petit mot (facultatif)" maxlength="200" style="flex:1"><button id="gGo">Offrir et envoyer l’e-mail</button></div><p class="msg" id="gRes"></p></div>
+  <div class="card"><h2>👨‍👩‍👧 Familles <span class="mut small">${F.length}</span></h2><input id="q" placeholder="Rechercher un e-mail ou un prénom" value="${esc(q)}" style="width:100%;margin-bottom:6px">${flt.map(f=>`<div class="fam"><div class="row" style="justify-content:space-between"><b style="word-break:break-all">${esc(f.email)}</b><span class="row">${st(f)}<button class="o small" data-gift="${esc(f.email)}">+1 mois</button></span></div><div class="small mut">Inscrit le ${d(f.cree_le)} · actif il y a ${ago(f.derniere_activite)}${f.total?` · payé ${eur(f.total)}`:''}${f.bonus_jours?` · +${f.bonus_jours} j parrainage`:''}</div><div class="kids" style="margin-top:3px">${f.enfants.map(k=>`<span class="kid">${esc(k.nom)} · niv. ${lvl(k.xp)} · ${k.seances} séances</span>`).join('')||'<span class="small mut">aucun enfant</span>'}</div></div>`).join('')||'<p class="mut small">Aucune famille</p>'}</div>
+  <div class="card"><h2>💳 Paiements <span class="mut small">${P.length}</span></h2><div class="scroll"><table><tr><th>Date</th><th>E-mail</th><th>Type</th><th>Montant</th><th>Statut</th></tr>${P.map(p=>`<tr><td class="small">${dh(p.cree_le)}</td><td>${esc(p.email||'')}</td><td>${p.type==='cadeau'?'🎁 cadeau':'Abonnement'}</td><td>${eur(p.montant)}</td><td><span class="tag t-${p.statut}">${{paye:'payé',echec:'échec',rembourse:'remboursé'}[p.statut]||p.statut}</span></td></tr>`).join('')||'<tr><td colspan="5" class="mut">Aucun paiement pour le moment</td></tr>'}</table></div></div>
+  <div class="card"><h2>🎁 Cadeaux</h2><div class="scroll"><table><tr><th>Date</th><th>De</th><th>Pour</th><th>Durée</th><th>Statut</th></tr>${D.cadeaux.map(g=>`<tr><td class="small">${d(g.cree_le)}</td><td>${esc(g.offrant_prenom||'')}<br><span class="small mut">${esc(g.offrant_email||'')}</span></td><td>${esc(g.dest_email)}</td><td>${g.mois} mois</td><td><span class="tag ${g.statut==='applique'?'t-paye':g.statut==='paye'?'t-essai':'t-gratuit'}">${{attente:'non payé',paye:'en attente de connexion',applique:'activé'}[g.statut]}</span></td></tr>`).join('')||'<tr><td colspan="5" class="mut">Aucun cadeau</td></tr>'}</table></div></div>
+  <div class="card"><details><summary>🛑 Demandes STOP (${D.stops.length})</summary><p class="small mut">Les adresses de cette liste ne reçoivent plus d’invitations ni de cadeaux par e-mail (les codes de connexion restent possibles).</p><div class="row"><input type="email" id="sEmail" placeholder="e-mail à bloquer"><button id="sAdd" class="r">Ajouter</button></div><table style="margin-top:6px">${D.stops.map(s=>`<tr><td>${esc(s.email)}</td><td class="small mut">${d(s.cree_le)}</td><td><button class="o" data-unstop="${esc(s.email)}">Retirer</button></td></tr>`).join('')}</table></details></div>
+  <div class="card"><details><summary>📜 Journal complet</summary><table>${D.journal.map(j=>`<tr><td class="small mut">${dh(j.cree_le)}</td><td>${esc(j.type)}</td><td>${esc(j.email||'')}</td><td class="small">${esc(j.detail||'')}</td></tr>`).join('')}</table></details></div>
+  <p class="small mut" style="text-align:center">Mis à jour à ${dh(D.maintenant)} · Stripe : compte Pace, produit Malino+</p>`;
+  $('#q').oninput=e=>{q=e.target.value.trim().toLowerCase();const p=e.target.selectionStart;draw();const n=$('#q');n.focus();n.setSelectionRange(p,p);};
+  $('#gGo').onclick=()=>offrir($('#gEmail').value,$('#gMois').value,$('#gMsg').value);
+  app.querySelectorAll('[data-gift]').forEach(b=>b.onclick=()=>{if(confirm(`Offrir 1 mois de Malino+ à ${b.dataset.gift} ? Un e-mail lui sera envoyé.`))offrir(b.dataset.gift,1,'');});
+  $('#sAdd').onclick=async()=>{const e=$('#sEmail').value.trim();if(!e)return;await sb.rpc('admin_stop',{mail:e,ajouter:true});load();};
+  app.querySelectorAll('[data-unstop]').forEach(b=>b.onclick=async()=>{await sb.rpc('admin_stop',{mail:b.dataset.unstop,ajouter:false});load();});
+}
+
+async function offrir(mail,mois,message){
+  const res=$('#gRes');mail=(mail||'').trim();if(!/^\S+@\S+\.\S+$/.test(mail)){res.className='msg';res.textContent='Vérifie l’e-mail';return;}
+  res.className='msg ok';res.textContent='Envoi…';
+  const {data:{session}}=await sb.auth.getSession();
+  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+session.access_token},body:JSON.stringify({action:'admin_offrir',email:mail,mois:+mois,message})}).then(r=>r.json()).catch(()=>({}));
+  if(!r.ok){res.className='msg';res.textContent=r.error==='interdit'?'Accès refusé':'Échec, réessaie';return;}
+  await load();const n=$('#gRes');n.className='msg ok';n.textContent=`✅ ${mois} mois offerts à ${mail}${r.applique?' (déjà actif sur son compte)':' (activé à sa première connexion)'}${r.envoye?' · e-mail envoyé':' · ⚠️ e-mail non envoyé'}`;
+}
+$('#refresh').onclick=load;
+load();
+</script>
+</body>
+</html>
