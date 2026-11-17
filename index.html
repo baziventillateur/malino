@@ -492,6 +492,7 @@ h1,h2,h3,h4{font-weight:700}
 .bp{display:block;height:6px;border-radius:9px;background:#eef0f4;overflow:hidden;margin-top:4px;width:100%}.bp i{display:block;height:100%;background:var(--rc)}
 .badge em{font-style:normal;font-size:11px;color:var(--ink2);font-weight:700}
 .rtag{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.antag{position:absolute;left:6px;bottom:4px;font-size:10px;font-weight:800;background:#fff;color:#7B5CFF;border-radius:99px;padding:1px 6px;z-index:2}
 </style>
 </head>
 <body>
@@ -812,17 +813,31 @@ const CATALOG=[
 (()=>{const MUL={bois:5,cuivre:6,argent:7,or:8,epique:10,diamant:12},PL={sh_plasma:60000,cape_plasma:75000,hat_plasma:50000,bg_plasma:55000,pet_alien:80000,pet_dragonp:99999,o_epee_p:65000,o_sabre_p:90000};
   const rnd=v=>v<300?Math.round(v/10)*10:v<2000?Math.round(v/50)*50:Math.round(v/100)*100;
   CATALOG.forEach(i=>{if(!i.price)return;if(PL[i.id])i.price=PL[i.id];else if(MUL[i.r])i.price=rnd(i.price*MUL[i.r]);});})();
+// --- Boutique allégée : plus de fonds ni de couleurs payantes, des tenues et objets plus marquants ---
+const EXTRA_RETIRED={};
+(()=>{const drop=new Set(['gl_rondes','sh_vert','sh_raye','cape_violette','cape_or','hat_casquette']);
+  for(let n=CATALOG.length-1;n>=0;n--){const i=CATALOG[n];if(i.price>0&&(['bg','hairColor','eyes','hair'].includes(i.cat)||drop.has(i.id))){EXTRA_RETIRED[i.id]=i.price;CATALOG.splice(n,1);}}
+  const T=(id,name,price,lvl,r,deco,an)=>it('shirt',id,name,price,lvl,r,{color:'#fff',deco,an});
+  CATALOG.push(
+   T('sh_pirate','Costume de pirate',900,4,'cuivre','pirate'),
+   T('sh_dino','Costume de dinosaure',1500,5,'argent','dino'),
+   T('sh_armure','Armure de chevalier',2400,6,'argent','armure'),
+   T('sh_ninja','Tenue de ninja',3600,8,'or','ninja'),
+   T('sh_cosmo','Combinaison de cosmonaute',5500,9,'or','cosmo',true),
+   T('sh_robot','Armure de robot',12000,12,'epique','robot',true),
+   T('sh_dragon','Armure de dragon',28000,15,'diamant','dragon',true));
+  CATALOG.forEach(i=>{if(['sh_galaxie','sh_cristal','sh_plasma','cape_cristal','cape_plasma','hat_plasma','hat_astronaute','o_sabre_e','o_sabre_p','o_epee_p','o_epee_d','o_baguette_d','o_trophee_d','o_marteau_e'].includes(i.id))i.an=true;});})();
 const fmtP=n=>Number(n).toLocaleString('fr-FR');
 const ITEM=Object.fromEntries(CATALOG.map(i=>[i.id,i]));
 const CATN={skin:'Peau',hair:'Coiffure',hairColor:'Couleur des cheveux',eyes:'Yeux',glasses:'Lunettes',shirt:'T-shirts',cape:'Capes',hat:'Chapeaux',bg:'Fonds',pet:'Animaux',obj:'Objets'};
-const TABS=[['obj','Objets','⚔️',['obj']],['pet','Animaux','🦁',['pet']],['hat','Chapeaux','🎩',['hat']],['tenue','Tenues','👕',['shirt','cape']],['bg','Fonds','🌈',['bg']],['moi','Moi','🙂',['skin','hair','hairColor','eyes','glasses']]];
+const TABS=[['obj','Objets','⚔️',['obj']],['pet','Animaux','🦁',['pet']],['hat','Chapeaux','🎩',['hat']],['tenue','Tenues','👕',['shirt','cape']],['moi','Moi','🙂',['skin','hair','hairColor','eyes','glasses']]];
 const DEFAULT_AV={skin:'skin2',hair:'hair_court',hairColor:'hc_brun',eyes:'eyes_ronds',shirt:'sh_bleu',hat:'hat_none',glasses:'gl_none',cape:'cape_none',bg:'bg_ciel',pet:'pet_none',obj:'obj_none'};
 // objets retirés de l'ancienne boutique : remboursés au prix payé
 const RETIRED={hc_vert:50,hc_violet:50,sh_jaune:15,sh_orange:15,sh_violet:25,sh_noir:25,em_etoile:30,em_coeur:30,em_eclair:40,em_foot:50,em_fusee:60,em_dino:80,em_cerveau:100,em_couronne:120,hat_chantier:60,cape_bleue:150};
 const isOwned=i=>i.price===0||S.owned.includes(i.id);
 const isPlusItem=i=>!!(i&&RAR[i.r]&&RAR[i.r].plus);
 function migrateShop(){
-  let rf=0;S.owned=(S.owned||[]).filter(x=>{if(RETIRED[x]!=null){rf+=RETIRED[x];return false;}return !!ITEM[x];});
+  let rf=0;S.owned=(S.owned||[]).filter(x=>{const p=RETIRED[x]!=null?RETIRED[x]:EXTRA_RETIRED[x];if(p!=null){rf+=p;return false;}return !!ITEM[x];});
   const av={};Object.keys(DEFAULT_AV).forEach(k=>{const v=S.avatar&&S.avatar[k];av[k]=ITEM[v]&&ITEM[v].cat===k?v:DEFAULT_AV[k];});S.avatar=av;
   if(rf){S.coins+=rf;S.refund=(S.refund||0)+rf;}
 }
@@ -916,18 +931,28 @@ function avatarSVG(av){
     plasma:`<path d="M52 76 C50 40 76 26 100 26 C124 26 150 40 148 76 Z" fill="#1E1446"/><path d="M54 66 C72 54 128 54 146 66 L146 78 C128 66 72 66 54 78Z" fill="url(#${id}pl)"/><path d="M100 26 L100 10" stroke="#1E1446" stroke-width="4"/><circle cx="100" cy="8" r="6" fill="url(#${id}pl)"/><path d="M70 44 Q86 34 104 36" stroke="#fff" stroke-width="4" opacity=".35" fill="none" stroke-linecap="round"/>`,
     astronaute:`<rect x="58" y="138" width="84" height="16" rx="8" fill="#E8EEF6" stroke="#B8C4D4" stroke-width="2"/><circle cx="100" cy="90" r="62" fill="rgba(190,226,255,.22)" stroke="#F4F7FB" stroke-width="9"/><path d="M58 70 Q66 46 90 36" stroke="#fff" stroke-width="7" fill="none" opacity=".75" stroke-linecap="round"/>`
   };
+  const an=(v,d)=>`<animate attributeName="opacity" values="${v}" dur="${d}s" repeatCount="indefinite"/>`;
+  const SHD={
+   pirate:`<path d="M38 200 C40 162 68 146 100 146 C132 146 160 162 162 200Z" fill="#F4F4F4"/><path d="M38 186 H162 M39 172 H161 M46 160 H154" stroke="#C8323C" stroke-width="7"/><path d="M70 150 L100 200 L130 150 C120 146 110 146 100 146 C90 146 80 146 70 150Z" fill="#2B2530"/><circle cx="100" cy="166" r="3.2" fill="#FFC83D"/><circle cx="100" cy="182" r="3.2" fill="#FFC83D"/>`,
+   dino:`<path d="M38 200 C40 162 68 146 100 146 C132 146 160 162 162 200Z" fill="#4CB86A"/><ellipse cx="100" cy="186" rx="30" ry="22" fill="#B5EBA9"/><path d="M62 152 L70 140 L78 150 L88 136 L96 148 L104 136 L112 148 L122 136 L130 150 L138 140 L146 154Z" fill="#2E8B4E"/><circle cx="62" cy="176" r="5" fill="#2E8B4E"/><circle cx="142" cy="172" r="6" fill="#2E8B4E"/><circle cx="52" cy="190" r="4" fill="#2E8B4E"/>`,
+   armure:`<path d="M38 200 C40 162 68 146 100 146 C132 146 160 162 162 200Z" fill="#9AA6B4"/><path d="M64 150 C80 146 120 146 136 150 L146 200 H54Z" fill="#C4CED9" stroke="#7B8794" stroke-width="3"/><path d="M100 150 V200 M72 170 H128" stroke="#7B8794" stroke-width="3"/><circle cx="52" cy="164" r="15" fill="#B8C3CF" stroke="#7B8794" stroke-width="3"/><circle cx="148" cy="164" r="15" fill="#B8C3CF" stroke="#7B8794" stroke-width="3"/><path d="M100 176 l8 10 -8 10 -8 -10Z" fill="#C8323C"/>`,
+   ninja:`<path d="M38 200 C40 162 68 146 100 146 C132 146 160 162 162 200Z" fill="#24263A"/><path d="M72 150 L100 182 L128 150" stroke="#454A6B" stroke-width="5" fill="none"/><path d="M40 184 H160 V194 H40Z" fill="#E03A45"/><path d="M96 184 L84 200 M104 184 L116 200" stroke="#E03A45" stroke-width="6"/>`,
+   cosmo:`<path d="M38 200 C40 162 68 146 100 146 C132 146 160 162 162 200Z" fill="#F4F7FB"/><path d="M62 152 C80 142 120 142 138 152" stroke="#FF8A1F" stroke-width="9" fill="none" stroke-linecap="round"/><rect x="72" y="168" width="56" height="26" rx="6" fill="#DCE4EF" stroke="#AEB9C8" stroke-width="2"/><circle cx="84" cy="181" r="4.5" fill="#E03A45">${an('1;.2;1',1.2)}</circle><circle cx="100" cy="181" r="4.5" fill="#22C55E">${an('.2;1;.2',1.7)}</circle><circle cx="116" cy="181" r="4.5" fill="#2EA3FF">${an('1;.3;1',.9)}</circle><rect x="46" y="176" width="14" height="10" rx="2" fill="#2EA3FF"/><rect x="46" y="176" width="14" height="4" fill="#E03A45"/>`,
+   robot:`<path d="M38 200 C40 162 68 146 100 146 C132 146 160 162 162 200Z" fill="#7C8AA0"/><rect x="62" y="158" width="76" height="40" rx="8" fill="#546075" stroke="#38425A" stroke-width="3"/><rect x="72" y="166" width="56" height="16" rx="4" fill="#0E2A3A"/><path d="M76 174 H88 L92 168 L98 178 L104 172 H124" stroke="#21E3FF" stroke-width="2.5" fill="none">${an('1;.35;1',1.4)}</path><circle cx="78" cy="190" r="3" fill="#FFC83D">${an('1;.2;1',1)}</circle><circle cx="100" cy="190" r="3" fill="#FF5A64">${an('.2;1;.2',1.3)}</circle><circle cx="122" cy="190" r="3" fill="#22C55E">${an('1;.2;1',.8)}</circle><circle cx="50" cy="166" r="8" fill="#9AA6B4" stroke="#38425A" stroke-width="2"/><circle cx="150" cy="166" r="8" fill="#9AA6B4" stroke="#38425A" stroke-width="2"/>`,
+   dragon:`<path d="M38 200 C40 162 68 146 100 146 C132 146 160 162 162 200Z" fill="#8E1B2B"/>${[0,1,2].map(r=>[0,1,2,3,4,5].map(c=>`<path d="M${52+c*19+(r%2)*9} ${160+r*13} q9 12 18 0" stroke="#C92A3F" stroke-width="2.5" fill="none"/>`).join('')).join('')}<path d="M70 150 L100 164 L130 150" stroke="#FFC83D" stroke-width="5" fill="none" stroke-linejoin="round"/><path d="M52 158 l8 -14 8 14Z M132 158 l8 -14 8 14Z" fill="#FFC83D"/><circle cx="100" cy="178" r="11" fill="#FF8A1F" stroke="#FFC83D" stroke-width="3"><animate attributeName="r" values="9;13;9" dur="1.6s" repeatCount="indefinite"/><animate attributeName="fill" values="#FF8A1F;#FFE27A;#FF8A1F" dur="1.6s" repeatCount="indefinite"/></circle>`
+  };
   const galaxy=sh.color==='galaxy'?[[70,176],[120,168],[140,188],[86,192],[108,182]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.7" fill="#fff"/>`).join(''):'';
   return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>${defs}</defs><g clip-path="url(#${id}c)"><rect width="200" height="200" fill="url(#${id}b)"/>${decor}`
    +(cape?`<path d="M60 148 C44 166 32 186 28 200 L172 200 C168 186 156 166 140 148 Z" fill="${cape}"/>`:'')
    +(HB[hs]||'')
-   +`<path d="M38 200 C40 162 68 146 100 146 C132 146 160 162 162 200Z" fill="${shirt}"/>${galaxy}<rect x="87" y="124" width="26" height="28" rx="10" fill="${skinD}"/>`
+   +(sh.deco&&SHD[sh.deco]?SHD[sh.deco]:`<path d="M38 200 C40 162 68 146 100 146 C132 146 160 162 162 200Z" fill="${shirt}"/>`)+`${galaxy}<rect x="87" y="124" width="26" height="28" rx="10" fill="${skinD}"/>`
    +`<circle cx="52" cy="98" r="10" fill="${skin}"/><circle cx="148" cy="98" r="10" fill="${skin}"/><circle cx="100" cy="92" r="48" fill="${skin}"/>`
    +(HF[hs]||'')+(gl==='masque'?GL.masque:'')
    +`<path d="M73 79 Q82 74 91 79 M109 79 Q118 74 127 79" stroke="${hs==='chauve'?skinD:brow}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
    +(EYES[ey]||EYES.ronds)
    +`<path d="M97 104 Q100 108 103 104" stroke="${skinD}" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="70" cy="110" r="7" fill="#FF7A90" opacity=".35"/><circle cx="130" cy="110" r="7" fill="#FF7A90" opacity=".35"/><path d="M86 114 Q100 130 114 114 Z" fill="#8E2A3B"/><path d="M92 121 Q100 127 108 121 Q100 119 92 121Z" fill="#FF8A9A"/>`
    +(gl&&gl!=='masque'?GL[gl]:'')+(hat?HAT[hat]:'')
-   +`</g>`+(pet?(auraSVG(id+'q',pi.r,170,176,30).split('|')[1]||'')+`<text x="170" y="194" font-size="42" text-anchor="middle">${pet}</text>`+(pi.r==='diamant'||pi.r==='plasma'?sparkles([[196,150],[146,150]],5):''):'')+(oi.k?`<g transform="translate(2 120) rotate(-14 32 32) scale(1.12)">${objG(oi,id+'k')}</g>`:'')+`</svg>`;
+   +`</g>`+(pet?(auraSVG(id+'q',pi.r,170,176,30).split('|')[1]||'')+`<text x="170" y="194" font-size="42" text-anchor="middle">${pet}</text>`+(pi.r==='diamant'||pi.r==='plasma'?sparkles([[196,150],[146,150]],5):''):'')+(oi.k?`<g transform="translate(2 120) rotate(-14 32 32) scale(1.12)">${objG(oi,id+'k')}${oi.an?'<animateTransform attributeName="transform" type="translate" values="0 0;0 -5;0 0" dur="2.2s" repeatCount="indefinite" additive="sum"/>':''}</g>`:'')+`</svg>`;
 }
 const thumb=i=>i.cat==='obj'&&i.k?objThumb(i):i.cat==='pet'&&i.emoji?petThumb(i):avatarSVG(Object.assign({},S.avatar,{[i.cat]:i.id}));
 
@@ -996,7 +1021,7 @@ function buildQueue(items,n,wfn){
 // ---------- Badges ----------
 // Raretés : commun (régulier), rare (quelques semaines), épique (des mois), légendaire (le long terme)
 const RARITY={c:{n:'Commun',col:'#94A3B8'},r:{n:'Rare',col:'#3B82F6'},e:{n:'Épique',col:'#A855F7'},l:{n:'Légendaire',col:'#F59E0B'}};
-const REWARD={c:15,r:40,e:100,l:250};
+const REWARD={c:10,r:25,e:60,l:150};
 const P=(v,m)=>[Math.min(Math.floor(v),m),m];
 const perfectN=()=>S.sessions.filter(s=>s.type!=='sprint'&&s.n>0&&s.ok===s.n).length;
 const maxedThemes=()=>Object.keys(THEMES).filter(k=>S.settings.lv[k]>=THEMES[k].levels.length).length+(S.settings.frLevel>=FR_LEVELS.length?1:0);
@@ -1042,7 +1067,12 @@ const BADGES=[
  {id:'allthemes',e:'🐉',n:'À fond partout',d:'Tous les niveaux au maximum, dans chaque jeu',r:'l',t:()=>maxedThemes()>=6,p:()=>P(maxedThemes(),6)},
  {id:'mathall',e:'🌍',n:'Champion du monde',d:'Maîtriser tous les mondes de maths',r:'l',t:()=>MATH_LEVELS.every((L,i)=>levelMastery('math',i+1)>=1)},
 ];
-function checkBadges(sess){const out=[];BADGES.forEach(b=>{if(S.badges[b.id])return;let ok=false;try{ok=b.t(sess);}catch(e){}if(ok){S.badges[b.id]=Date.now();S.coins+=REWARD[b.r]||15;out.push(b);}});if(out.length)save();return out;}
+// Objet offert : rare. Un délai minimum entre deux cadeaux, et seulement lors d'un vrai moment fort.
+function dropItem(minP,maxP,force){
+  if(!force&&S.lastDrop&&Date.now()-S.lastDrop<3*864e5)return null;
+  const L=levelInfo(S.xp).level,c=CATALOG.filter(i=>i.price>=minP&&i.price<=maxP&&i.lvl<=L&&!S.owned.includes(i.id)&&!isPlusItem(i)&&i.cat!=='bg');
+  if(!c.length)return null;const i=pick(c);S.owned.push(i.id);S.lastDrop=Date.now();return i;}
+function checkBadges(sess){const out=[];BADGES.forEach(b=>{if(S.badges[b.id])return;let ok=false;try{ok=b.t(sess);}catch(e){}if(ok){S.badges[b.id]=Date.now();S.coins+=REWARD[b.r]||10;let bb=b;if(b.r==='l'||b.r==='e'){const d=dropItem(b.r==='l'?3000:600,b.r==='l'?30000:6000,true);if(d)bb=Object.assign({},b,{drop:d});}out.push(bb);}});if(out.length)save();return out;}
 
 // ---------- Cadeaux des parents ----------
 const GIFT_TYPES={streak:'jours d’affilée',level:'niveau à atteindre',days:'jours d’entraînement au total',ok:'bonnes réponses au total',tdays:'jours dans la semaine avec 10 min de jeu (7 max)',tweek:'minutes de jeu dans la semaine',tfr:'minutes de lecture au total',ttot:'minutes de jeu au total'};
@@ -1175,11 +1205,11 @@ function queueModal(html,onShow){MQ.push({html,onShow});if(!modalOpen)nextModal(
 function nextModal(){const m=MQ.shift(),el=$('#modal');if(!m){modalOpen=false;el.className='modal hidden';el.innerHTML='';return;}modalOpen=true;el.innerHTML=`<div class="mbox">${m.html}</div>`;el.className='modal';if(m.onShow)m.onShow();}
 function closeAllModals(){MQ.length=0;nextModal();}
 function levelUpModal(from,to){
-  const un=CATALOG.filter(i=>i.lvl>from&&i.lvl<=to);
-  queueModal(`<div class="bigemoji">⭐</div><h2>Niveau ${to} !</h2><div class="mav">${avatarSVG(S.avatar)}</div>${un.length?`<p>Nouveaux objets dans ta boutique :</p><div class="unl">${un.slice(0,6).map(i=>`<span class="ui"><span class="ith">${thumb(i)}</span>${esc(i.name)}</span>`).join('')}</div>`:'<p>Continue comme ça !</p>'}<button class="btn y block" data-act="mclose">Super ! 🎉</button>`,
+  const un=CATALOG.filter(i=>i.lvl>from&&i.lvl<=to);let dr=null;if(Math.floor(to/5)>Math.floor(from/5))dr=dropItem(300,Math.min(1500*Math.floor(to/5),20000),true);
+  queueModal(`<div class="bigemoji">⭐</div><h2>Niveau ${to} !</h2><div class="mav">${avatarSVG(S.avatar)}</div>${dr?`<p>🎁 Objet offert : <b>${esc(dr.name)}</b></p><div class="mav">${thumb(dr)}</div>`:''}${un.length?`<p>Nouveaux objets dans ta boutique :</p><div class="unl">${un.slice(0,6).map(i=>`<span class="ui"><span class="ith">${thumb(i)}</span>${esc(i.name)}</span>`).join('')}</div>`:'<p>Continue comme ça !</p>'}<button class="btn y block" data-act="mclose">Super ! 🎉</button>`,
    ()=>{Sound.play(to%5===0?'epic':'level');Confetti.burst(160);if(S.settings.voice)Voice.say(`Bravo ! Tu passes au niveau ${to} !`);});
 }
-function badgeModal(b){const R=RARITY[b.r]||RARITY.c,big=b.r==='e'||b.r==='l';queueModal(`<div class="bigemoji">${b.e}</div><div class="rtag" style="color:${R.col}">${R.n}</div><h2>${big?'Badge exceptionnel !':'Nouveau badge !'}</h2><p><b>${esc(b.n)}</b><br>${esc(b.d)}</p><div class="gainline">+${REWARD[b.r]||15} 🪙</div><button class="btn y block" data-act="mclose">Trop bien !</button>`,()=>{Sound.play(big?'epic':'badge');Confetti.burst(b.r==='l'?260:b.r==='e'?160:b.r==='r'?90:60);});}
+function badgeModal(b){const R=RARITY[b.r]||RARITY.c,big=b.r==='e'||b.r==='l';queueModal(`<div class="bigemoji">${b.e}</div><div class="rtag" style="color:${R.col}">${R.n}</div><h2>${big?'Badge exceptionnel !':'Nouveau badge !'}</h2><p><b>${esc(b.n)}</b><br>${esc(b.d)}</p><div class="gainline">+${REWARD[b.r]||10} 🪙</div>${b.drop?`<p>Et un objet offert : <b>${esc(b.drop.name)}</b> !</p><div class="mav">${thumb(b.drop)}</div>`:''}<button class="btn y block" data-act="mclose">Trop bien !</button>`,()=>{Sound.play(big?'epic':'badge');Confetti.burst(b.r==='l'?260:b.r==='e'?160:b.r==='r'?90:60);});}
 function giftModal(g){queueModal(`<div class="bigemoji">${esc(g.emoji)}</div><h2>Cadeau gagné !</h2><p><b>${esc(g.title)}</b><br>Montre cet écran à papa ou maman 😊</p><button class="btn p block" data-act="mclose">Youpi !</button>`,()=>{Sound.play('level');Confetti.burst(140);if(S.settings.voice)Voice.say('Tu as gagné un cadeau : '+g.title);});}
 
 // ---------- Aide visuelle après une erreur ----------
@@ -1289,7 +1319,7 @@ function submit(val){
   G.n++;S.stats.n++;if(kind==='main'){G.mainN++;if(ok)G.okFirst++;}
   if(ok){
     S.stats.ok++;S.stats.ms+=ms;G.times.push(ms);G.combo++;G.bestCombo=Math.max(G.bestCombo,G.combo);
-    let xp=10,coins=1;if(fast){xp+=5;coins+=1;if(kind==='main')G.fast++;}
+    let xp=10,coins=0;if(fast){xp+=5;coins+=1;if(kind==='main')G.fast++;}
     G.xp+=xp;G.coins+=coins;
     Sound.play(fast?'fast':'good');praise(fast?'⚡ Rapide !':pick(PRAISE));
     floatText(`+${coins} 🪙`,$('#sscore'));bounceAv();
@@ -1340,7 +1370,7 @@ function endGame(){
   const before=levelInfo(S.xp).level;let sess;
   if(G.mode==='sprint'){
     const lv=S.settings.mathLevel,best=S.stats.sprintBest[lv]||0;G.prevBest=best;G.record=G.score>best;
-    if(G.record){S.stats.sprintBest[lv]=G.score;G.coins+=15;G.xp+=20;}
+    if(G.record){S.stats.sprintBest[lv]=G.score;G.coins+=8;G.xp+=20;}
     sess={t:Date.now(),d:day,type:'sprint',lvl:lv,score:G.score,sec:S.settings.sprintSec,wrong:G.wrong,avgMs,xp:G.xp,coins:G.coins,dur:S.settings.sprintSec};
   }else{
     const acc=G.mainN?G.okFirst/G.mainN:0;G.stars=acc>=.9?3:acc>=.7?2:1;
@@ -1413,7 +1443,7 @@ function renderShop(){setTimeout(()=>{shopAnim=false;shopBought=null;},700);
      :`<div class="buybar">${nmh}<span>Il te manque ${fmtP(pv.price-S.coins)} 🪙</span></div>`;}
   const tab=TABS.find(t=>t[0]===shopCat)||TABS[0],seen=shopSeen||1;let n=0;
   const card=i=>{const own=isOwned(i),eq=S.avatar[i.cat]===i.id,lvlk=!own&&i.lvl>L,pl=!own&&isPlusItem(i)&&!Plan.plus(),lk=lvlk||pl,af=!own&&!lk&&S.coins>=i.price,nw=!own&&!lk&&i.lvl>seen&&i.price>0;
-    return `<button class="item ${i.r?'r-'+i.r:''} ${eq?'eq':''} ${lk?'locked':''} ${af?'afford':''} ${shopPrev===i.id?'sel':''} ${shopBought===i.id?'justbought':''}" style="--i:${n++}" data-act="${lk?'itemlk':'item'}" data-arg="${i.id}">${i.r?`<span class="rchip">${RAR[i.r].n}</span>`:''}${nw?'<span class="newtag">NOUVEAU</span>':''}<span class="ith">${thumb(i)}</span>${lk?'<span class="lockov">🔒</span>':''}<span class="iname">${lk?'???':esc(i.name)}</span><span class="iprice">${eq?'✅ Porté':own?'À toi':lvlk?`Niveau ${i.lvl}`:pl?'👑 Malino+':`${fmtP(i.price)} 🪙`}</span></button>`;};
+    return `<button class="item ${i.r?'r-'+i.r:''} ${eq?'eq':''} ${lk?'locked':''} ${af?'afford':''} ${shopPrev===i.id?'sel':''} ${shopBought===i.id?'justbought':''}" style="--i:${n++}" data-act="${lk?'itemlk':'item'}" data-arg="${i.id}">${i.r?`<span class="rchip">${RAR[i.r].n}</span>`:''}${i.an?'<span class="antag">✨ Animé</span>':''}${nw?'<span class="newtag">NOUVEAU</span>':''}<span class="ith">${thumb(i)}</span>${lk?'<span class="lockov">🔒</span>':''}<span class="iname">${lk?'???':esc(i.name)}</span><span class="iprice">${eq?'✅ Porté':own?'À toi':lvlk?`Niveau ${i.lvl}`:pl?'👑 Malino+':`${fmtP(i.price)} 🪙`}</span></button>`;};
   const sorted=c=>CATALOG.filter(i=>i.cat===c).sort((a,b)=>(RORD.indexOf(a.r)-RORD.indexOf(b.r))||(a.lvl-b.lvl)||(a.price-b.price));
   const body=tab[3].length>1?tab[3].map(c=>`<div class="shsec">${CATN[c]}</div>${sorted(c).map(card).join('')}`).join(''):sorted(tab[3][0]).map(card).join('');
   return `<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>Mon perso</h2><span class="pill">🪙 ${S.coins}</span></div>
@@ -1568,8 +1598,8 @@ const ACT={
   chestopen(){
     if(!chestAvailable())return;const d=dayKey();S.days[d].chest=true;S.stats.chests=(S.stats.chests||0)+1;
     const wk=dayKey(addDays(new Date(),-((new Date().getDay()+6)%7))),gold=Plan.plus()&&S.goldW!==wk;if(gold)S.goldW=wk;
-    const stk=curStreak(),coins=(rand(20,40)+Math.min(30,stk*3))*(gold?3:1);let item=null;
-    if(gold||Math.random()<.3||(stk>0&&stk%7===0)){const L=levelInfo(S.xp).level,c=CATALOG.filter(i=>i.price>0&&i.price<=(gold?1500:200)&&i.lvl<=L&&!S.owned.includes(i.id));if(c.length){item=pick(c);S.owned.push(item.id);}}
+    const stk=curStreak(),coins=(rand(8,18)+Math.min(14,stk*2))*(gold?3:1);let item=null;
+    if(gold||(stk>0&&stk%14===0)||Math.random()<.07)item=dropItem(gold?400:60,gold?2500:700,gold||stk%14===0);
     S.coins+=coins;save();Sound.play(gold?'epic':'chest');Confetti.burst(160);
     $('#modal .mbox').innerHTML=`<div class="bigemoji">${gold?'👑':'✨'}</div>${gold?'<p><b>Coffre doré de la semaine !</b></p>':''}<h2>+${coins} 🪙</h2>${stk>1?`<p>Bonus de série : 🔥 ${stk} jours !</p>`:''}${item?`<p>Et un objet surprise : <b>${esc(item.name)}</b> !</p><div class="mav">${thumb(item)}</div><div class="stack"><button class="btn p block" data-act="equipgift" data-arg="${item.id}">Le mettre tout de suite</button><button class="btn y block" data-act="mclose">Super !</button></div>`:'<button class="btn y block" data-act="mclose">Super !</button>'}`;
     if(S.settings.voice)Voice.say(`Tu gagnes ${coins} pièces !`);
