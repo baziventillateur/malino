@@ -795,6 +795,11 @@ const CATALOG=[
  ob('o_baguette_d','Baguette de diamant','baguette','diamant',1250,14),ob('o_epee_d','Épée de diamant','epee','diamant',1300,15),ob('o_trophee_d','Coupe de diamant','trophee','diamant',1500,17),
  ob('o_epee_p','Épée de plasma','epee','plasma',2400,19),ob('o_sabre_p','Sabre plasma','sabre','plasma',2600,20)
 ];
+// prix revus à la hausse : il faut économiser, et le Plasma doit sembler presque inatteignable
+(()=>{const MUL={bois:5,cuivre:6,argent:7,or:8,epique:10,diamant:12},PL={sh_plasma:60000,cape_plasma:75000,hat_plasma:50000,bg_plasma:55000,pet_alien:80000,pet_dragonp:99999,o_epee_p:65000,o_sabre_p:90000};
+  const rnd=v=>v<300?Math.round(v/10)*10:v<2000?Math.round(v/50)*50:Math.round(v/100)*100;
+  CATALOG.forEach(i=>{if(!i.price)return;if(PL[i.id])i.price=PL[i.id];else if(MUL[i.r])i.price=rnd(i.price*MUL[i.r]);});})();
+const fmtP=n=>Number(n).toLocaleString('fr-FR');
 const ITEM=Object.fromEntries(CATALOG.map(i=>[i.id,i]));
 const CATN={skin:'Peau',hair:'Coiffure',hairColor:'Couleur des cheveux',eyes:'Yeux',glasses:'Lunettes',shirt:'T-shirts',cape:'Capes',hat:'Chapeaux',bg:'Fonds',pet:'Animaux',obj:'Objets'};
 const TABS=[['obj','Objets','⚔️',['obj']],['pet','Animaux','🦁',['pet']],['hat','Chapeaux','🎩',['hat']],['tenue','Tenues','👕',['shirt','cape']],['bg','Fonds','🌈',['bg']],['moi','Moi','🙂',['skin','hair','hairColor','eyes','glasses']]];
@@ -1339,11 +1344,11 @@ function renderShop(){setTimeout(()=>{shopAnim=false;shopBought=null;},700);
   if(pv){const nmh=`<b>${esc(pv.name)}</b>${pv.r?` <span class="rtag t-${pv.r}">${RAR[pv.r].n}</span>`:''}`;
     bar=pv.lvl>L?`<div class="buybar">${nmh}<span>🔒 Niveau ${pv.lvl}</span></div>`
      :isPlusItem(pv)&&!Plan.plus()?`<div class="buybar">${nmh}<button class="btn v sm" data-act="offre" data-arg="plasma">👑 Malino+</button></div>`
-     :S.coins>=pv.price?`<div class="buybar">${nmh}<button class="btn g sm" data-act="buy" data-arg="${pv.id}">Acheter · ${pv.price} 🪙</button></div>`
-     :`<div class="buybar">${nmh}<span>Il te manque ${pv.price-S.coins} 🪙</span></div>`;}
+     :S.coins>=pv.price?`<div class="buybar">${nmh}<button class="btn g sm" data-act="buy" data-arg="${pv.id}">Acheter · ${fmtP(pv.price)} 🪙</button></div>`
+     :`<div class="buybar">${nmh}<span>Il te manque ${fmtP(pv.price-S.coins)} 🪙</span></div>`;}
   const tab=TABS.find(t=>t[0]===shopCat)||TABS[0],seen=shopSeen||1;let n=0;
   const card=i=>{const own=isOwned(i),eq=S.avatar[i.cat]===i.id,lvlk=!own&&i.lvl>L,pl=!own&&isPlusItem(i)&&!Plan.plus(),lk=lvlk||pl,af=!own&&!lk&&S.coins>=i.price,nw=!own&&!lk&&i.lvl>seen&&i.price>0;
-    return `<button class="item ${i.r?'r-'+i.r:''} ${eq?'eq':''} ${lk?'locked':''} ${af?'afford':''} ${shopPrev===i.id?'sel':''} ${shopBought===i.id?'justbought':''}" style="--i:${n++}" data-act="${lk?'itemlk':'item'}" data-arg="${i.id}">${i.r?`<span class="rchip">${RAR[i.r].n}</span>`:''}${nw?'<span class="newtag">NOUVEAU</span>':''}<span class="ith">${thumb(i)}</span>${lk?'<span class="lockov">🔒</span>':''}<span class="iname">${lk?'???':esc(i.name)}</span><span class="iprice">${eq?'✅ Porté':own?'À toi':lvlk?`Niveau ${i.lvl}`:pl?'👑 Malino+':`${i.price} 🪙`}</span></button>`;};
+    return `<button class="item ${i.r?'r-'+i.r:''} ${eq?'eq':''} ${lk?'locked':''} ${af?'afford':''} ${shopPrev===i.id?'sel':''} ${shopBought===i.id?'justbought':''}" style="--i:${n++}" data-act="${lk?'itemlk':'item'}" data-arg="${i.id}">${i.r?`<span class="rchip">${RAR[i.r].n}</span>`:''}${nw?'<span class="newtag">NOUVEAU</span>':''}<span class="ith">${thumb(i)}</span>${lk?'<span class="lockov">🔒</span>':''}<span class="iname">${lk?'???':esc(i.name)}</span><span class="iprice">${eq?'✅ Porté':own?'À toi':lvlk?`Niveau ${i.lvl}`:pl?'👑 Malino+':`${fmtP(i.price)} 🪙`}</span></button>`;};
   const sorted=c=>CATALOG.filter(i=>i.cat===c).sort((a,b)=>(RORD.indexOf(a.r)-RORD.indexOf(b.r))||(a.lvl-b.lvl)||(a.price-b.price));
   const body=tab[3].length>1?tab[3].map(c=>`<div class="shsec">${CATN[c]}</div>${sorted(c).map(card).join('')}`).join(''):sorted(tab[3][0]).map(card).join('');
   return `<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>Mon perso</h2><span class="pill">🪙 ${S.coins}</span></div>
@@ -1497,7 +1502,7 @@ const ACT={
     if(!chestAvailable())return;const d=dayKey();S.days[d].chest=true;S.stats.chests=(S.stats.chests||0)+1;
     const wk=dayKey(addDays(new Date(),-((new Date().getDay()+6)%7))),gold=Plan.plus()&&S.goldW!==wk;if(gold)S.goldW=wk;
     const stk=curStreak(),coins=(rand(20,40)+Math.min(30,stk*3))*(gold?3:1);let item=null;
-    if(gold||Math.random()<.3||(stk>0&&stk%7===0)){const L=levelInfo(S.xp).level,c=CATALOG.filter(i=>i.price>0&&i.price<=(gold?500:200)&&i.lvl<=L&&!S.owned.includes(i.id));if(c.length){item=pick(c);S.owned.push(item.id);}}
+    if(gold||Math.random()<.3||(stk>0&&stk%7===0)){const L=levelInfo(S.xp).level,c=CATALOG.filter(i=>i.price>0&&i.price<=(gold?1500:200)&&i.lvl<=L&&!S.owned.includes(i.id));if(c.length){item=pick(c);S.owned.push(item.id);}}
     S.coins+=coins;save();Sound.play(gold?'epic':'chest');Confetti.burst(160);
     $('#modal .mbox').innerHTML=`<div class="bigemoji">${gold?'👑':'✨'}</div>${gold?'<p><b>Coffre doré de la semaine !</b></p>':''}<h2>+${coins} 🪙</h2>${stk>1?`<p>Bonus de série : 🔥 ${stk} jours !</p>`:''}${item?`<p>Et un objet surprise : <b>${esc(item.name)}</b> !</p><div class="mav">${thumb(item)}</div><div class="stack"><button class="btn p block" data-act="equipgift" data-arg="${item.id}">Le mettre tout de suite</button><button class="btn y block" data-act="mclose">Super !</button></div>`:'<button class="btn y block" data-act="mclose">Super !</button>'}`;
     if(S.settings.voice)Voice.say(`Tu gagnes ${coins} pièces !`);
