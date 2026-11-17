@@ -1580,6 +1580,8 @@ const ACT={
   setth(a){const [k,n]=a.split('|');if(+n>Plan.thMax(k))return Offre.open('theme');S.settings.lv[k]=+n;save();toast(`${THEMES[k].n} : niveau ${n}`);keepScroll(render);},
   togth(k){S.settings.thOn[k]=!S.settings.thOn[k];save();keepScroll(render);},
   shop(){shopPrev=null;shopSeen=S.shopSeen||1;S.shopSeen=levelInfo(S.xp).level;save();shopAnim=true;go('shop');},badges(){go('badges');},gifts(){go('gifts');},
+  codepromo(){if(modalOpen)nextModal();Offre.code('');},
+  codego(){Offre.codeGo();},
   giftcard(id){const g=S.gifts.find(x=>x.id===id);if(!g)return;queueModal(`<div class="bigemoji">${esc(g.emoji)}</div><h2>${esc(g.title)}</h2><p><b>Présente-la à papa et maman</b></p><p class="small mut">Gagné le ${fdate(g.reached)}</p><div class="stack"><button class="btn p block" data-act="giftpin" data-arg="${g.id}">Papa ou maman : valider</button><button class="btn w block" data-act="mclose">Plus tard</button></div>`);},
   giftpin(id){closeAllModals();pinGift=id;pinBuf='';pinStage='enter';go('pin');},
   parent(){pinBuf='';pinGift=null;pinStage='enter';go(adminOk?'admin':'pin');},
@@ -1910,6 +1912,7 @@ const Plan={info:null,
     return '<button class="parentbtn plan" data-act="offre">👑 Malino+</button>';},
   banner(){const k=this.kind();
     if(k==='essai'&&this.jours()<=3)return `<button class="planban" data-act="offre"><b>⏳ Plus que ${this.jours()} jour${this.jours()>1?'s':''} de Malino+</b><small>Invite 2 amis : jusqu’à 14 jours offerts en plus</small></button>`;
+    if(k==='plus'&&this.info&&!this.info.abonne&&this.info.plus_jusqua){const j=Math.ceil((Date.parse(this.info.plus_jusqua)-Date.now())/864e5);if(j<=7&&j>=0)return `<button class="planban" data-act="offre"><b>⏳ Plus que ${j} jour${j>1?'s':''} de Malino+ offert</b><small>Garde tous les jeux : dès 2,50 € par mois</small></button>`;}
     if(k==='gratuit')return `<button class="planban g" data-act="offre"><b>👑 Débloque tous les jeux</b><small>Malino+ dès 2,50 € par mois</small></button>`;
     return '';}
 };
@@ -1926,7 +1929,7 @@ const Offre={after:null,
     else if(k==='essai')status=`<p class="okline">⏳ Ton essai gratuit se termine dans <b>${Plan.jours()} jour${Plan.jours()>1?'s':''}</b>.</p>`;
     else if(k==='gratuit')status=`<p class="okline">Ton essai est terminé : les jeux de base restent gratuits.</p>`;
     const buy=k==='plus'?(i.abonne?`<button class="btn sm o block" data-act="portail">Gérer mon abonnement</button>`:''):`<button class="btn g block planbtn" data-act="payer" data-arg="annuel"><span>29,99 € par an</span><small>soit 2,50 €/mois · le plus avantageux</small></button><button class="btn sm o block" style="margin-top:8px" data-act="payer" data-arg="mensuel">3,99 € par mois</button><p class="fine">Sans engagement, résiliable en 2 clics · paiement sécurisé Stripe</p>`;
-    queueModal(`<div class="bigemoji sm">👑</div><h2>Malino+</h2>${status}<ul class="plist"><li>🎲 Toutes les thématiques, tous les niveaux</li><li>👨‍👩‍👧 Jusqu’à 4 enfants</li><li>📊 Le suivi détaillé de chaque enfant</li><li>💎 Les objets Plasma et un coffre doré chaque semaine</li></ul>${buy}<div class="orow"><button class="alink" data-act="offrir">🎁 Offrir Malino+</button>${k==='essai'||k==='gratuit'?'<button class="alink" data-act="parrain">👥 Inviter des amis</button>':''}</div><button class="alink" data-act="mclose">Fermer</button>`);
+    queueModal(`<div class="bigemoji sm">👑</div><h2>Malino+</h2>${status}<ul class="plist"><li>🎲 Toutes les thématiques, tous les niveaux</li><li>👨‍👩‍👧 Jusqu’à 4 enfants</li><li>📊 Le suivi détaillé de chaque enfant</li><li>💎 Les objets Plasma et un coffre doré chaque semaine</li></ul>${buy}<div class="orow"><button class="alink" data-act="codepromo">🎟️ J’ai un code</button><button class="alink" data-act="offrir">🎁 Offrir Malino+</button>${k==='essai'||k==='gratuit'?'<button class="alink" data-act="parrain">👥 Inviter des amis</button>':''}</div><button class="alink" data-act="mclose">Fermer</button>`);
   },
   pay(f){
     if(!Acct.user){Offre.after=()=>Offre.pay(f);nextModal();Acct.note='Connecte-toi d’abord : l’abonnement sera rattaché à ton compte.';Acct.show('login');return;}
@@ -1948,6 +1951,17 @@ const Offre={after:null,
       toast(j.error==='trop_de_demandes'?'Trop de tentatives, réessaie plus tard':'Impossible pour le moment, réessaie');
     }catch(e){toast('Pas de connexion internet');}
   },
+  // ----- code promo (ex. groupes Facebook) -----
+  code(pre){
+    if(!Acct.user){Offre.after=()=>Offre.code(pre);Offre.pc=pre||'';if(modalOpen)nextModal();Acct.note='🎟️ Crée ton compte (ou connecte-toi) pour utiliser ton code : il sera activé tout de suite.';Acct.show('login');return;}
+    queueModal(`<div class="bigemoji sm">🎟️</div><h2>J’ai un code</h2><p>Entre ton code pour recevoir du temps de Malino+ offert.</p><input id="pcIn" class="ginput" maxlength="24" autocapitalize="characters" autocomplete="off" placeholder="MALINO-XXXXX" value="${esc(pre||'')}" style="text-align:center;letter-spacing:1px;margin:0 auto 12px;display:block;max-width:240px"><button class="btn g block" data-act="codego">Activer</button><button class="alink" data-act="mclose">Annuler</button>`);},
+  async codeGo(){
+    const v=(($('#pcIn')||{}).value||'').trim();if(!v)return toast('Entre ton code');
+    const {data,error}=await Acct.sb.rpc('utiliser_code',{p_code:v});
+    if(error||!data)return toast('Impossible pour le moment, réessaie');
+    if(!data.ok){const M={invalide:'Code inconnu : vérifie l’orthographe',expire:'Ce code a expiré',epuise:'Ce code a atteint sa limite d’utilisations',deja:'Tu as déjà utilisé un code',abonne:'Tu es déjà abonné(e) à Malino+',trop:'Trop d’essais, réessaie dans une heure',connexion:'Connecte-toi d’abord'};return toast(M[data.error]||'Code refusé');}
+    nextModal();await Plan.refresh(true);
+    queueModal(`<div class="bigemoji sm">🎉</div><h2>Malino+ activé !</h2><p><b>${data.jours} jours</b> offerts, jusqu’au <b>${fmtDate(data.fin)}</b>. Toutes les thématiques et tous les niveaux sont débloqués.</p><button class="btn g block" data-act="mclose">C’est parti ! 🚀</button>`,()=>{Sound.play('epic');Confetti.burst(180);});render();},
   // ----- parrainage -----
   invite(){
     if(!Acct.user){Offre.after=()=>Offre.invite();nextModal();Acct.show('login');return;}
@@ -1966,9 +1980,10 @@ const Offre={after:null,
   },
   // retour de Stripe et liens reçus par e-mail
   async fromUrl(){
-    const q=new URLSearchParams(location.search);if(!q.has('paye')&&!q.has('cadeau')&&!q.has('invite')&&!q.has('offrir'))return;
+    const q=new URLSearchParams(location.search);if(!q.has('paye')&&!q.has('cadeau')&&!q.has('invite')&&!q.has('offrir')&&!q.has('code'))return;
     const cad=q.get('cadeau'),mail=q.get('email')||'';history.replaceState(null,'',location.pathname);
     if(q.has('offrir'))return Offre.gift();
+    if(q.has('code')){try{localStorage.setItem('malino_code',(q.get('code')||'').toUpperCase().slice(0,24));}catch(e){}return Offre.code(q.get('code').toUpperCase().slice(0,24));}
     if(cad==='ok')return queueModal(`<div class="bigemoji sm">🎁</div><h2>Merci pour ce cadeau !</h2><p>La personne va recevoir un e-mail pour activer Malino+. Tu reçois aussi une confirmation.</p><button class="btn g block" data-act="mclose">Super</button>`,()=>Confetti.burst(120));
     if(cad||q.has('invite')){
       if(Acct.user){await Plan.refresh();return;}
