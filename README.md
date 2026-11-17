@@ -15,7 +15,7 @@ Voix de synthèse du navigateur (SpeechSynthesis), en français. Les sons des co
 
 ## Bruitages communs
 
-Les sons rigolos partagés par tous les comptes sont dans `bruitages/` et listés dans `bruitages/index.json` (`f` fichier, `n` nom, `c` catégorie : bad, fail, combo, level, go, fast). Ils passent en réglage « Beaucoup ».
+Les sons rigolos partagés par tous les comptes sont stockés dans Supabase (stockage public « bruitages » et table `bruitages`). Un compte admin les envoie depuis Espace parents › Réglages › Mes sons, bouton « Partager mes sons avec tout le monde ». Ils passent en réglage « Beaucoup ».
 
 ## Aide
 La page `aide.html` ouvre le chat de support (Tidio) ; le script du chat n'est chargé que sur cette page.
