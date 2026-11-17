@@ -481,6 +481,14 @@ h1,h2,h3,h4{font-weight:700}
 @keyframes goodflash{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6),0 6px 0 rgba(36,38,58,.1)}100%{box-shadow:0 0 0 22px rgba(34,197,94,0),0 6px 0 rgba(36,38,58,.1)}}
 @keyframes starIn{0%{transform:scale(0) rotate(-90deg)}70%{transform:scale(1.3) rotate(10deg)}100%{transform:scale(1) rotate(0)}}
 @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}.stars .st{transform:none}}
+.rarsec{margin:16px 0 4px}.rarh{font-size:15px;margin:0 0 8px;display:flex;align-items:baseline;gap:8px}.rarh small{color:var(--ink2);font-weight:600;font-size:12px}
+.badge{border:2px solid var(--rc,#e5e7eb)}
+.badge.got.r-e,.badge.got.r-l{animation:glow 2.4s ease-in-out infinite}
+.badge.got.r-l{background:linear-gradient(160deg,#fff8dc,#fff 60%)}
+@keyframes glow{50%{box-shadow:0 0 0 3px var(--rc),0 0 22px -2px var(--rc)}}
+.bp{display:block;height:6px;border-radius:9px;background:#eef0f4;overflow:hidden;margin-top:4px;width:100%}.bp i{display:block;height:100%;background:var(--rc)}
+.badge em{font-style:normal;font-size:11px;color:var(--ink2);font-weight:700}
+.rtag{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
 </style>
 </head>
 <body>
@@ -983,34 +991,55 @@ function buildQueue(items,n,wfn){
 }
 
 // ---------- Badges ----------
+// Raretés : commun (régulier), rare (quelques semaines), épique (des mois), légendaire (le long terme)
+const RARITY={c:{n:'Commun',col:'#94A3B8'},r:{n:'Rare',col:'#3B82F6'},e:{n:'Épique',col:'#A855F7'},l:{n:'Légendaire',col:'#F59E0B'}};
+const REWARD={c:15,r:40,e:100,l:250};
+const P=(v,m)=>[Math.min(Math.floor(v),m),m];
+const perfectN=()=>S.sessions.filter(s=>s.type!=='sprint'&&s.n>0&&s.ok===s.n).length;
+const maxedThemes=()=>Object.keys(THEMES).filter(k=>S.settings.lv[k]>=THEMES[k].levels.length).length+(S.settings.frLevel>=FR_LEVELS.length?1:0);
 const BADGES=[
- {id:'first',e:'🎉',n:'Premier pas',d:'Finir ton premier entraînement',t:()=>S.sessions.some(s=>s.type==='math')},
- {id:'s3',e:'🔥',n:'3 jours de suite',d:'S’entraîner 3 jours d’affilée',t:()=>S.streak.best>=3},
- {id:'s7',e:'🏅',n:'Une semaine !',d:'7 jours d’affilée',t:()=>S.streak.best>=7},
- {id:'s14',e:'💎',n:'Deux semaines',d:'14 jours d’affilée',t:()=>S.streak.best>=14},
- {id:'s30',e:'👑',n:'Un mois entier',d:'30 jours d’affilée',t:()=>S.streak.best>=30},
- {id:'perfect',e:'✨',n:'Sans faute',d:'Une partie sans aucune erreur',t:s=>!!s&&s.type!=='sprint'&&s.n>0&&s.ok===s.n},
- {id:'flash',e:'⚡',n:'Éclair',d:'8 réponses rapides dans une partie',t:s=>!!s&&s.fast>=8},
- {id:'combo10',e:'💥',n:'Combo x10',d:'10 bonnes réponses d’affilée',t:()=>S.stats.bestCombo>=10},
- {id:'combo25',e:'🌟',n:'Combo x25',d:'25 bonnes réponses d’affilée',t:()=>S.stats.bestCombo>=25},
- {id:'sp10',e:'🏃',n:'Sprinteur',d:'10 calculs dans un défi éclair',t:s=>!!s&&s.type==='sprint'&&s.score>=10},
- {id:'sp20',e:'🚀',n:'Fusée',d:'20 calculs dans un défi éclair',t:s=>!!s&&s.type==='sprint'&&s.score>=20},
- {id:'sp30',e:'☄️',n:'Comète',d:'30 calculs dans un défi éclair',t:s=>!!s&&s.type==='sprint'&&s.score>=30},
- {id:'c100',e:'💯',n:'100 bonnes réponses',d:'Au total',t:()=>S.stats.ok>=100},
- {id:'c500',e:'🧠',n:'500 bonnes réponses',d:'Au total',t:()=>S.stats.ok>=500},
- {id:'c1000',e:'🏆',n:'1000 bonnes réponses',d:'Au total',t:()=>S.stats.ok>=1000},
- {id:'master',e:'🎓',n:'Maître du calcul',d:'Maîtriser tout un monde de maths',t:()=>MATH_LEVELS.some((L,i)=>i<11&&levelMastery('math',i+1)>=1)},
- {id:'read1',e:'📖',n:'Petit lecteur',d:'Finir ta première partie de lecture',t:()=>S.sessions.some(s=>s.type==='fr')},
- {id:'read10',e:'📚',n:'Grand lecteur',d:'10 parties de lecture',t:()=>S.sessions.filter(s=>s.type==='fr').length>=10},
- {id:'explo',e:'🧭',n:'Explorateur',d:'Essayer les 5 autres jeux',t:()=>Object.keys(THEMES).every(k=>S.sessions.some(s=>s.type===k))},
- {id:'th20',e:'🎲',n:'Touche-à-tout',d:'20 parties dans les autres jeux',t:()=>S.sessions.filter(s=>THEMES[s.type]).length>=20},
- {id:'l5',e:'⭐',n:'Niveau 5',d:'Atteindre le niveau 5',t:()=>levelInfo(S.xp).level>=5},
- {id:'l10',e:'🌟',n:'Niveau 10',d:'Atteindre le niveau 10',t:()=>levelInfo(S.xp).level>=10},
- {id:'l20',e:'🌠',n:'Niveau 20',d:'Atteindre le niveau 20',t:()=>levelInfo(S.xp).level>=20},
- {id:'shop5',e:'🎨',n:'Styliste',d:'Acheter 5 objets',t:()=>S.owned.length>=5},
- {id:'chest7',e:'🎁',n:'Chasseur de coffres',d:'Ouvrir 7 coffres',t:()=>(S.stats.chests||0)>=7},
+ {id:'first',e:'🎉',n:'Premier pas',d:'Finir ton premier entraînement',r:'c',t:()=>S.sessions.length>=1,p:()=>P(S.sessions.length,1)},
+ {id:'read1',e:'📖',n:'Petit lecteur',d:'Finir ta première partie de lecture',r:'c',t:()=>S.sessions.some(s=>s.type==='fr'),p:()=>P(S.sessions.filter(s=>s.type==='fr').length,1)},
+ {id:'s3',e:'🔥',n:'3 jours de suite',d:'S’entraîner 3 jours d’affilée',r:'c',t:()=>S.streak.best>=3,p:()=>P(S.streak.best,3)},
+ {id:'flash',e:'⚡',n:'Éclair',d:'8 réponses rapides dans une partie',r:'c',t:s=>!!s&&s.fast>=8},
+ {id:'combo10',e:'💥',n:'Combo x10',d:'10 bonnes réponses d’affilée',r:'c',t:()=>S.stats.bestCombo>=10,p:()=>P(S.stats.bestCombo,10)},
+ {id:'l5',e:'⭐',n:'Niveau 5',d:'Atteindre le niveau 5',r:'c',t:()=>levelInfo(S.xp).level>=5,p:()=>P(levelInfo(S.xp).level,5)},
+ {id:'shop1',e:'🛍️',n:'Première emplette',d:'Acheter ton premier objet',r:'c',t:()=>S.owned.length>=1,p:()=>P(S.owned.length,1)},
+ {id:'min30',e:'⏳',n:'Demi-heure',d:'30 minutes de jeu au total',r:'c',t:()=>TimeT.all()>=1800,p:()=>P(TimeT.all()/60,30)},
+ {id:'perfect',e:'✨',n:'Sans faute',d:'Une partie sans aucune erreur',r:'c',t:s=>!!s&&s.type!=='sprint'&&s.n>0&&s.ok===s.n},
+ {id:'sp10',e:'🏃',n:'Sprinteur',d:'10 calculs dans un défi éclair',r:'c',t:s=>!!s&&s.type==='sprint'&&s.score>=10},
+ {id:'c100',e:'💯',n:'100 bonnes réponses',d:'Au total',r:'c',t:()=>S.stats.ok>=100,p:()=>P(S.stats.ok,100)},
+ {id:'s7',e:'🏅',n:'Une semaine !',d:'7 jours d’affilée',r:'r',t:()=>S.streak.best>=7,p:()=>P(S.streak.best,7)},
+ {id:'combo25',e:'🌟',n:'Combo x25',d:'25 bonnes réponses d’affilée',r:'r',t:()=>S.stats.bestCombo>=25,p:()=>P(S.stats.bestCombo,25)},
+ {id:'sp20',e:'🚀',n:'Fusée',d:'20 calculs dans un défi éclair',r:'r',t:s=>!!s&&s.type==='sprint'&&s.score>=20},
+ {id:'perfect5',e:'🎯',n:'Cinq sans faute',d:'Cinq parties sans aucune erreur',r:'r',t:()=>perfectN()>=5,p:()=>P(perfectN(),5)},
+ {id:'read10',e:'📚',n:'Grand lecteur',d:'30 parties de lecture',r:'r',t:()=>S.sessions.filter(s=>s.type==='fr').length>=30,p:()=>P(S.sessions.filter(s=>s.type==='fr').length,30)},
+ {id:'th20',e:'🎲',n:'Touche-à-tout',d:'40 parties dans les autres jeux',r:'r',t:()=>S.sessions.filter(s=>THEMES[s.type]).length>=40,p:()=>P(S.sessions.filter(s=>THEMES[s.type]).length,40)},
+ {id:'chest7',e:'🎁',n:'Chasseur de coffres',d:'Ouvrir 7 coffres',r:'r',t:()=>(S.stats.chests||0)>=7,p:()=>P(S.stats.chests||0,7)},
+ {id:'l10',e:'🌟',n:'Niveau 10',d:'Atteindre le niveau 10',r:'r',t:()=>levelInfo(S.xp).level>=10,p:()=>P(levelInfo(S.xp).level,10)},
+ {id:'shop5',e:'🎨',n:'Styliste',d:'Acheter 15 objets',r:'r',t:()=>S.owned.length>=15,p:()=>P(S.owned.length,15)},
+ {id:'min600',e:'⏱️',n:'Dix heures',d:'10 heures de jeu au total',r:'r',t:()=>TimeT.all()>=36000,p:()=>P(TimeT.all()/60,600)},
+ {id:'explo',e:'🧭',n:'Explorateur',d:'Essayer les 5 autres jeux',r:'r',t:()=>Object.keys(THEMES).every(k=>S.sessions.some(s=>s.type===k)),p:()=>P(Object.keys(THEMES).filter(k=>S.sessions.some(s=>s.type===k)).length,5)},
+ {id:'s14',e:'💎',n:'Deux semaines',d:'14 jours d’affilée',r:'e',t:()=>S.streak.best>=14,p:()=>P(S.streak.best,14)},
+ {id:'c500',e:'🧠',n:'500 bonnes réponses',d:'Au total',r:'e',t:()=>S.stats.ok>=500,p:()=>P(S.stats.ok,500)},
+ {id:'sp30',e:'☄️',n:'Comète',d:'30 calculs dans un défi éclair',r:'e',t:s=>!!s&&s.type==='sprint'&&s.score>=30},
+ {id:'sp40',e:'🛸',n:'Mégafusée',d:'40 calculs dans un défi éclair',r:'e',t:s=>!!s&&s.type==='sprint'&&s.score>=40},
+ {id:'combo50',e:'🔥',n:'Combo x50',d:'50 bonnes réponses d’affilée',r:'e',t:()=>S.stats.bestCombo>=50,p:()=>P(S.stats.bestCombo,50)},
+ {id:'perfect20',e:'💫',n:'Vingt sans faute',d:'Vingt parties sans aucune erreur',r:'e',t:()=>perfectN()>=20,p:()=>P(perfectN(),20)},
+ {id:'l20',e:'🌠',n:'Niveau 20',d:'Atteindre le niveau 20',r:'e',t:()=>levelInfo(S.xp).level>=20,p:()=>P(levelInfo(S.xp).level,20)},
+ {id:'master',e:'🎓',n:'Maître du calcul',d:'Maîtriser tout un monde de maths',r:'e',t:()=>MATH_LEVELS.some((L,i)=>i<11&&levelMastery('math',i+1)>=1)},
+ {id:'chest30',e:'💰',n:'Trésorier',d:'Ouvrir 30 coffres',r:'e',t:()=>(S.stats.chests||0)>=30,p:()=>P(S.stats.chests||0,30)},
+ {id:'s30',e:'👑',n:'Un mois entier',d:'30 jours d’affilée',r:'l',t:()=>S.streak.best>=30,p:()=>P(S.streak.best,30)},
+ {id:'s60',e:'🌋',n:'Deux mois de suite',d:'60 jours d’affilée',r:'l',t:()=>S.streak.best>=60,p:()=>P(S.streak.best,60)},
+ {id:'s100',e:'🏛️',n:'Cent jours',d:'100 jours d’affilée',r:'l',t:()=>S.streak.best>=100,p:()=>P(S.streak.best,100)},
+ {id:'c1000',e:'🏆',n:'1000 bonnes réponses',d:'Au total',r:'l',t:()=>S.stats.ok>=1000,p:()=>P(S.stats.ok,1000)},
+ {id:'c2500',e:'🥇',n:'Cerveau d’or',d:'2500 bonnes réponses au total',r:'l',t:()=>S.stats.ok>=2500,p:()=>P(S.stats.ok,2500)},
+ {id:'min3000',e:'⌛',n:'Cinquante heures',d:'50 heures de jeu au total',r:'l',t:()=>TimeT.all()>=180000,p:()=>P(TimeT.all()/60,3000)},
+ {id:'l30',e:'🌈',n:'Niveau 30',d:'Atteindre le niveau 30',r:'l',t:()=>levelInfo(S.xp).level>=30,p:()=>P(levelInfo(S.xp).level,30)},
+ {id:'allthemes',e:'🐉',n:'À fond partout',d:'Tous les niveaux au maximum, dans chaque jeu',r:'l',t:()=>maxedThemes()>=6,p:()=>P(maxedThemes(),6)},
+ {id:'mathall',e:'🌍',n:'Champion du monde',d:'Maîtriser tous les mondes de maths',r:'l',t:()=>MATH_LEVELS.every((L,i)=>levelMastery('math',i+1)>=1)},
 ];
-function checkBadges(sess){const out=[];BADGES.forEach(b=>{if(S.badges[b.id])return;let ok=false;try{ok=b.t(sess);}catch(e){}if(ok){S.badges[b.id]=Date.now();S.coins+=15;out.push(b);}});if(out.length)save();return out;}
+function checkBadges(sess){const out=[];BADGES.forEach(b=>{if(S.badges[b.id])return;let ok=false;try{ok=b.t(sess);}catch(e){}if(ok){S.badges[b.id]=Date.now();S.coins+=REWARD[b.r]||15;out.push(b);}});if(out.length)save();return out;}
 
 // ---------- Cadeaux des parents ----------
 const GIFT_TYPES={streak:'jours d’affilée',level:'niveau à atteindre',days:'jours d’entraînement au total',ok:'bonnes réponses au total',tdays:'jours dans la semaine avec 10 min de jeu (7 max)',tweek:'minutes de jeu dans la semaine',tfr:'minutes de lecture au total',ttot:'minutes de jeu au total'};
@@ -1147,7 +1176,7 @@ function levelUpModal(from,to){
   queueModal(`<div class="bigemoji">⭐</div><h2>Niveau ${to} !</h2><div class="mav">${avatarSVG(S.avatar)}</div>${un.length?`<p>Nouveaux objets dans ta boutique :</p><div class="unl">${un.slice(0,6).map(i=>`<span class="ui"><span class="ith">${thumb(i)}</span>${esc(i.name)}</span>`).join('')}</div>`:'<p>Continue comme ça !</p>'}<button class="btn y block" data-act="mclose">Super ! 🎉</button>`,
    ()=>{Sound.play(to%5===0?'epic':'level');Confetti.burst(160);if(S.settings.voice)Voice.say(`Bravo ! Tu passes au niveau ${to} !`);});
 }
-function badgeModal(b){queueModal(`<div class="bigemoji">${b.e}</div><h2>Nouveau badge !</h2><p><b>${esc(b.n)}</b><br>${esc(b.d)}</p><div class="gainline">+15 🪙</div><button class="btn y block" data-act="mclose">Trop bien !</button>`,()=>{Sound.play('badge');Confetti.burst(80);});}
+function badgeModal(b){const R=RARITY[b.r]||RARITY.c,big=b.r==='e'||b.r==='l';queueModal(`<div class="bigemoji">${b.e}</div><div class="rtag" style="color:${R.col}">${R.n}</div><h2>${big?'Badge exceptionnel !':'Nouveau badge !'}</h2><p><b>${esc(b.n)}</b><br>${esc(b.d)}</p><div class="gainline">+${REWARD[b.r]||15} 🪙</div><button class="btn y block" data-act="mclose">Trop bien !</button>`,()=>{Sound.play(big?'epic':'badge');Confetti.burst(b.r==='l'?260:b.r==='e'?160:b.r==='r'?90:60);});}
 function giftModal(g){queueModal(`<div class="bigemoji">${esc(g.emoji)}</div><h2>Cadeau gagné !</h2><p><b>${esc(g.title)}</b><br>Montre cet écran à papa ou maman 😊</p><button class="btn p block" data-act="mclose">Youpi !</button>`,()=>{Sound.play('level');Confetti.burst(140);if(S.settings.voice)Voice.say('Tu as gagné un cadeau : '+g.title);});}
 
 // ---------- Aide visuelle après une erreur ----------
@@ -1390,7 +1419,7 @@ function renderShop(){setTimeout(()=>{shopAnim=false;shopBought=null;},700);
   <div class="rlegend">${RORD.map(r=>`<span class="rtag t-${r}">${RAR[r].n}</span>`).join('<i>›</i>')}</div>
   <div class="items ${shopAnim?'anim':''}">${body}</div>`;
 }
-function renderBadges(){return `<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>Mes badges</h2><span class="pill">${Object.keys(S.badges).length}/${BADGES.length}</span></div><div class="badges">${BADGES.map(b=>`<div class="badge ${S.badges[b.id]?'got':''}"><span class="be">${b.e}</span><b>${esc(b.n)}</b><small>${esc(b.d)}</small></div>`).join('')}</div>`;}
+function renderBadges(){const got=BADGES.filter(b=>S.badges[b.id]).length;return `<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>Mes badges</h2><span class="pill">${got}/${BADGES.length}</span></div>`+Object.entries(RARITY).map(([k,R])=>{const L=BADGES.filter(b=>b.r===k),g=L.filter(b=>S.badges[b.id]).length;return `<div class="rarsec"><h3 class="rarh" style="color:${R.col}">${R.n}<small>${g}/${L.length}</small></h3><div class="badges">${L.map(b=>{const ok=!!S.badges[b.id],pr=!ok&&b.p?b.p():null;return `<div class="badge r-${k} ${ok?'got':''}" style="--rc:${R.col}"><span class="be">${b.e}</span><b>${esc(b.n)}</b><small>${esc(b.d)}</small>${pr?`<span class="bp"><i style="width:${Math.round(pr[0]/pr[1]*100)}%"></i></span><em>${pr[0]}/${pr[1]}</em>`:''}</div>`;}).join('')}</div></div>`;}).join('');}
 function renderGifts(){
   return `<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>Mes cadeaux</h2></div><p class="lead">Papa et maman ont prévu des cadeaux. Entraîne-toi pour les gagner !</p>
   ${S.gifts.length?S.gifts.map(g=>{const done=!!g.reached||g.given,v=Math.min(giftVal(g),g.target);return `<div class="gcard ${done?'won':''} ${g.given?'given':''}"><span class="ge">${esc(g.emoji)}</span><div class="gt"><b>${esc(g.title)}</b><small>${giftCond(g)}</small><span class="gbar"><i style="width:${done?100:Math.round(v/g.target*100)}%"></i></span><small>${g.given?'Reçu ✅':done?'Gagné ! Montre-le à papa ou maman 🎉':`${v} / ${g.target}`}</small></div></div>`;}).join(''):'<div class="empty">Pas encore de cadeau. Papa ou maman peuvent en ajouter dans l’espace parents.</div>'}`;
