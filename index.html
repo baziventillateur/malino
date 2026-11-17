@@ -254,42 +254,57 @@ h1,h2,h3,h4{font-weight:700}
 .bigav.trying{animation:pulse 1.4s infinite}
 .buybar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border-radius:18px;padding:10px 12px;margin-bottom:12px;min-height:64px;font-size:17px;box-shadow:0 3px 0 rgba(0,0,0,.06)}
 .buybar span{color:var(--ink2);font-weight:600;text-align:right}
-.buybar.muted{justify-content:center;color:var(--ink2);font-weight:600}
+.buybar.muted{justify-content:center;color:var(--ink2);font-weight:600;flex-direction:column;gap:2px;text-align:center}.buybar .nxt{font-size:12.5px;color:var(--vd);font-weight:700}
 .cats{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin-bottom:4px;scrollbar-width:none}
 .cats::-webkit-scrollbar{display:none}
 .cat{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;background:#fff;border-radius:14px;padding:8px 10px;font-size:13px;font-weight:600;box-shadow:0 3px 0 #D6DAEA;min-width:74px}
 .cat span{font-size:24px}
 .cat.on{background:var(--v);color:#fff;box-shadow:0 3px 0 var(--vd)}
-.items{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.item{background:#fff;border-radius:18px;padding:8px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 4px 0 #D6DAEA;border:3px solid transparent}
-.item .ith{width:78px;height:78px}
-.item .iname{font-size:14px;font-weight:600;line-height:1.1}
-.item .iprice{font-size:13px;font-weight:700;color:var(--od)}
-.item.eq{border-color:var(--g)}.item.eq .iprice{color:var(--gd)}
-.item.sel{border-color:var(--v)}
-.item.locked .ith{filter:grayscale(1) opacity(.45)}.item.locked .iprice{color:var(--mut)}
-.item{position:relative;padding:15px 3px 7px;border-radius:16px;gap:3px}
-.item .ith{width:62px;height:62px}
-.item .iname{font-size:13px}.item .iprice{font-size:12px}
-.item.eq{outline:3px solid var(--g);outline-offset:1px}.item.sel{outline:3px solid var(--v);outline-offset:1px}
-.rchip{position:absolute;top:3px;left:50%;transform:translateX(-50%);font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:1px 7px;border-radius:999px;color:#fff;white-space:nowrap;line-height:15px}
-.item.r-bois{background:linear-gradient(160deg,#F7EBDC,#E3C59C);border-color:#B98B5B;box-shadow:0 4px 0 #9C6E40}.r-bois .rchip,.t-bois{background:#8E5B2C}
-.item.r-cuivre{background:linear-gradient(160deg,#FCE7DA,#EFAE86);border-color:#C26A3A;box-shadow:0 4px 0 #9C4A22}.r-cuivre .rchip,.t-cuivre{background:#B5602F}
-.item.r-argent{background:linear-gradient(160deg,#FFFFFF,#D3DBE6);border-color:#9AA7B6;box-shadow:0 4px 0 #7D8A99}.r-argent .rchip,.t-argent{background:#7D8A99}
-.item.r-or{background:linear-gradient(160deg,#FFF8D6,#FFD65A);border-color:#E5A500;box-shadow:0 4px 0 #B98200,0 0 10px rgba(255,200,0,.5)}.r-or .rchip,.t-or{background:linear-gradient(90deg,#C98A00,#F5B700)}
-.item.r-epique{background:linear-gradient(160deg,#F1E7FF,#B58AFF);border-color:#7B3CFF;box-shadow:0 4px 0 #4E1BB0,0 0 14px rgba(140,80,255,.6)}.r-epique .rchip,.t-epique{background:#6A2BD9}
-.item.r-diamant{background:linear-gradient(160deg,#F2FDFF,#9BE7FF 60%,#E9FBFF);border-color:#29B6E6;box-shadow:0 4px 0 #127FA6,0 0 16px rgba(90,220,255,.75);overflow:hidden}.r-diamant .rchip,.t-diamant{background:#1C9CCB}
-.item.r-diamant::after{content:'';position:absolute;top:-30%;left:-60%;width:40%;height:160%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.9),transparent);transform:rotate(20deg);animation:shine 2.6s infinite;pointer-events:none}
-.item.r-plasma{background:linear-gradient(120deg,#FF2EA6,#8A3CFF,#21E3FF,#FF2EA6);background-size:300% 300%;animation:plasma 4s linear infinite;border-color:#fff;box-shadow:0 4px 0 #3B0F7A,0 0 18px rgba(255,79,216,.85)}
-.r-plasma .iname,.r-plasma .iprice{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45)}.r-plasma .rchip,.t-plasma{background:linear-gradient(90deg,#FF2EA6,#21E3FF)}
-.item.locked.r-plasma .ith,.item.locked.r-diamant .ith,.item.locked.r-epique .ith{filter:grayscale(.6) opacity(.6)}
-@keyframes shine{0%{left:-60%}60%,100%{left:130%}}
-@keyframes plasma{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+.items{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.item{position:relative;background:#fff;border-radius:16px;padding:15px 3px 7px;display:flex;flex-direction:column;align-items:center;gap:3px;border:2px solid #ECE8F6;box-shadow:0 3px 0 #E2DDF0;transition:transform .12s;overflow:hidden;isolation:isolate}
+.item:active{transform:scale(.95)}
+.item .ith{width:62px;height:62px;position:relative;z-index:1}
+.item .iname{font-size:13px;font-weight:600;line-height:1.1;z-index:1}
+.item .iprice{font-size:12px;font-weight:700;color:var(--od);z-index:1}
+.item.eq{outline:3px solid var(--g);outline-offset:1px}.item.eq .iprice{color:var(--gd)}.item.sel{outline:3px solid var(--v);outline-offset:1px}
+.rchip{position:absolute;top:3px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:1px 7px;border-radius:999px;color:#fff;white-space:nowrap;line-height:15px;z-index:2}
+.t-bois,.r-bois .rchip{background:#A47A4F}.t-cuivre,.r-cuivre .rchip{background:#B9693A}.t-argent,.r-argent .rchip{background:#8A97A6}
+.t-or,.r-or .rchip{background:linear-gradient(90deg,#D99A00,#F7C21A)}.t-epique,.r-epique .rchip{background:#7B3CFF}.t-diamant,.r-diamant .rchip{background:#1FA9DA}.t-plasma,.r-plasma .rchip{background:linear-gradient(90deg,#FF2EA6,#8A3CFF,#21E3FF)}
+/* les premières raretés restent sobres, l'écart se creuse à partir de l'or */
+.item.r-bois{border-color:#E4D3BE}.item.r-cuivre{border-color:#EDC2A6}.item.r-argent{border-color:#C9D2DC;background:radial-gradient(circle at 50% 38%,#F3F6FA,#fff 70%)}
+.item.r-or{border-color:#F2B300;box-shadow:0 3px 0 #D99A00,0 0 12px rgba(255,190,0,.4);background:radial-gradient(circle at 50% 36%,#FFF3C4,#fff 68%)}
+.item.r-epique{border-color:#8B5CFF;box-shadow:0 3px 0 #5A22C8,0 0 16px rgba(140,80,255,.5);background:radial-gradient(circle at 50% 36%,#EFE3FF,#fff 70%)}
+.item.r-diamant{border-color:#3CC8F0;box-shadow:0 3px 0 #1689B3,0 0 18px rgba(80,215,255,.6);background:radial-gradient(circle at 50% 36%,#DDF7FF,#fff 70%)}
+.item.r-plasma{border:2.5px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(120deg,#FF2EA6,#8A3CFF,#21E3FF,#FF2EA6) border-box;background-size:100% 100%,300% 300%;animation:plasma 3.5s linear infinite;box-shadow:0 3px 0 #5B1AA8,0 0 20px rgba(255,79,216,.55)}
+.item.r-or::after,.item.r-diamant::after,.item.r-plasma::after{content:'';position:absolute;top:-30%;left:-70%;width:40%;height:160%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent);transform:rotate(20deg);animation:shine 3.2s infinite;pointer-events:none;z-index:3}
+.item.r-diamant::after{animation-duration:2.4s}.item.r-or::after{animation-duration:4.2s}
+.item.r-epique .ith,.item.r-diamant .ith,.item.r-plasma .ith{animation:floaty 2.6s ease-in-out infinite}
+/* objets bloqués : gris, flous, gros cadenas */
+.item.locked{background:#F1F2F6;border:2px solid #DDE0E8;box-shadow:0 3px 0 #D3D6E0;animation:none}
+.item.locked::after{display:none}.item.locked .rchip{background:#B5BAC6}
+.item.locked .ith{filter:grayscale(1) blur(3.5px) opacity(.3);animation:none}
+.item.locked .iname{color:#A3A8B6}.item.locked .iprice{color:#8C92A3}
+.lockov{position:absolute;left:50%;top:44px;transform:translate(-50%,-50%);font-size:34px;z-index:2;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}
+.item.shake{animation:shk .4s}
+/* envie : objets nouveaux et objets qu'il peut s'offrir */
+.newtag{position:absolute;top:21px;right:4px;background:#FF4D6D;color:#fff;font-size:8px;font-weight:800;letter-spacing:.3px;padding:1px 5px;border-radius:6px;z-index:4;box-shadow:0 1px 2px rgba(0,0,0,.2);animation:wig 2.4s ease-in-out infinite}
+@keyframes wig{0%,80%,100%{transform:rotate(0)}85%{transform:rotate(-8deg)}90%{transform:rotate(8deg)}95%{transform:rotate(-4deg)}}
+.item.afford .iprice{animation:pulsep 1.5s ease-in-out infinite}
+.item.justbought{animation:bought .7s ease-out}
+.items.anim .item{animation:popin .32s both;animation-delay:calc(var(--i)*22ms)}
+.items.anim .item.r-plasma{animation:popin .32s both,plasma 3.5s linear infinite;animation-delay:calc(var(--i)*22ms),0s}
+@keyframes shine{0%{left:-70%}55%,100%{left:140%}}
+@keyframes plasma{0%{background-position:0 0,0% 50%}100%{background-position:0 0,300% 50%}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes popin{from{opacity:0;transform:scale(.85) translateY(8px)}to{opacity:1;transform:none}}
+@keyframes shk{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px) rotate(-2deg)}40%{transform:translateX(6px) rotate(2deg)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes pulsep{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+@keyframes bought{0%{transform:scale(1)}30%{transform:scale(1.15) rotate(-3deg);box-shadow:0 0 0 6px rgba(34,197,94,.35)}60%{transform:scale(.97) rotate(2deg)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.item,.item .ith,.item::after,.item .iprice{animation:none!important}}
 .shsec{grid-column:1/-1;font-weight:800;font-size:14px;color:var(--ink2);margin:4px 2px -2px}
 .rtag{display:inline-block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:#fff;border-radius:999px;padding:1px 7px;vertical-align:middle}
 .rlegend{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:3px;margin:0 0 10px}.rlegend .rtag{font-size:8.5px;padding:1px 5px}.rlegend i{font-style:normal;color:var(--mut);font-size:11px}
 .btn.v{background:var(--v);color:#fff;box-shadow:0 4px 0 var(--vd)}
-@media (prefers-reduced-motion:reduce){.item.r-plasma,.item.r-diamant::after{animation:none}}
 .badges{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .badge{background:#fff;border-radius:18px;padding:12px 6px;text-align:center;box-shadow:0 4px 0 #D6DAEA;display:flex;flex-direction:column;gap:3px;align-items:center}
 .badge .be{font-size:40px;filter:grayscale(1);opacity:.3}
@@ -1007,6 +1022,7 @@ const Sound={ctx:null,buf:{},loaded:false,last:{},
     this.shared=[];
     fetch('bruitages/index.json').then(r=>r.ok?r.json():[]).then(l=>add(l,'bruitages/')).catch(()=>{}).then(()=>fetch(SB_URL+'/rest/v1/bruitages?select=f,n,c',{headers:{apikey:SB_KEY}})).then(r=>r&&r.ok?r.json():[]).then(l=>add(l.map(p=>Object.assign({},p,{db:1})),SB_URL+'/storage/v1/object/public/bruitages/')).catch(()=>{});},
   play(n){if(!S||!S.settings.sound||S.settings.sndMode==='off')return;this.unlock();if(!this.ctx)return;
+    if(n==='tap'){this.tone(820,0,.035,'sine',.03);return;}
     if(n==='badge'){[392,523,659,784].forEach((f,i)=>this.tone(f,i*.1,.32,'sine',.07));return;}
     if(n==='good'||n==='fast'){const c=n==='fast'?this.custom('fast'):[];if(c.length&&Math.random()<.3){let k=pick(c),z=0;while(c.length>1&&k===this.last.fast&&z++<20)k=pick(c);this.last.fast=k;if(this.sample(k,0,.55,SMAX.fast))return;}this.soft(n);return;}
     if((n==='combo2'||n==='combo3'||n==='epic')&&!this.custom(n).length)n=n==='epic'?'level':'combo';
@@ -1276,6 +1292,7 @@ function endGame(){
 }
 
 // ---------- Écrans ----------
+let shopSeen=1,shopAnim=false,shopBought=null;
 let SCR='home',shopCat='obj',shopPrev=null,adminOk=false,adminTab='reglages',pinBuf='',pinStage='enter',pinFirst='',mapLevel=0,gateAns=0;
 function go(s){SCR=s;render();window.scrollTo(0,0);}
 function keepScroll(fn){const y=window.scrollY;fn();window.scrollTo(0,y);}
@@ -1315,24 +1332,25 @@ function renderResult(){
   ${cmp?`<div class="cmp">${cmp}</div>`:''}${chestAvailable()?'<div class="cmp">🎁 Mission du jour terminée ! Ton coffre t’attend à l’accueil.</div>':''}
   <div class="gains"><span>+${s.xp} XP</span><span>+${s.coins} 🪙</span></div><div class="stack">${next}</div></div>`;
 }
-function renderShop(){
+function renderShop(){setTimeout(()=>{shopAnim=false;shopBought=null;},700);
   const L=levelInfo(S.xp).level,pv=shopPrev?ITEM[shopPrev]:null,av=pv?Object.assign({},S.avatar,{[pv.cat]:pv.id}):S.avatar;
-  let bar='<div class="buybar muted">Touche un objet pour l’essayer 👇</div>';
+  const nxt=CATALOG.filter(i=>i.lvl>L&&!isOwned(i)).reduce((m,i)=>Math.min(m,i.lvl),99),nn=CATALOG.filter(i=>i.lvl===nxt).length;
+  let bar=`<div class="buybar muted">Touche un objet pour l’essayer 👇${nxt<99?`<small class="nxt">🔓 Niveau ${nxt} : ${nn} objet${nn>1?'s':''} à débloquer</small>`:''}</div>`;
   if(pv){const nmh=`<b>${esc(pv.name)}</b>${pv.r?` <span class="rtag t-${pv.r}">${RAR[pv.r].n}</span>`:''}`;
     bar=pv.lvl>L?`<div class="buybar">${nmh}<span>🔒 Niveau ${pv.lvl}</span></div>`
      :isPlusItem(pv)&&!Plan.plus()?`<div class="buybar">${nmh}<button class="btn v sm" data-act="offre" data-arg="plasma">👑 Malino+</button></div>`
      :S.coins>=pv.price?`<div class="buybar">${nmh}<button class="btn g sm" data-act="buy" data-arg="${pv.id}">Acheter · ${pv.price} 🪙</button></div>`
      :`<div class="buybar">${nmh}<span>Il te manque ${pv.price-S.coins} 🪙</span></div>`;}
-  const tab=TABS.find(t=>t[0]===shopCat)||TABS[0];
-  const card=i=>{const own=isOwned(i),eq=S.avatar[i.cat]===i.id,lk=!own&&i.lvl>L,pl=!own&&isPlusItem(i)&&!Plan.plus();
-    return `<button class="item ${i.r?'r-'+i.r:''} ${eq?'eq':''} ${lk?'locked':''} ${shopPrev===i.id?'sel':''}" data-act="item" data-arg="${i.id}">${i.r?`<span class="rchip">${RAR[i.r].n}</span>`:''}<span class="ith">${thumb(i)}</span><span class="iname">${esc(i.name)}</span><span class="iprice">${eq?'✅ Porté':own?'À toi':lk?`🔒 Niv. ${i.lvl}`:pl?'👑 Malino+':`${i.price} 🪙`}</span></button>`;};
-  const sorted=c=>CATALOG.filter(i=>i.cat===c).sort((a,b)=>(RORD.indexOf(a.r)-RORD.indexOf(b.r))||(a.price-b.price));
+  const tab=TABS.find(t=>t[0]===shopCat)||TABS[0],seen=shopSeen||1;let n=0;
+  const card=i=>{const own=isOwned(i),eq=S.avatar[i.cat]===i.id,lvlk=!own&&i.lvl>L,pl=!own&&isPlusItem(i)&&!Plan.plus(),lk=lvlk||pl,af=!own&&!lk&&S.coins>=i.price,nw=!own&&!lk&&i.lvl>seen&&i.price>0;
+    return `<button class="item ${i.r?'r-'+i.r:''} ${eq?'eq':''} ${lk?'locked':''} ${af?'afford':''} ${shopPrev===i.id?'sel':''} ${shopBought===i.id?'justbought':''}" style="--i:${n++}" data-act="${lk?'itemlk':'item'}" data-arg="${i.id}">${i.r?`<span class="rchip">${RAR[i.r].n}</span>`:''}${nw?'<span class="newtag">NOUVEAU</span>':''}<span class="ith">${thumb(i)}</span>${lk?'<span class="lockov">🔒</span>':''}<span class="iname">${lk?'???':esc(i.name)}</span><span class="iprice">${eq?'✅ Porté':own?'À toi':lvlk?`Niveau ${i.lvl}`:pl?'👑 Malino+':`${i.price} 🪙`}</span></button>`;};
+  const sorted=c=>CATALOG.filter(i=>i.cat===c).sort((a,b)=>(RORD.indexOf(a.r)-RORD.indexOf(b.r))||(a.lvl-b.lvl)||(a.price-b.price));
   const body=tab[3].length>1?tab[3].map(c=>`<div class="shsec">${CATN[c]}</div>${sorted(c).map(card).join('')}`).join(''):sorted(tab[3][0]).map(card).join('');
   return `<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>Mon perso</h2><span class="pill">🪙 ${S.coins}</span></div>
   <div class="bigav ${pv?'trying':''}">${avatarSVG(av)}</div>${bar}
   <div class="cats">${TABS.map(([c,n,e])=>`<button class="cat ${c===tab[0]?'on':''}" data-act="cat" data-arg="${c}"><span>${e}</span>${n}</button>`).join('')}</div>
   <div class="rlegend">${RORD.map(r=>`<span class="rtag t-${r}">${RAR[r].n}</span>`).join('<i>›</i>')}</div>
-  <div class="items">${body}</div>`;
+  <div class="items ${shopAnim?'anim':''}">${body}</div>`;
 }
 function renderBadges(){return `<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>Mes badges</h2><span class="pill">${Object.keys(S.badges).length}/${BADGES.length}</span></div><div class="badges">${BADGES.map(b=>`<div class="badge ${S.badges[b.id]?'got':''}"><span class="be">${b.e}</span><b>${esc(b.n)}</b><small>${esc(b.d)}</small></div>`).join('')}</div>`;}
 function renderGifts(){
@@ -1439,7 +1457,7 @@ const ACT={
   starttheme(a,el){if(!THEMES[a])return;if(el.classList.contains('locked'))return lockedMsg();startGame(a,'train');},
   setth(a){const [k,n]=a.split('|');if(+n>Plan.thMax(k))return Offre.open('theme');S.settings.lv[k]=+n;save();toast(`${THEMES[k].n} : niveau ${n}`);keepScroll(render);},
   togth(k){S.settings.thOn[k]=!S.settings.thOn[k];save();keepScroll(render);},
-  shop(){shopPrev=null;go('shop');},badges(){go('badges');},gifts(){go('gifts');},
+  shop(){shopPrev=null;shopSeen=S.shopSeen||1;S.shopSeen=levelInfo(S.xp).level;save();shopAnim=true;go('shop');},badges(){go('badges');},gifts(){go('gifts');},
   parent(){pinBuf='';pinStage='enter';go(adminOk?'admin':'pin');},
   key(a){if(!G||!G.cur||G.cur.done||G.cur.q.type!=='math')return;
     if(a==='del')G.input=G.input.slice(0,-1);
@@ -1486,9 +1504,10 @@ const ACT={
     checkBadges(null).forEach(badgeModal);if(SCR==='home')render();
   },
   equipgift(id){const i=ITEM[id];if(i){S.avatar[i.cat]=id;save();}nextModal();render();},
-  cat(c){shopCat=c;shopPrev=null;render();},
-  item(id){const i=ITEM[id];if(!i)return;Sound.play('tap');if(isOwned(i)){S.avatar[i.cat]=id;shopPrev=null;save();}else shopPrev=id;keepScroll(render);},
-  buy(id){const i=ITEM[id];if(!i||i.lvl>levelInfo(S.xp).level||S.coins<i.price)return;if(isPlusItem(i)&&!Plan.plus())return Offre.open('plasma');S.coins-=i.price;S.owned.push(id);S.avatar[i.cat]=id;shopPrev=null;save();const ep=RORD.indexOf(i.r)>=4;Sound.play(ep?'epic':'coin');Confetti.burst(ep?160:70);keepScroll(render);if(S.settings.voice)Voice.say('Trop stylé !');checkBadges(null).forEach(badgeModal);},
+  cat(c){shopCat=c;shopPrev=null;shopAnim=true;Sound.play('tap');render();},
+  itemlk(id,el){const i=ITEM[id];if(!i)return;if(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');}Sound.play('tap');toast(i.lvl>levelInfo(S.xp).level?`🔒 Débloqué au niveau ${i.lvl} : continue tes entraînements !`:'👑 Réservé à Malino+ : demande à un parent');},
+  item(id){const i=ITEM[id];if(!i)return;if(!isOwned(i)&&(i.lvl>levelInfo(S.xp).level||(isPlusItem(i)&&!Plan.plus())))return ACT.itemlk(id);Sound.play('tap');if(isOwned(i)){S.avatar[i.cat]=id;shopPrev=null;save();}else shopPrev=id;keepScroll(render);},
+  buy(id){const i=ITEM[id];if(!i||i.lvl>levelInfo(S.xp).level||S.coins<i.price)return;if(isPlusItem(i)&&!Plan.plus())return Offre.open('plasma');S.coins-=i.price;S.owned.push(id);S.avatar[i.cat]=id;shopPrev=null;shopBought=id;save();const ep=RORD.indexOf(i.r)>=4;Sound.play(ep?'epic':'coin');Confetti.burst(ep?160:70);keepScroll(render);if(S.settings.voice)Voice.say('Trop stylé !');checkBadges(null).forEach(badgeModal);},
   pin(a){
     if(a==='del'){pinBuf=pinBuf.slice(0,-1);render();return;}
     if(pinBuf.length>=4)return;pinBuf+=a;render();if(pinBuf.length<4)return;
