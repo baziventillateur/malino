@@ -1620,6 +1620,10 @@ const ACT={
   offre(src){if(modalOpen)nextModal();Offre.ask(src);},pgateok(){Offre.gateOk();},payer(f){Offre.pay(f);},portail(){Offre.portail();},
   offrir(){if(modalOpen)nextModal();SCR==='admin'?Offre.gift():Offre.gate(()=>Offre.gift());},giftm(m){Offre.giftKeep();Offre.gm=+m;nextModal();Offre.gift();},giftpay(){Offre.giftPay();},
   parrain(){if(modalOpen)nextModal();Offre.invite();},
+  famInviter(){const em=(($('#famMail')||{}).value||'').trim();Acct.sb.rpc('famille_inviter',{p_email:em}).then(({data,error})=>{if(error||!data)return toast('Réessayez dans un instant');const m={connexion:'Connectez-vous d’abord.',coparent:'Vous êtes déjà dans un autre espace famille.',complet:'Cet espace a déjà deux parents.',email:'Adresse e-mail invalide.',soi:'Vous ne pouvez pas vous inviter vous-même.',trop:"Trop d'invitations aujourd'hui."};if(data.err)return toast(m[data.err]||'Invitation refusée');toast('Invitation envoyée ✅');Plan.refresh(true).then(()=>render());});},
+  famAnnuler(){Acct.sb.rpc('famille_annuler').then(()=>Plan.refresh(true).then(()=>render()));},
+  famRetirer(){if(!confirm('Retirer l’autre parent de cet espace ?'))return;Acct.sb.rpc('famille_retirer').then(()=>Plan.refresh(true).then(()=>render()));},
+  async famQuitter(){if(!confirm('Quitter cet espace famille ? Vous n’y aurez plus accès.'))return;await Acct.sb.rpc('famille_quitter');await Acct.afterLogin(false);await Plan.refresh(true);render();},
   rapports(){const el=document.getElementById('rapOn');if(!el||!Acct.sb)return;const on=!!el.checked;Acct.sb.rpc('maj_rapports',{p_on:on}).then(r=>{if(r.error){el.checked=!on;toast('Réessayez dans un instant');return;}if(Plan.info){Plan.info.rapports=on;Plan.set(Plan.info);}toast(on?'Rapports activés ✅':'Rapports désactivés');});},
   onbnext(){Onb.next();},onbprev(){Onb.prev();},onbskip(){Onb.skip();},onbset(a){Onb.set(a);},onbinvite(){Onb.done();setTimeout(()=>Offre.invite(),300);},onbstart(){Onb.start();},invsend(){Offre.inviteSend();},
   openlogin(){Acct.show('login');},authclose(){Acct.hide();},authsend(a){Acct.send(a==='again');},authverify(){Acct.verify();},
@@ -1836,11 +1840,19 @@ const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:
     S=defaultState();S.gs0=0;save();adminOk=false;go('home');toast('Déconnecté');
   }
 };
+function famCard(){
+  const pi=Plan.info||{};
+  if(pi.role==='coparent')return `<p class="hint">Vous suivez l’espace de <b>${esc(pi.proprio_prenom||pi.proprio_email||'')}</b>.</p><button class="btn sm o" data-act="famQuitter">Quitter cet espace</button>`;
+  if(pi.coparent)return `<p class="hint">Avec <b>${esc(pi.coparent.prenom||pi.coparent.email||'')}</b>, qui voit les mêmes profils et le même suivi.</p><button class="btn sm o" data-act="famRetirer">Retirer ce parent</button>`;
+  if(pi.invitation)return `<p class="hint">Invitation envoyée à <b>${esc(pi.invitation.email)}</b>, valable jusqu’au ${fmtDate(pi.invitation.expire_le)}.</p><button class="btn sm o" data-act="famAnnuler">Annuler l’invitation</button>`;
+  return `<p class="hint">Ajoutez l’autre parent : il reçoit un mail et crée son propre compte pour suivre les mêmes enfants.</p><label class="fld">E-mail de l’autre parent<input id="famMail" type="email" inputmode="email" placeholder="parent@exemple.fr"></label><button class="btn p sm" style="margin-top:8px" data-act="famInviter">Envoyer l’invitation</button>`;
+}
 function paneAccount(){
   if(!Acct.user)return `<section class="acard"><h3>👤 Compte parent</h3><p class="hint">Sans compte, la progression reste sur cet appareil. Avec un compte (gratuit), elle est sauvegardée et on la retrouve sur toutes les tablettes. Après ${WALL_AFTER} séances, la connexion est demandée pour continuer.</p><button class="btn p sm" data-act="openlogin">Se connecter / créer un compte</button></section>`;
   const k=Plan.kind(),pi=Plan.info||{};
   return `<section class="acard"><h3>👤 Compte parent</h3><p class="hint">Connecté : <b>${esc(Acct.user.email||'')}</b>. La progression est sauvegardée automatiquement.</p></section>
   <section class="acard"><h3>👑 Malino+</h3><p class="hint">${k==='plus'?(pi.abonne?`Abonnement actif${pi.abo_fin?` · prochain renouvellement le ${fmtDate(pi.abo_fin)}`:''}.`:`Offert jusqu’au ${pi.plus_jusqua?fmtDate(pi.plus_jusqua):'—'}.`):k==='essai'?`Essai gratuit : encore ${Plan.jours()} jour${Plan.jours()>1?'s':''}.`:'Version gratuite.'} Profils : ${Acct.list.length}/${Plan.maxProfils()}.</p><div class="btnrow"><button class="btn sm" data-act="offre">${k==='plus'?'Voir mon offre':'Passer à Malino+'}</button>${pi.abonne?'<button class="btn sm o" data-act="portail">Gérer l’abonnement</button>':''}<button class="btn sm o" data-act="parrain">👥 Inviter</button><button class="btn sm o" data-act="offrir">🎁 Offrir</button></div><p style="margin-top:8px"><button class="alink" style="margin:0;padding:0" data-act="onbstart">👋 Revoir la présentation</button></p>${pi.admin?'<p style="margin-top:10px"><a class="btn sm y" href="admin.html" target="_blank" rel="noopener">🛠️ Panel admin</a></p>':''}</section>
+  <section class="acard"><h3>👨‍👩‍👧 Espace famille</h3>${famCard()}</section>
   <section class="acard"><h3>🧒 Profils enfants</h3><div class="seg" style="flex-wrap:wrap">${Acct.list.map(r=>`<button class="${r.id===Acct.pid?'on':''}" data-act="acctswitch" data-arg="${r.id}">${r.id===Acct.pid?'✅ ':''}${esc(r.id===Acct.pid?(S.name||r.nom):r.nom)}</button>`).join('')}</div>
   <label class="fld" style="margin-top:10px">Ajouter un profil<input id="newprof" maxlength="20" placeholder="Prénom de l’enfant" autocomplete="off"></label><button class="btn p sm" style="margin-top:8px" data-act="acctadd">➕ Ajouter</button></section>
   <section class="acard"><h3>📬 Rapports par e-mail</h3><label style="display:flex;gap:10px;align-items:flex-start;font-size:15px;cursor:pointer"><input type="checkbox" id="rapOn" data-act="rapports" ${pi.rapports===false?'':'checked'} style="width:22px;height:22px;flex:none;margin-top:2px"><span>Recevoir les rapports de progression et les messages sur l’essai et l’abonnement.<br><span class="hint" style="display:block;margin-top:4px">Un message de temps en temps (jamais tous les jours) : félicitations, récap de la semaine, points à retravailler. Décochez pour tout arrêter.</span></span></label></section>
@@ -1905,6 +1917,7 @@ const Plan={info:null,
     const before=this.kind();this.set(data);
     if(data.prenom){Offre.gp=Offre.gp||data.prenom;Offre.ip=Offre.ip||data.prenom;}
     try{const k='malino_src_sent_'+Acct.user.id;if(!localStorage.getItem(k))Acct.sb.rpc('maj_source',{p_source:localStorage.getItem('malino_src')||'direct'}).then(r=>{if(!r.error)localStorage.setItem(k,'1');});}catch(e){}
+    Famille.afterRefresh();
     if(Onb.should()&&SCR!=='game')setTimeout(()=>{if(Onb.should())Onb.start();},500);
     try{const g=new URLSearchParams(location.search).get('go');if(g&&!Plan._go){Plan._go=1;setTimeout(()=>{if(SCR==='game'||Onb.should())return;if(g==='offre')ACT.offre('mail');else if(g==='inviter')ACT.parrain();},1200);}}catch(e){}
     if(data.cadeaux>0&&!quiet)queueModal(`<div class="bigemoji sm">🎁</div><h2>Cadeau activé !</h2><p>Malino+ est débloqué jusqu’au <b>${fmtDate(data.plus_jusqua)}</b>.</p><button class="btn g block" data-act="mclose">Génial ! 🎉</button>`,()=>Confetti.burst(140));
@@ -2086,6 +2099,55 @@ try{if('serviceWorker' in navigator)addEventListener('load',()=>navigator.servic
 (function(){try{if(localStorage.getItem('malino_src'))return;const q=new URLSearchParams(location.search);let r='';try{r=document.referrer?new URL(document.referrer).hostname:'';}catch(e){}
 const t=[q.get('utm_source'),q.get('utm_campaign'),q.get('code')&&('code:'+q.get('code').toUpperCase().slice(0,24)),q.has('invite')&&'invitation',q.has('cadeau')&&'cadeau',r&&r!==location.hostname&&('ref:'+r)].filter(Boolean).join(' | ');
 localStorage.setItem('malino_src',(t||'direct').slice(0,120));}catch(e){}})();
+// ---------- Espace famille : invitation, « Qui joue ? » ----------
+const Famille={
+  hiddenAt:0,
+  el(){let e=document.getElementById('who');if(!e){e=document.createElement('div');e.id='who';e.style.cssText='position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;background:rgba(43,33,96,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:16px';document.body.appendChild(e);}return e;},
+  who(){
+    if(!Acct.user||!Acct.list||!Acct.list.length)return;
+    if(SCR==='game'||SCR==='admin'||SCR==='pin'||modalOpen||(typeof Onb!=='undefined'&&Onb.should()))return;
+    const e=this.el();
+    e.innerHTML=`<div style="background:#fff;border-radius:20px;padding:16px;width:100%;max-width:300px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25)"><div style="font-size:17px;font-weight:700;color:#2B2160;margin-bottom:10px">Qui joue ?</div><div style="display:flex;flex-direction:column;gap:8px">${Acct.list.map(r=>`<button data-who="${r.id}" style="border:0;border-radius:14px;padding:10px;background:#F4F1FF;font-size:16px;font-weight:700;color:#2B2160">${esc(r.nom)} · niv. ${levelInfo((r.data&&r.data.xp)||0).level}</button>`).join('')}</div><button data-wparent="1" style="margin-top:12px;border:0;background:none;color:#6F679C;font-size:14px;font-weight:600;text-decoration:underline">🔒 Espace parents</button></div>`;
+    e.style.display='flex';
+    e.querySelectorAll('[data-who]').forEach(b=>b.onclick=()=>{e.style.display='none';Acct.switchTo(b.dataset.who);});
+    e.querySelector('[data-wparent]').onclick=()=>{e.style.display='none';ACT.parent();};
+  },
+  afterRefresh(){ if(Acct.user&&localStorage.getItem('malino_invite'))this.handleInvite(); else this.who(); },
+  async handleInvite(){
+    const id=localStorage.getItem('malino_invite');if(!id||!Acct.sb)return;
+    const {data,error}=await Acct.sb.rpc('famille_apercu',{p_token:id});
+    if(error||!data)return;
+    const a=data;if(a.etat==='connexion')return;
+    this._a=a;
+    if(a.etat!=='ok'){
+      localStorage.removeItem('malino_invite');
+      const m={deja:'Vous avez déjà rejoint cet espace.',soi:'Cette invitation est la vôtre.',expire:'Cette invitation a expiré. Demandez-en une nouvelle.',complet:'Cet espace a déjà deux parents.',jai_un_coparent:'Vous suivez déjà un autre espace. Quittez-le avant de rejoindre celui-ci.',abonnement:"Vous avez un abonnement Malino+ actif. Résiliez-le avant de rejoindre cet espace.",invalide:"Cette invitation n'est plus valable."}[a.etat]||'Invitation indisponible.';
+      queueModal(`<div class="bigemoji sm">👨‍👩‍👧</div><h2>Espace famille</h2><p>${esc(m)}</p><button class="btn block" data-act="mclose">OK</button>`);return;
+    }
+    const enfants=(a.enfants||[]).length?(a.enfants||[]).map(esc).join(', '):'vos enfants';
+    queueModal(`<div class="bigemoji sm">👨‍👩‍👧</div><h2>Rejoindre l'espace famille</h2><p><b>${esc(a.proprio)}</b> vous invite à suivre ensemble ${enfants}, avec les mêmes profils et le même suivi.</p><button class="btn p block" id="fjoin">Rejoindre</button><button class="alink" data-act="mclose">Plus tard</button>`,()=>{const b=$('#fjoin');if(b)b.onclick=()=>this.join(id,false);});
+  },
+  async join(id,sup){
+    const {data,error}=await Acct.sb.rpc('famille_rejoindre',{p_token:id,p_supprimer:!!sup});
+    if(error||!data)return toast('Réessayez dans un instant');
+    nextModal();
+    if(data.etat==='confirmer'){
+      const a=this._a||{},liste=(a.a_supprimer||[]).length?` (${(a.a_supprimer||[]).map(esc).join(', ')})`:'';
+      queueModal(`<div class="bigemoji sm">⚠️</div><h2>Votre compte actuel sera supprimé</h2><p>Pour rejoindre cet espace, votre compte actuel et ses profils seront supprimés${liste}. C'est irréversible.</p><button class="btn r block" id="fjoin2">Supprimer et rejoindre</button><button class="alink" data-act="mclose">Annuler</button>`,()=>{const b=$('#fjoin2');if(b)b.onclick=()=>this.join(id,true);});
+      return;
+    }
+    if(data.etat==='rejoint'){
+      localStorage.removeItem('malino_invite');this._a=null;
+      toast('Bienvenue dans l’espace famille ✅');
+      await Acct.afterLogin(false);await Plan.refresh(true);render();return;
+    }
+    toast('Invitation indisponible');
+  }
+};
+try{const q=new URLSearchParams(location.search).get('invite');if(q){localStorage.setItem('malino_invite',q);history.replaceState(null,'',location.pathname);}}catch(e){}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')Famille.hiddenAt=Date.now();else if(Famille.hiddenAt&&Date.now()-Famille.hiddenAt>30000){Famille.hiddenAt=0;Famille.who();}});
+setTimeout(()=>{if(localStorage.getItem('malino_invite')&&!Acct.user&&typeof ACT!=='undefined')ACT.openlogin();},1500);
+
 // ---------- Démarrage ----------
 try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
 Rec.load();Pack.load();load();Voice.init();Plan.load();Confetti.init();TimeT.init();render();autoUpModal(autoUp());Acct.init().then(()=>Offre.fromUrl());
