@@ -505,6 +505,7 @@ h1,h2,h3,h4{font-weight:700}
 .histg{margin-top:22px;color:#9aa0b5;font-size:13px}.histg h3{font-size:13px;margin:0 0 4px;font-weight:600}
 .hrow{display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #e6e8f0;filter:grayscale(.7);opacity:.7}
 .hrow .gt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.hrow .ge{font-size:18px}.hrow small{color:#9aa0b5;font-size:11px}
+.kidsw{background:#fff;border-radius:14px;padding:8px 10px;margin-bottom:8px}.tlab{font-size:12px;font-weight:700;color:#6F679C;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px}.kids{display:flex;flex-wrap:wrap;gap:6px}.kids button{border:0;border-radius:999px;padding:6px 12px;background:#F1EDFF;font-size:14px;font-weight:700;color:#2B2160}.kids button.on{background:#7B5CFF;color:#fff}.tgrp{margin-bottom:6px}.cmp{overflow-x:auto}.cmp table{width:100%;border-collapse:collapse;font-size:14px}.cmp th,.cmp td{padding:6px 8px;text-align:center;border-bottom:1px solid #EEE}.cmp .cl{text-align:left;color:#6F679C;font-weight:600}
 </style>
 </head>
 <body>
@@ -1493,16 +1494,42 @@ function renderPin(){
 function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class="${S.settings[k]==v?'on':''}" data-act="set" data-arg="${k}|${v}">${l}</button>`).join('')}</div>`;}
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 function renderAdmin(){
-  const P={reglages:paneSettings,jeux:paneThemes,progres:paneProgress,cadeaux:paneGifts,compte:paneAccount,donnees:paneData};
+  const adm=!!(Plan.info&&Plan.info.admin);
+  if(adminTab==='admin'&&!adm)adminTab='compte';
+  const P={reglages:paneSettings,progres:paneProgress,cadeaux:paneGifts,jeux:paneThemes,compte:paneAccount,donnees:paneData,comparer:paneCompare,admin:paneAdmin};
+  const kids=Acct.list||[];
+  const sw=kids.length?`<div class="kidsw"><span class="tlab">Enfant</span><div class="kids">${kids.map(r=>`<button class="${r.id===Acct.pid?'on':''}" data-act="acctswitch" data-arg="${r.id}">${esc(r.id===Acct.pid?(S.name||r.nom):r.nom)}</button>`).join('')}${kids.length>1?`<button class="${adminTab==='comparer'?'on':''}" data-act="tab" data-arg="comparer">📊 Comparer</button>`:''}</div></div>`:'';
+  const enf=[['reglages','⚙️ Réglages'],['progres','📈 Progrès'],['cadeaux','🎁 Cadeaux'],['jeux','🎲 Jeux']];
+  const com=[['compte','👤 Famille & compte'],['donnees','💾 Données']].concat(adm?[['admin','🛠 Admin']]:[]);
+  const tb=l=>l.map(([k,t])=>`<button class="${adminTab===k?'on':''}" data-act="tab" data-arg="${k}">${t}</button>`).join('');
   return `<div class="stop"><button class="xbtn" data-act="leaveadmin" aria-label="Retour">←</button><h2>Espace parents</h2></div>
-  <div class="tabs">${[['reglages','⚙️ Réglages'],['jeux','🎲 Jeux'],['progres','📈 Progrès'],['cadeaux','🎁 Cadeaux'],['compte','👤 Compte'],['donnees','💾 Données']].map(([k,l])=>`<button class="${adminTab===k?'on':''}" data-act="tab" data-arg="${k}">${l}</button>`).join('')}</div>${P[adminTab]()}`;
+  ${sw}
+  <div class="tgrp"><span class="tlab">Pour ${esc(S.name||'l’enfant')}</span><div class="tabs">${tb(enf)}</div></div>
+  <div class="tgrp"><span class="tlab">Commun à la famille</span><div class="tabs">${tb(com)}</div></div>
+  ${(P[adminTab]||P.compte)()}`;
+}
+
+function paneCompare(){
+  const now=Date.now(),rows=Acct.list.map(r=>{const d=r.data||{},ss=Array.isArray(d.sessions)?d.sessions:[],w=ss.filter(x=>x&&x.t&&now-x.t<7*864e5);
+    const n=w.reduce((a,x)=>a+(+x.n||0),0),ok=w.reduce((a,x)=>a+(+x.ok||0),0),dur=w.reduce((a,x)=>a+(+x.dur||0),0);
+    return {r,nom:r.id===Acct.pid?(S.name||r.nom):r.nom,lvl:levelInfo(d.xp||0).level,n,pc:n?Math.round(100*ok/n)+' %':'—',dur:fmtDur(dur*60),ser:(d.streak&&d.streak.cur)||0};});
+  const line=(lab,f)=>`<tr><td class="cl">${lab}</td>${rows.map(x=>`<td>${f(x)}</td>`).join('')}</tr>`;
+  return `<section class="acard"><h3>📊 Comparer les enfants</h3><p class="hint">Sur les 7 derniers jours. Touchez « Ouvrir » pour passer à un profil.</p><div class="cmp"><table>
+  <tr><td></td>${rows.map(x=>`<th>${esc(x.nom)}</th>`).join('')}</tr>
+  ${line('Niveau',x=>x.lvl)}${line('Questions',x=>x.n)}${line('Réussite',x=>x.pc)}${line('Temps de jeu',x=>x.dur)}${line('Jours de suite',x=>x.ser)}
+  <tr><td></td>${rows.map(x=>`<td><button class="btn sm o" data-act="acctswitch" data-arg="${x.r.id}">Ouvrir</button></td>`).join('')}</tr>
+  </table></div></section>`;
+}
+
+function paneAdmin(){
+  return `<section class="acard"><h3>🛠 Administration</h3><p class="hint">Tableau de bord de l’appli : comptes, codes, paiements et envois.</p><a class="btn p sm" href="admin.html" style="display:inline-block;text-decoration:none">Ouvrir le tableau admin</a></section>`;
 }
 function paneSettings(){
   const st=S.settings,m=levelMastery('math',st.mathLevel),fm=levelMastery('fr',st.frLevel);
   const rec=m>=.8&&st.mathLevel<MATH_LEVELS.length?`<div class="reco">✅ ${nm()} maîtrise ${pct(m)} du niveau ${st.mathLevel}. Vous pouvez passer au suivant.<button class="btn g sm" data-act="setlvl" data-arg="${st.mathLevel+1}">Passer au niveau ${st.mathLevel+1}</button></div>`:'';
   const frec=fm>=.8&&st.frLevel<FR_LEVELS.length?`<div class="reco">✅ ${pct(fm)} du niveau de lecture ${st.frLevel} maîtrisé.<button class="btn g sm" data-act="setfr" data-arg="${st.frLevel+1}">Passer au niveau ${st.frLevel+1}</button></div>`:'';
   return `<section class="acard"><h3>💡 La méthode</h3><ul class="tips"><li>10 minutes par jour suffisent : maths, puis lecture, puis le coffre.</li><li>Lecture (méthode syllabique) : le son des lettres → j’assemble (s + e = se) → mots de 2 syllabes → mots de 3 syllabes. Les syllabes sont en couleurs alternées, avec les lettres muettes en gris.</li><li>Chaque partie répète quelques calculs plusieurs fois. Une erreur ? Correction à l’écran et à voix haute, il refait le calcul tout de suite, puis on le lui repose plus loin.</li><li>Un calcul est « maîtrisé » après 3 bonnes réponses rapides d’affilée.</li><li>Montez de niveau au-delà de 80 % de maîtrise. Ensuite, passez au clavier, puis baissez l’objectif de vitesse (8 s → 6 s → 4 s).</li></ul></section>
-  <section class="acard"><h3>👦 Enfant</h3><label class="fld">Prénom<input data-field="name" value="${esc(S.name)}" maxlength="20" autocomplete="off"></label></section>
+  <section class="acard"><h3>👦 Enfant</h3><label class="fld">Prénom<input data-field="name" value="${esc(S.name)}" maxlength="20" autocomplete="off"></label><div class="seg" style="margin-top:8px"><button class="${S.genre==='g'?'on':''}" data-act="setgenre" data-arg="g">👦 Garçon</button><button class="${S.genre==='f'?'on':''}" data-act="setgenre" data-arg="f">👧 Fille</button></div></section>
   <section class="acard"><h3>🔢 Maths : niveau de difficulté</h3>${rec}<div class="lvls">${MATH_LEVELS.map((L,i)=>{const n=i+1,mm=levelMastery('math',n);return `<button class="lvl ${n===st.mathLevel?'on':''}" data-act="setlvl" data-arg="${n}"><span class="le">${L.e}</span><span class="ln"><b>${n}. ${L.n}</b><small>${diffTxt(i,MATH_LEVELS.length)} · ${mathFacts(n).length} calculs · ${pct(mm)} maîtrisés</small><span class="mbar2"><i style="width:${mm*100}%"></i></span></span>${n===st.mathLevel?'<span class="cur">Actuel</span>':''}</button>`;}).join('')}</div>${tog('mathAuto','Passer seul au monde suivant','Plus vite si tu réussis très bien, plus lent si tu as du mal')}</section>
   <section class="acard"><h3>🎮 Partie de maths</h3>
    <div class="row"><span>Questions par partie</span>${seg('nQ',[[5,'5'],[10,'10'],[15,'15'],[20,'20'],[30,'30']])}</div>
@@ -1620,6 +1647,7 @@ const ACT={
   offre(src){if(modalOpen)nextModal();Offre.ask(src);},pgateok(){Offre.gateOk();},payer(f){Offre.pay(f);},portail(){Offre.portail();},
   offrir(){if(modalOpen)nextModal();SCR==='admin'?Offre.gift():Offre.gate(()=>Offre.gift());},giftm(m){Offre.giftKeep();Offre.gm=+m;nextModal();Offre.gift();},giftpay(){Offre.giftPay();},
   parrain(){if(modalOpen)nextModal();Offre.invite();},
+  setgenre(g){S.genre=g;if(g==='f')S.avatar=Object.assign({},S.avatar,{hair:'hair_long',shirt:'sh_rouge'});save();render();},
   famInviter(){const em=(($('#famMail')||{}).value||'').trim();Acct.sb.rpc('famille_inviter',{p_email:em}).then(({data,error})=>{if(error||!data)return toast('Réessayez dans un instant');const m={connexion:'Connectez-vous d’abord.',coparent:'Vous êtes déjà dans un autre espace famille.',complet:'Cet espace a déjà deux parents.',email:'Adresse e-mail invalide.',soi:'Vous ne pouvez pas vous inviter vous-même.',trop:"Trop d'invitations aujourd'hui."};if(data.err)return toast(m[data.err]||'Invitation refusée');toast('Invitation envoyée ✅');Plan.refresh(true).then(()=>render());});},
   famAnnuler(){Acct.sb.rpc('famille_annuler').then(()=>Plan.refresh(true).then(()=>render()));},
   famRetirer(){if(!confirm('Retirer l’autre parent de cet espace ?'))return;Acct.sb.rpc('famille_retirer').then(()=>Plan.refresh(true).then(()=>render()));},
@@ -1628,7 +1656,7 @@ const ACT={
   onbnext(){Onb.next();},onbprev(){Onb.prev();},onbskip(){Onb.skip();},onbset(a){Onb.set(a);},onbinvite(){Onb.done();setTimeout(()=>Offre.invite(),300);},onbstart(){Onb.start();},invsend(){Offre.inviteSend();},
   openlogin(){Acct.show('login');},authclose(){Acct.hide();},authsend(a){Acct.send(a==='again');},authverify(){Acct.verify();},
   authview(v){Acct.view=v;Acct.draw();},authpw(){Acct.pwLogin();},authforgot(){Acct.forgotSend();},authpick(id){Acct.pick(id);},
-  acctlogout(){Acct.logout();},acctsetpw(id){Acct.setPw(id);},acctadd(){Acct.addProfile();},acctswitch(id){Acct.switchTo(id).then(()=>{adminTab='compte';render();});},
+  acctlogout(){Acct.logout();},acctsetpw(id){Acct.setPw(id);},acctadd(){Acct.addProfile();},acctswitch(id){Acct.switchTo(id).then(()=>{SCR='admin';render();});},
   wstart(){const e=$('#wname');if(e&&e.value.trim()){S.name=e.value.trim().slice(0,20);save();}nextModal();render();},
   chest(){const t=today();if(!chestAvailable()){toast(t.chest?'Coffre déjà ouvert aujourd’hui. Reviens demain ! 🌙':'Termine ta mission du jour pour ouvrir le coffre 🎁');return;}queueModal('<div class="chestbig" data-act="chestopen">🎁</div><h2>Coffre du jour</h2><p>Touche le coffre pour l’ouvrir !</p>');},
   chestopen(){
@@ -2037,6 +2065,7 @@ const Onb={i:0,d:{},
         <div class="ocards"><div><span>🎮</span><b>Il apprend en jouant</b><small>Des parties courtes, une voix qui lit, des pièces à gagner.</small></div><div><span>📊</span><b>Vous voyez où il bloque</b><small>L’appli repère ses difficultés et les fait retravailler.</small></div><div><span>🎁</span><b>Vous fixez ses récompenses</b><small>De vrais cadeaux, quand il atteint un objectif.</small></div></div>
         <label class="fld">Votre prénom<input id="oPrenom" maxlength="40" autocomplete="given-name" placeholder="Ex. : Émilie" value="${esc(d.prenom)}"></label>`,
       ()=>`<div class="oico">🧒</div><h2>Votre enfant</h2><label class="fld">Son prénom<input id="oEnfant" maxlength="20" autocomplete="off" placeholder="Ex. : Léo" value="${esc(d.enfant)}"></label>
+        <p class="olab">Garçon ou fille ?</p><div class="ochips">${[['g','👦 Garçon'],['f','👧 Fille']].map(([c,l])=>`<button class="${d.genre===c?'on':''}" data-act="onbset" data-arg="genre|${c}">${l}</button>`).join('')}</div>
         <p class="olab">Sa classe</p><div class="ochips">${[['gs','Grande section'],['cp','CP'],['ce1','CE1']].map(([c,l])=>`<button class="${d.classe===c?'on':''}" data-act="onbset" data-arg="classe|${c}">${l}</button>`).join('')}</div>
         <p class="otip">👨‍👩‍👧 Vous avez plusieurs enfants ? Ajoutez-les ensuite dans <b>Espace parents › Compte</b> : chacun a son profil, ses niveaux et ses récompenses${k==='plus'?' (jusqu’à 4 enfants)':' (2 pendant l’essai, jusqu’à 4 avec Malino+)'}.</p>`,
       ()=>`<div class="oico">🗓️</div><h2>Chaque jour, une mission</h2><div class="osteps"><div><b>1</b><span><b>Maths</b> · 5 min de calcul mental, du plus facile au plus dur.</span></div><div><b>2</b><span><b>Lecture</b> · les sons, les syllabes, puis les mots et les phrases.</span></div><div><b>3</b><span><b>Le coffre</b> · des pièces pour habiller son personnage.</span></div></div>
@@ -2085,6 +2114,7 @@ const Onb={i:0,d:{},
   skip(){this.keep();if(this.i===4)return this.next(true);this.done();},
   done(){
     const d=this.d;this.on=false;const el=$('#onb');el.className='auth hidden';el.innerHTML='';
+    if(d.genre){S.genre=d.genre;if(d.genre==='f')S.avatar=Object.assign({},S.avatar,{hair:'hair_long',shirt:'sh_rouge'});save();}
     if(Acct.user)localStorage.setItem('malino_onb_'+Acct.user.id,'1');
     if(Plan.info)Plan.info.onb=true;
     if(Acct.sb)Acct.sb.rpc('maj_parent',{p_prenom:d.prenom||'',p_onb:true}).then(()=>{});
