@@ -3,3 +3,9 @@ repris du jeu de données ESC-50 (https://github.com/karolpiczak/ESC-50), recoup
 chien : felix.blume (199261) · coq : cocoricosound (208021) · cochon : tompallant (257858) · vache : felix.blume (163727)
 grenouille : maphill (187201) · chat : tuberatanka (110011) · poule : eksaa (232495) · mouche : toiletrolltube (191246)
 mouton : zwier (200329) · oiseau : urupin (122616)
+
+Hébergés dans le stockage (Wikimedia Commons) :
+cheval : Wiehern.ogg, Hü. (domaine public) · lion : Lion raring-sound1TamilNadu178.ogg (domaine public)
+loup : Wolf howls.ogg (domaine public) · serpent : Rattlesnake.ogg (domaine public) · dindon : Gobbler.ogg, bod (domaine public)
+canard : Anas platyrhynchos - Mallard XC62258, Jonathon Jongsma (CC BY-SA 3.0)
+hibou : Strix aluco - Tawny Owl XC500920, Alvaro Ortiz Troncoso (CC BY-SA 4.0)
