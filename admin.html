@@ -33,6 +33,7 @@ td{padding:6px;border-bottom:1px solid #F3F1FA;vertical-align:top}tr:last-child 
 .msg{min-height:18px;color:var(--r);font-weight:600;font-size:13px}.msg.ok{color:var(--g)}
 details summary{cursor:pointer;font-weight:700;font-size:15px}
 .hidden{display:none}
+.lk{display:block;width:100%;text-align:left;background:#fff;color:var(--ink);font-weight:500;margin:5px 0;padding:7px 9px;word-break:break-all}.lk b{color:var(--v)}
 .sw{width:38px;height:22px;border-radius:99px;background:#D5D8E3;padding:0;position:relative}.sw::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s}.sw.on{background:var(--g)}.sw.on::after{left:18px}
 .fam[data-fiche]{cursor:pointer}.fam[data-fiche]:active{background:#FAF8FF}.go{color:var(--v);font-weight:800}
 .chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}.chip{background:#F4F1FF;color:var(--ink2);font-weight:600;font-size:12.5px;padding:4px 9px;border-radius:99px}.chip.on{background:var(--v);color:#fff}.chip b{font-weight:800;margin-left:2px}
@@ -188,7 +189,14 @@ function autoBind(){const A=D.auto||{};
   $('#aMaster').onclick=async()=>{const on=A.actif!==false;if(on&&!confirm('Mettre en pause tous les e-mails automatiques de relance ?'))return;await sb.rpc('admin_auto_set',{p:{actif:!on}});load();};
   app.querySelectorAll('[data-auto]').forEach(b=>b.onclick=async()=>{const k=b.dataset.auto;await sb.rpc('admin_auto_set',{p:{[k]:A[k]===false}});load();});
   $('#aSim').onclick=async()=>{const r=$('#aSimRes');r.innerHTML='<p class="small mut">Calcul…</p>';const j=await fnRapports({simulation:true}),e=Object.entries((j&&j.a_envoyer)||{});
-    r.innerHTML=j.error?'<p class="msg">Aperçu impossible.</p>':`<div class="todo" style="font-weight:400">${e.length?`<b>${e.length} e-mail${e.length>1?'s':''} au prochain passage :</b><br>`+e.map(([m,t])=>`${esc(m)} → ${esc(JTYPE['rapport_'+t]||t)}`).join('<br>'):'Aucun e-mail ne partirait au prochain passage.'}</div>`;};}
+    r.innerHTML=j.error?'<p class="msg">Aperçu impossible.</p>':`<div class="todo" style="font-weight:400">${e.length?`<b>${e.length} e-mail${e.length>1?'s':''} au prochain passage :</b><br>`+e.map(([m,t])=>`<button class="lk" data-voir="${esc(m)}">${esc(m)} → ${esc(JTYPE['rapport_'+t]||t)} <b>›</b></button>`).join('')+'<span class="small mut">Touche une ligne pour lire l’e-mail.</span>':'Aucun e-mail ne partirait au prochain passage.'}</div>`;
+    r.querySelectorAll('[data-voir]').forEach(b=>b.onclick=()=>voirMail(b.dataset.voir));};}
+async function voirMail(mail){const ov=document.createElement('div');ov.id='fiche';ov.innerHTML='<div class="fbar row"><button class="o" id="vBack">← Retour</button><span class="small mut" style="flex:1">Aperçu : rien n’est envoyé</span></div><main><p class="mut">Chargement…</p></main>';document.body.appendChild(ov);document.body.style.overflow='hidden';
+  $('#vBack').onclick=()=>{ov.remove();document.body.style.overflow='';};
+  const j=await fnRapports({simulation:true,voir:mail}),m=ov.querySelector('main');
+  if(!j||!j.mail){m.innerHTML='<p class="msg">Aucun e-mail prévu pour cette famille.</p>';return;}
+  m.innerHTML=`<div class="card"><div class="small mut">À : ${esc(mail)}</div><b>${esc(j.mail.sujet)}</b></div><iframe id="vFrame" sandbox="" style="width:100%;height:75vh;border:0;border-radius:14px;background:#fff"></iframe>`;
+  $('#vFrame').srcdoc=j.mail.html;}
 
 function draw(){
   const F=D.familles,P=D.paiements,now=Date.now(),mois=new Date();mois.setDate(1);mois.setHours(0,0,0,0);
