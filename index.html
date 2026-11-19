@@ -144,7 +144,14 @@ h1,h2,h3,h4{font-weight:700}
 .plock{position:relative}.plockin{filter:blur(5px);pointer-events:none;max-height:440px;overflow:hidden;user-select:none}
 .plockov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:16px;background:rgba(255,255,255,.5);gap:4px}.plockov b{font-size:18px}.plockov p{margin:0 0 6px;color:var(--ink2);font-size:14px}
 .cur.lk{background:#FFE08A;color:#5C3D00}
-.dtier{display:inline-block;font-weight:800;border-radius:99px;padding:0 7px;font-size:11.5px;color:#fff;line-height:1.6}.dtier.d6{background:#2563EB}.dtier.d7{background:linear-gradient(90deg,#7B3CFF,#C04BD8)}.dtier.d8{background:linear-gradient(90deg,#FF5A1F,#E0245E)}.dtier.d9{background:#14151F;box-shadow:0 0 0 1.5px #FF4FD8 inset}
+.dtier{display:inline-block;font-weight:700;border-radius:99px;padding:0 7px;font-size:11.5px;line-height:1.55;background:rgba(43,33,96,.08);color:inherit;vertical-align:1px}
+.dstars{display:inline-flex;gap:1px;vertical-align:-2px}.dstars .ds{width:13px;height:13px}
+.dstars .ds path{fill:#DCD8EC;stroke:#C9C3E0;stroke-width:1.2;stroke-linejoin:round}
+.dstars .ds.on path{fill:url(#gStar);stroke:#C98A00}.dstars .ds.on .hl{fill:none;stroke:#FFF6C8;stroke-width:1.3;stroke-linecap:round;opacity:.9}
+.dstars .ds.on{filter:drop-shadow(0 1px 0 rgba(120,70,0,.35))}
+.dname{color:var(--mut);font-size:12px}
+.tt .dstars .ds:not(.on) path{fill:rgba(255,255,255,.3);stroke:rgba(255,255,255,.5)}.tt .dtier{background:rgba(255,255,255,.22)}
+.tt .ttl{display:block;margin-top:2px;line-height:1}
 .btnrow{display:flex;flex-wrap:wrap;gap:6px}
 .parentrow{display:flex;gap:8px;justify-content:center;margin-top:6px}.parentrow .parentbtn{margin:0;display:inline-block;text-decoration:none}
 .parentbtn{display:block;margin:6px auto 0;color:var(--ink2);font-weight:600;font-size:15px;padding:10px 16px;border-radius:12px;background:rgba(255,255,255,.6)}
@@ -540,6 +547,7 @@ h1,h2,h3,h4{font-weight:700}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="gStar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE680"/><stop offset=".55" stop-color="#FFC21A"/><stop offset="1" stop-color="#F29A00"/></linearGradient></defs></svg>
 <div id="app"></div>
 <div id="fx"></div>
 <canvas id="confetti"></canvas>
@@ -935,15 +943,15 @@ const keyOf=(sub,lv,x)=>(sub==='fr'?'f':sub)+lv+':'+itemKey(x);
 const makeQ=(sub,lv,x)=>sub==='fr'?frQ(lv,x):Object.assign({key:keyOf(sub,lv,x),type:'gen',lv,fastMs:7000},THEMES[sub].levels[lv-1].q(x));
 const dayDone=d=>!!d&&Object.keys(d).some(k=>k!=='chest'&&d[k]);
 function themesHTML(){const st=S.settings,ids=Object.keys(THEMES).filter(k=>st.thOn[k]);if(!ids.length)return '';const lock=st.thAfterMath&&!today().math;
-  return `<div class="sect">Autres jeux${lock?' · après tes maths 🔒':''}</div><div class="tgrid">${ids.map(k=>{const T=THEMES[k],lv=st.lv[k];return `<button class="tt ${lock?'locked':''}" style="--c:${T.c};--d:${T.d}" data-act="starttheme" data-arg="${k}"><span class="te">${T.e}</span><span><b>${T.n}</b><small>Niv. ${lv}/${T.levels.length} · ${diffTxt(lv-1,T.levels)} · ${pct(levelMastery(k,lv))}</small></span></button>`;}).join('')}</div>`;}
+  return `<div class="sect">Autres jeux${lock?' · après tes maths 🔒':''}</div><div class="tgrid">${ids.map(k=>{const T=THEMES[k],lv=st.lv[k];return `<button class="tt ${lock?'locked':''}" style="--c:${T.c};--d:${T.d}" data-act="starttheme" data-arg="${k}"><span class="te">${T.e}</span><span><b>${T.n}</b><small>Monde ${lv}/${T.levels.length} · ${pct(levelMastery(k,lv))}<span class="ttl">${diffTxt(lv-1,T.levels,true)}</span></small></span></button>`;}).join('')}</div>`;}
 // Liste courte : niveaux déjà joués, niveau actuel et les 2 suivants ; le reste derrière « Voir tous les niveaux »
 const LVOPEN={};
 function lvlList(id,levels,cur,row){const played=S.sessions.filter(s=>s.type===id&&s.lvl<=levels.length).map(s=>s.lvl),lim=Math.min(levels.length,Math.max(cur,1,...played)+2),open=LVOPEN[id],more=levels.length-lim;
-  return `<div class="lvls">${levels.map((L,i)=>open||i<lim?row(L,i):'').join('')}</div>${more>0?`<button class="lvmore" data-act="lvmore" data-arg="${id}">${open?'▲ Masquer les niveaux suivants':`▼ Voir tous les niveaux (encore ${more})`}</button>`:''}`;}
+  return `<div class="lvls">${levels.map((L,i)=>open||i<lim?row(L,i):'').join('')}</div>${more>0?`<button class="lvmore" data-act="lvmore" data-arg="${id}">${open?'▲ Masquer les mondes suivants':`▼ Voir tous les mondes (encore ${more})`}</button>`:''}`;}
 function paneThemes(){const st=S.settings;
-  return `<section class="acard"><h3>🎲 Autres jeux</h3><p class="hint">Cinq jeux en plus des maths et de la lecture. Même principe : répétition, correction immédiate, pièces et badges. Ils ne comptent pas dans la mission du jour.</p>${tog('thAfterMath','Débloqués après les maths du jour')}${tog('thAuto','Niveau suivant automatique','Plus vite si tu réussis très bien, plus lent si tu as du mal')}<div class="row"><span>Questions par partie</span>${seg('thNQ',[[5,'5'],[8,'8'],[10,'10'],[15,'15']])}</div></section>`
+  return `<section class="acard"><h3>🎲 Autres jeux</h3><p class="hint">Cinq jeux en plus des maths et de la lecture. Même principe : répétition, correction immédiate, pièces et badges. Ils ne comptent pas dans la mission du jour.</p>${tog('thAfterMath','Débloqués après les maths du jour')}${tog('thAuto','Monde suivant automatique','Plus vite si tu réussis très bien, plus lent si tu as du mal')}<div class="row"><span>Questions par partie</span>${seg('thNQ',[[5,'5'],[8,'8'],[10,'10'],[15,'15']])}</div></section>`
   +Object.entries(THEMES).map(([k,T])=>`<section class="acard"><div class="tog" style="border:none;padding-top:0"><span>${T.e} ${T.n}<small>${T.desc}</small></span><button class="sw ${st.thOn[k]?'on':''}" data-act="togth" data-arg="${k}" aria-label="${T.n}"><i></i></button></div>${lvlList(k,T.levels,st.lv[k],(L,i)=>{const n=i+1,mm=levelMastery(k,n);return `<button class="lvl ${n===st.lv[k]?'on':''}" data-act="setth" data-arg="${k}|${n}"><span class="le">${L.e}</span><span class="ln"><b>${n}. ${L.n}</b><small>${diffTxt(i,T.levels)} · ${L.items.length} éléments · ${pct(mm)} maîtrisés</small><span class="mbar2"><i style="width:${mm*100}%"></i></span></span>${n===st.lv[k]?'<span class="cur">Actuel</span>':n>Plan.thMax(k)?'<span class="cur lk">👑 Malino+</span>':''}</button>`;})}</section>`).join('');}
-function themeSummary(){return `<table class="hist">${Object.entries(THEMES).map(([k,T])=>{const ss=S.sessions.filter(s=>s.type===k),n=ss.reduce((a,s)=>a+(s.n||0),0),ok=ss.reduce((a,s)=>a+(s.ok||0),0),lv=S.settings.lv[k];return `<tr><td>${T.e} ${T.n}</td><td>niv. ${lv}/${T.levels.length} · ${diffTxt(lv-1,T.levels)}</td><td>${ss.length} partie${ss.length>1?'s':''}</td><td>${n?pct(ok/n)+' justes':'–'}</td></tr>`;}).join('')}</table>`;}
+function themeSummary(){return `<table class="hist">${Object.entries(THEMES).map(([k,T])=>{const ss=S.sessions.filter(s=>s.type===k),n=ss.reduce((a,s)=>a+(s.n||0),0),ok=ss.reduce((a,s)=>a+(s.ok||0),0),lv=S.settings.lv[k];return `<tr><td>${T.e} ${T.n}</td><td>monde ${lv}/${T.levels.length} · ${diffTxt(lv-1,T.levels)}</td><td>${ss.length} partie${ss.length>1?'s':''}</td><td>${n?pct(ok/n)+' justes':'–'}</td></tr>`;}).join('')}</table>`;}
 
 // ---------- Avatar : catalogue (raretés Bois → Plasma) ----------
 const RAR={
@@ -1179,9 +1187,12 @@ function autoUp(){const st=S.settings,ups=[];
 const DIFF_NAMES=['Très facile','Facile','Moyen','Difficile','Très difficile','Expert','Épique','Ultra','Impossible'];
 const DIFF_ICO={6:'🎓',7:'💜',8:'🔥',9:'💀'};
 function diffOf(i,levels){if(typeof levels==='number')return 1+Math.round(levels>1?i/(levels-1)*4:0);const L=levels[i];if(L&&L.t)return L.t;const base=levels.filter(x=>!x.t).length;return 1+Math.round(base>1?Math.min(i,base-1)/(base-1)*4:0);}
-function diffTxt(i,levels){const d=diffOf(i,levels);return d>5?`<span class="dtier d${d}">${DIFF_ICO[d]} ${DIFF_NAMES[d-1]}</span>`:'★'.repeat(d)+'☆'.repeat(5-d)+' '+DIFF_NAMES[d-1];}
-function autoUpModal(ups){(ups||[]).forEach(([k,n])=>{const L=(k==='math'?MATH_LEVELS:FR_LEVELS)[n-1],t=k==='math'?`Monde ${n} débloqué !`:`Lecture : niveau ${n} !`;
-  queueModal(`<div class="bigemoji">${L.e}</div><h2>${t}</h2><p>Bravo ${nm()}, tu as maîtrisé le niveau d’avant ! Nouveau défi :</p><p><b>${esc(L.n)}</b></p><button class="btn y block" data-act="mclose">C’est parti ! 🚀</button>`,()=>{Sound.play('epic');Confetti.burst(150);if(S.settings.voice)Voice.say(`${t} Nouveau défi : ${L.n.replace(/[()]/g,'')}`);});});}
+const STAR_P='M12 2.2l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17l-5.9 3.3 1.3-6.6L2.5 9.1l6.6-.8z';
+function starsSVG(d){let h='';for(let i=0;i<5;i++)h+=`<svg viewBox="0 0 24 24" class="ds ${i<d?'on':''}" aria-hidden="true"><path d="${STAR_P}"/>${i<d?'<path class="hl" d="M12 4.6l2.1 4.4 3.6.5"/>':''}</svg>`;return `<span class="dstars" title="${DIFF_NAMES[d-1]}">${h}</span>`;}
+// noName : sur l'accueil, on n'affiche que les étoiles (ou le palier), sans texte
+function diffTxt(i,levels,noName){const d=diffOf(i,levels);return d>5?`<span class="dtier">${DIFF_ICO[d]} ${DIFF_NAMES[d-1]}</span>`:starsSVG(d)+(noName?'':` <span class="dname">${DIFF_NAMES[d-1]}</span>`);}
+function autoUpModal(ups){(ups||[]).forEach(([k,n])=>{const L=(k==='math'?MATH_LEVELS:FR_LEVELS)[n-1],t=k==='math'?`Maths : monde ${n} débloqué !`:`Lecture : monde ${n} débloqué !`;
+  queueModal(`<div class="bigemoji">${L.e}</div><h2>${t}</h2><p>Bravo ${nm()}, tu as maîtrisé le monde d’avant ! Nouveau défi :</p><p><b>${esc(L.n)}</b></p><button class="btn y block" data-act="mclose">C’est parti ! 🚀</button>`,()=>{Sound.play('epic');Confetti.burst(150);if(S.settings.voice)Voice.say(`${t} Nouveau défi : ${L.n.replace(/[()]/g,'')}`);});});}
 function levelMastery(sub,lv){const keys=sub==='math'?mathFacts(lv).map(f=>f.key):subLevels(sub)[lv-1].items.map(x=>keyOf(sub,lv,x));const st=sub==='math'?S.facts:S.fr;let m=0;keys.forEach(k=>{const s=st[k];if(s&&s.st>=3)m++;});return keys.length?m/keys.length:0;}
 function wPick(arr,w){let tot=0;const ws=arr.map(x=>{const v=w(x);tot+=v;return v;});let r=Math.random()*tot;for(let i=0;i<arr.length;i++){r-=ws[i];if(r<=0)return arr[i];}return arr[arr.length-1];}
 // File de questions : quelques calculs « focus » répétés 2 fois + révisions pondérées par la faiblesse
@@ -1242,7 +1253,7 @@ const BADGES=[
  {id:'c2500',e:'🥇',n:'Cerveau d’or',d:'2500 bonnes réponses au total',r:'l',t:()=>S.stats.ok>=2500,p:()=>P(S.stats.ok,2500)},
  {id:'min3000',e:'⌛',n:'Cinquante heures',d:'50 heures de jeu au total',r:'l',t:()=>TimeT.all()>=180000,p:()=>P(TimeT.all()/60,3000)},
  {id:'l30',e:'🌈',n:'Niveau 30',d:'Atteindre le niveau 30',r:'l',t:()=>levelInfo(S.xp).level>=30,p:()=>P(levelInfo(S.xp).level,30)},
- {id:'allthemes',e:'🐉',n:'À fond partout',d:'Tous les niveaux au maximum, dans chaque jeu',r:'l',t:()=>maxedThemes()>=6,p:()=>P(maxedThemes(),6)},
+ {id:'allthemes',e:'🐉',n:'À fond partout',d:'Tous les mondes terminés, dans chaque jeu',r:'l',t:()=>maxedThemes()>=6,p:()=>P(maxedThemes(),6)},
  {id:'mathall',e:'🌍',n:'Champion du monde',d:'Maîtriser tous les mondes de maths',r:'l',t:()=>MATH_LEVELS.every((L,i)=>levelMastery('math',i+1)>=1)},
 ];
 // Objet offert : rare. Un délai minimum entre deux cadeaux, et seulement lors d'un vrai moment fort.
@@ -1512,7 +1523,7 @@ function stopGame(){if(G){G.ended=true;G.timers.forEach(clearTimeout);if(G.clock
 function startGame(sub,mode){
   if(Acct.wall()){Acct.show('wall');return;}
   if(TimeT.limited()){queueModal(`<div class="bigemoji">🌙</div><h2>Bravo ${nm()} !</h2><p>Tu as bien joué aujourd’hui : <b>${fmtDur(TimeT.sec())}</b>. C’est fini pour aujourd’hui, à demain !</p><button class="btn y block" data-act="mclose">À demain 👋</button>`,()=>{if(S.settings.voice)Voice.say('Bravo ! C’est fini pour aujourd’hui. À demain !');});return;}
-  if(THEMES[sub]&&S.settings.lv[sub]>Plan.thMax(sub)){S.settings.lv[sub]=Plan.thMax(sub);save();toast('🔒 Les niveaux suivants sont dans Malino+');}
+  if(THEMES[sub]&&S.settings.lv[sub]>Plan.thMax(sub)){S.settings.lv[sub]=Plan.thMax(sub);save();toast('🔒 Les mondes suivants sont dans Malino+');}
   stopGame();const st=S.settings;
   G={sub,mode,queue:[],idx:0,n:0,mainN:0,okFirst:0,combo:0,bestCombo:0,fast:0,times:[],xp:0,coins:0,wrong:0,score:0,t0:Date.now(),reviews:{},timers:[],cur:null,input:'',ended:false};
   if(sub==='math'){
@@ -1670,7 +1681,7 @@ function endGame(){
   go('result');setTimeout(()=>{if(Acct.wall()&&SCR==='result')Acct.show('wall');},3800);Sound.play(G.mode==='sprint'?(G.record&&G.score?'level':Sound.custom('fail').length?'fail':'end'):'end');
   if(G.mode==='sprint'?G.record:G.stars>=2)setTimeout(()=>Confetti.burst(130),250);
   if(S.settings.voice){const nmv=S.name||'';Voice.say(G.mode==='sprint'?`${G.score} calculs justes ! ${G.record?'Nouveau record !':''}`:`Bravo ! ${G.stars} étoile${G.stars>1?'s':''} !`);}
-  setTimeout(()=>{autoUpModal(ups);if(S.settings.pauseTip!==false&&TimeT.cont>=1200&&!TimeT.tipped&&!TimeT.limited()){TimeT.tipped=true;queueModal(`<div class="bigemoji">🧃</div><h2>Une petite pause ?</h2><p>Ça fait 20 minutes que tu joues, bravo ! Bouge un peu, bois de l’eau, et reviens quand tu veux.</p><button class="btn y block" data-act="mclose">D’accord 👍</button>`);}if(thLock)Offre.lock(thT.n,thLock);if(thUp)queueModal(`<div class="bigemoji">${thT.e}</div><h2>${thT.n} : niveau ${thUp} !</h2><p>${thT.levels[thUp-1].e} ${thT.levels[thUp-1].n}</p><button class="btn y block" data-act="mclose">Super ! 🎉</button>`,()=>{Sound.play('epic');Confetti.burst(100);});if(after>before)levelUpModal(before,after);badges.forEach(badgeModal);gifts.forEach(giftModal);Coffre.gainModal(cofs);},1300);
+  setTimeout(()=>{autoUpModal(ups);if(S.settings.pauseTip!==false&&TimeT.cont>=1200&&!TimeT.tipped&&!TimeT.limited()){TimeT.tipped=true;queueModal(`<div class="bigemoji">🧃</div><h2>Une petite pause ?</h2><p>Ça fait 20 minutes que tu joues, bravo ! Bouge un peu, bois de l’eau, et reviens quand tu veux.</p><button class="btn y block" data-act="mclose">D’accord 👍</button>`);}if(thLock)Offre.lock(thT.n,thLock);if(thUp)queueModal(`<div class="bigemoji">${thT.e}</div><h2>${thT.n} : monde ${thUp} !</h2><p>${thT.levels[thUp-1].e} ${thT.levels[thUp-1].n}</p><button class="btn y block" data-act="mclose">Super ! 🎉</button>`,()=>{Sound.play('epic');Confetti.burst(100);});if(after>before)levelUpModal(before,after);badges.forEach(badgeModal);gifts.forEach(giftModal);Coffre.gainModal(cofs);},1300);
 }
 
 // ---------- Écrans ----------
@@ -1694,7 +1705,7 @@ function renderHome(){
   ${Coffre.slotsHTML()}
   <button class="play ${!t.math?'pulse':''}" style="--c:var(--b);--d:var(--bd)" data-act="startmath"><span class="ico">🔢</span><span class="tx"><span class="t1">Maths</span><span class="t2">Monde ${st.mathLevel} · ${ml.n}</span><span class="mbar"><i style="width:${Math.round(mm*100)}%"></i></span><span class="t3">${Math.round(mm*mf)} / ${mf} calculs maîtrisés${mm>=1?' · 🏆 Monde terminé !':mm>=.8?' · Le monde suivant arrive à la fin de la partie !':''}</span></span></button>
   <button class="play ${sprintLocked?'locked':''}" style="--c:var(--o);--d:var(--od)" data-act="startsprint"><span class="ico">⚡</span><span class="tx"><span class="t1">Défi éclair</span><span class="t2">${sprintLocked?'Après ton entraînement de maths':best?`Record : ${best} calculs en ${st.sprintSec} s`:`Le plus de calculs en ${st.sprintSec} s !`}</span></span>${sprintLocked?'<span class="lock">🔒</span>':''}</button>
-  ${st.frOn?`<button class="play ${frLocked?'locked':''} ${!frLocked&&!t.fr?'pulse':''}" style="--c:var(--p);--d:var(--pd)" data-act="startfr"><span class="ico">📖</span><span class="tx"><span class="t1">Lecture</span><span class="t2">${frLocked?'Après ton entraînement de maths':`Niveau ${st.frLevel} · ${fl.n}`}</span></span>${frLocked?'<span class="lock">🔒</span>':''}</button>`:''}
+  ${st.frOn?`<button class="play ${frLocked?'locked':''} ${!frLocked&&!t.fr?'pulse':''}" style="--c:var(--p);--d:var(--pd)" data-act="startfr"><span class="ico">📖</span><span class="tx"><span class="t1">Lecture</span><span class="t2">${frLocked?'Après ton entraînement de maths':`Monde ${st.frLevel} · ${fl.n}`}</span></span>${frLocked?'<span class="lock">🔒</span>':''}</button>`:''}
   ${themesHTML()}
   <div class="minis"><button class="mini" data-act="shop"><span>🎨</span>Mon perso</button><button class="mini" data-act="badges"><span>🏆</span>Badges ${nb}/${BADGES.length}</button><button class="mini ${S.gifts.some(g=>g.reached&&!g.given)?'blink':''}" data-act="gifts"><span>🎁</span>Cadeaux${S.gifts.some(g=>g.reached&&!g.given)?`<i class="dot">${S.gifts.filter(g=>g.reached&&!g.given).length}</i>`:''}</button></div>
   <div class="parentrow"><button class="parentbtn" data-act="parent">🔒 Espace parents</button><a class="parentbtn" href="aide.html" target="_blank" rel="noopener">💬 Aide</a>${Acct.user?'':'<button class="parentbtn" data-act="openlogin">🔑 Connexion</button>'}${Plan.pill()}<button class="parentbtn" data-act="offrir">🎁 Offrir</button></div>`;
@@ -1789,12 +1800,12 @@ function paneAdmin(){
 }
 function paneSettings(){
   const st=S.settings,m=levelMastery('math',st.mathLevel),fm=levelMastery('fr',st.frLevel);
-  const rec=m>=.8&&st.mathLevel<MATH_LEVELS.length?`<div class="reco">✅ ${nm()} maîtrise ${pct(m)} du niveau ${st.mathLevel}. Vous pouvez passer au suivant.<button class="btn g sm" data-act="setlvl" data-arg="${st.mathLevel+1}">Passer au niveau ${st.mathLevel+1}</button></div>`:'';
-  const frec=fm>=.8&&st.frLevel<FR_LEVELS.length?`<div class="reco">✅ ${pct(fm)} du niveau de lecture ${st.frLevel} maîtrisé.<button class="btn g sm" data-act="setfr" data-arg="${st.frLevel+1}">Passer au niveau ${st.frLevel+1}</button></div>`:'';
-  return `<section class="acard"><h3>💡 La méthode</h3><ul class="tips"><li>10 minutes par jour suffisent : maths, puis lecture, puis le coffre.</li><li>Lecture (méthode syllabique) : le son des lettres → j’assemble (s + e = se) → mots de 2 syllabes → mots de 3 syllabes. Les syllabes sont en couleurs alternées, avec les lettres muettes en gris.</li><li>Chaque partie répète quelques calculs plusieurs fois. Une erreur ? Correction à l’écran et à voix haute, il refait le calcul tout de suite, puis on le lui repose plus loin.</li><li>Un calcul est « maîtrisé » après 3 bonnes réponses rapides d’affilée.</li><li>Montez de niveau au-delà de 80 % de maîtrise. Ensuite, passez au clavier, puis baissez l’objectif de vitesse (8 s → 6 s → 4 s).</li></ul></section>
+  const rec=m>=.8&&st.mathLevel<MATH_LEVELS.length?`<div class="reco">✅ ${nm()} maîtrise ${pct(m)} du monde ${st.mathLevel}. Vous pouvez passer au suivant.<button class="btn g sm" data-act="setlvl" data-arg="${st.mathLevel+1}">Passer au monde ${st.mathLevel+1}</button></div>`:'';
+  const frec=fm>=.8&&st.frLevel<FR_LEVELS.length?`<div class="reco">✅ ${pct(fm)} du monde ${st.frLevel} de lecture maîtrisé.<button class="btn g sm" data-act="setfr" data-arg="${st.frLevel+1}">Passer au monde ${st.frLevel+1}</button></div>`:'';
+  return `<section class="acard"><h3>💡 La méthode</h3><ul class="tips"><li>10 minutes par jour suffisent : maths, puis lecture, puis le coffre.</li><li>Lecture (méthode syllabique) : le son des lettres → j’assemble (s + e = se) → mots de 2 syllabes → mots de 3 syllabes. Les syllabes sont en couleurs alternées, avec les lettres muettes en gris.</li><li>Chaque partie répète quelques calculs plusieurs fois. Une erreur ? Correction à l’écran et à voix haute, il refait le calcul tout de suite, puis on le lui repose plus loin.</li><li>Un calcul est « maîtrisé » après 3 bonnes réponses rapides d’affilée.</li><li>Passez au monde suivant au-delà de 80 % de maîtrise. Ensuite, passez au clavier, puis baissez l’objectif de vitesse (8 s → 6 s → 4 s).</li></ul></section>
   <section class="acard"><h3>👦 Enfant</h3><label class="fld">Prénom<input data-field="name" value="${esc(S.name)}" maxlength="20" autocomplete="off"></label><div class="seg" style="margin-top:8px"><button class="${S.genre==='g'?'on':''}" data-act="setgenre" data-arg="g">👦 Garçon</button><button class="${S.genre==='f'?'on':''}" data-act="setgenre" data-arg="f">👧 Fille</button></div></section>
   <section class="acard"><h3>🗝️ Coffres magiques</h3>${tog('coffres','Coffres à ouvrir après 12 h','Gagnés en jouant : 3 étoiles, nouveau niveau, mission du jour. Dedans : pièces, autocollants, objets… ou une farce !')}</section>
-  <section class="acard"><h3>🔢 Maths : niveau de difficulté</h3>${rec}${lvlList('math',MATH_LEVELS,st.mathLevel,(L,i)=>{const n=i+1,mm=levelMastery('math',n);return `<button class="lvl ${n===st.mathLevel?'on':''}" data-act="setlvl" data-arg="${n}"><span class="le">${L.e}</span><span class="ln"><b>${n}. ${L.n}</b><small>${diffTxt(i,MATH_LEVELS)} · ${mathFacts(n).length} calculs · ${pct(mm)} maîtrisés</small><span class="mbar2"><i style="width:${mm*100}%"></i></span></span>${n===st.mathLevel?'<span class="cur">Actuel</span>':''}</button>`;})}${tog('mathAuto','Passer seul au monde suivant','Plus vite si tu réussis très bien, plus lent si tu as du mal')}</section>
+  <section class="acard"><h3>🔢 Maths : les mondes</h3>${rec}${lvlList('math',MATH_LEVELS,st.mathLevel,(L,i)=>{const n=i+1,mm=levelMastery('math',n);return `<button class="lvl ${n===st.mathLevel?'on':''}" data-act="setlvl" data-arg="${n}"><span class="le">${L.e}</span><span class="ln"><b>${n}. ${L.n}</b><small>${diffTxt(i,MATH_LEVELS)} · ${mathFacts(n).length} calculs · ${pct(mm)} maîtrisés</small><span class="mbar2"><i style="width:${mm*100}%"></i></span></span>${n===st.mathLevel?'<span class="cur">Actuel</span>':''}</button>`;})}${tog('mathAuto','Passer seul au monde suivant','Plus vite si tu réussis très bien, plus lent si tu as du mal')}</section>
   <section class="acard"><h3>🎮 Partie de maths</h3>
    <div class="row"><span>Questions par partie</span>${seg('nQ',[[5,'5'],[10,'10'],[15,'15'],[20,'20'],[30,'30']])}</div>
    <div class="row"><span>Façon de répondre</span>${seg('mode',[['choices','3 choix (facile)'],['keys','Clavier (calcul mental)']])}</div>
@@ -1802,7 +1813,7 @@ function paneSettings(){
    <div class="row"><span>Durée du défi éclair</span>${seg('sprintSec',[[30,'30 s'],[60,'1 min'],[90,'1 min 30']])}</div>
    ${tog('aid','Aide visuelle après une erreur','Objets à compter, cases à remplir, paquets')}</section>
   <section class="acard"><h3>⏳ Temps d’écran</h3><p class="hint">Limite de jeu par jour. Une fois atteinte, ${nm()} ne peut plus lancer de partie jusqu’au lendemain (la partie en cours se termine). Aujourd’hui : ${fmtDur(TimeT.sec())}.</p>${seg('dayLimit',[[0,'Aucune'],[15,'15 min'],[30,'30 min'],[45,'45 min'],[60,'1 h']])}${tog('pauseTip','Proposer une pause','Après 20 minutes de jeu d’affilée')}</section>
-  <section class="acard"><h3>📖 Lecture</h3>${tog('frOn','Activer la lecture')}${tog('frAfterMath','Débloquée après les maths du jour')}${tog('frAuto','Passer seul au niveau suivant','Plus vite si tu réussis très bien, plus lent si tu as du mal')}
+  <section class="acard"><h3>📖 Lecture</h3>${tog('frOn','Activer la lecture')}${tog('frAfterMath','Débloquée après les maths du jour')}${tog('frAuto','Passer seul au monde suivant','Plus vite si tu réussis très bien, plus lent si tu as du mal')}
    <div class="row"><span>Questions par partie</span>${seg('frNQ',[[5,'5'],[8,'8'],[10,'10'],[15,'15']])}</div>${frec}
    ${lvlList('fr',FR_LEVELS,st.frLevel,(L,i)=>{const n=i+1,mm=levelMastery('fr',n);return `<button class="lvl ${n===st.frLevel?'on':''}" data-act="setfr" data-arg="${n}"><span class="le">${L.e}</span><span class="ln"><b>${n}. ${L.n}</b><small>${diffTxt(i,FR_LEVELS)} · ${L.items.length} éléments · ${pct(mm)} maîtrisés</small><span class="mbar2"><i style="width:${mm*100}%"></i></span></span>${n===st.frLevel?'<span class="cur">Actuel</span>':''}</button>`;})}</section>
   <section class="acard"><h3>🎙️ Sons des lettres</h3><p class="hint">La voix de la tablette lit bien les voyelles, les syllabes et les mots, mais pas une consonne seule (elle dit « èsse » au lieu de « sss »). Enregistrez vos propres sons : ils remplacent la voix dans les exercices. Appuyez sur ●, puis dites le son tout de suite (1,5 s).</p><div class="snds">${Object.keys(PHON).map(k=>{const r=Rec.rec&&Rec.rec.k===k;return `<div class="snd ${Rec.has(k)?'has':''}"><b class="read">${k}</b><small>${PHON[k].e} ${PHON[k].ex}</small><button class="${r?'recing':''}" data-act="recsnd" data-arg="${k}" aria-label="Enregistrer">${r?'🔴':'●'}</button><button data-act="playsnd" data-arg="${k}" aria-label="Écouter">▶︎</button>${Rec.has(k)?`<button data-act="delsnd" data-arg="${k}" aria-label="Effacer">✕</button>`:''}</div>`;}).join('')}</div><p class="hint">Case verte = son enregistré (✕ pour l’effacer). Sans enregistrement, ▶︎ fait entendre la voix de la tablette.</p></section>
@@ -1825,7 +1836,7 @@ function lineChart(pts,o){
 }
 function factMap(lv){
   const facts=mathFacts(lv);let list=facts,note='';
-  if(facts.length>120){list=facts.filter(f=>S.facts[f.key]&&S.facts[f.key].n);note=`<p class="hint">${facts.length} calculs dans ce niveau : seuls ceux déjà vus sont affichés.</p>`;}
+  if(facts.length>120){list=facts.filter(f=>S.facts[f.key]&&S.facts[f.key].n);note=`<p class="hint">${facts.length} calculs dans ce monde : seuls ceux déjà vus sont affichés.</p>`;}
   if(!list.length)return note+'<div class="empty">Aucun calcul vu pour l’instant.</div>';
   return note+`<div class="chips">${list.map(f=>{const s=S.facts[f.key],tip=s&&s.n?`${fFull(f)} · vu ${s.n} fois · ${s.ok} juste${s.ok>1?'s':''}${s.ms?' · '+sec(s.ms):''}`:`${fFull(f)} · pas encore vu`;return `<span class="chip ${factStatus(s)}" data-tip="${esc(tip)}">${esc(fShort(f))}</span>`;}).join('')}</div>`;
 }
@@ -1846,12 +1857,12 @@ function paneProgressFull(){
   ${timeSection()}
   <section class="acard"><h3>🎯 Réussite en maths</h3><p class="hint">Bonnes réponses du premier coup, par jour.</p>${lineChart(md.map(x=>({lab:fmtD(x.d),y:Math.round(x.acc*100)})),{yMin:0,yMax:100,fmt:v=>Math.round(v)+' %',color:'#7B5CFF',title:'Réussite en maths par jour'})}</section>
   <section class="acard"><h3>⏱️ Vitesse en maths</h3><p class="hint">Temps moyen par bonne réponse. Plus la courbe descend, plus ${nm()} calcule vite.</p>${lineChart(md.filter(x=>x.avg).map(x=>({lab:fmtD(x.d),y:x.avg/1000})),{yMin:0,yMax:tMax,fmt:v=>v.toFixed(1).replace('.',',')+' s',color:'#7B5CFF',title:'Temps moyen par jour'})}</section>
-  <section class="acard"><h3>⚡ Défi éclair</h3><p class="hint">Calculs justes par minute à chaque défi : c’est la mesure de l’accélération.</p>${lineChart(sp.map(s=>({lab:fmtD(s.d),tip:fmtD(s.d)+' · niveau '+s.lvl,y:Math.round(s.score*60/s.sec)})),{yMin:0,yMax:spMax,fmt:v=>Math.round(v)+'/min',color:'#7B5CFF',title:'Calculs par minute'})}</section>
+  <section class="acard"><h3>⚡ Défi éclair</h3><p class="hint">Calculs justes par minute à chaque défi : c’est la mesure de l’accélération.</p>${lineChart(sp.map(s=>({lab:fmtD(s.d),tip:fmtD(s.d)+' · monde '+s.lvl,y:Math.round(s.score*60/s.sec)})),{yMin:0,yMax:spMax,fmt:v=>Math.round(v)+'/min',color:'#7B5CFF',title:'Calculs par minute'})}</section>
   <section class="acard"><h3>🗺️ Carte des calculs</h3><div class="seg">${MATH_LEVELS.map((L,i)=>`<button class="${lv===i+1?'on':''}" data-act="maplvl" data-arg="${i+1}">${i+1}</button>`).join('')}</div><p class="hint"><b>${lv}. ${MATH_LEVELS[lv-1].n}</b> : ${pct(levelMastery('math',lv))} maîtrisés. Touchez un calcul pour le détail.</p><div class="legend"><span><i class="chip ok"></i>Maîtrisé</span><span><i class="chip mid"></i>En cours</span><span><i class="chip weak"></i>À revoir</span><span><i class="chip new"></i>Pas encore vu</span></div>${factMap(lv)}</section>
   <section class="acard"><h3>❗ Calculs à retravailler</h3>${weakList()}</section>
   <section class="acard"><h3>📖 Lecture</h3><p class="hint">Bonnes réponses du premier coup, par jour. Lecture éclair : le mot reste affiché ${sec(S.frFlashMs)}.</p>${lineChart(fd.map(x=>({lab:fmtD(x.d),y:Math.round(x.acc*100)})),{yMin:0,yMax:100,fmt:v=>Math.round(v)+' %',color:'#7B5CFF',title:'Réussite en lecture par jour'})}</section>
   <section class="acard"><h3>🎲 Autres jeux</h3>${themeSummary()}</section>
-  <section class="acard"><h3>🕘 Dernières parties</h3>${last.length?`<table class="hist">${last.map(s=>`<tr><td>${fmtD(s.d)}</td><td>${s.type==='math'?'🔢 Maths':s.type==='fr'?'📖 Lecture':THEMES[s.type]?THEMES[s.type].e+' '+THEMES[s.type].n:'⚡ Éclair'}</td><td>niv. ${s.lvl}</td><td>${s.type==='sprint'?s.score+' justes':s.ok+'/'+s.n}</td><td>${s.avgMs?sec(s.avgMs):'–'}</td></tr>`).join('')}</table>`:'<div class="empty">Aucune partie pour l’instant.</div>'}</section>`;
+  <section class="acard"><h3>🕘 Dernières parties</h3>${last.length?`<table class="hist">${last.map(s=>`<tr><td>${fmtD(s.d)}</td><td>${s.type==='math'?'🔢 Maths':s.type==='fr'?'📖 Lecture':THEMES[s.type]?THEMES[s.type].e+' '+THEMES[s.type].n:'⚡ Éclair'}</td><td>monde ${s.lvl}</td><td>${s.type==='sprint'?s.score+' justes':s.ok+'/'+s.n}</td><td>${s.avgMs?sec(s.avgMs):'–'}</td></tr>`).join('')}</table>`:'<div class="empty">Aucune partie pour l’instant.</div>'}</section>`;
 }
 function paneGifts(){
   return `<section class="acard"><h3>🎁 Cadeaux à gagner</h3><p class="hint">Fixez de vraies récompenses. ${nm()} voit sa progression vers chacune, et une fête s’affiche quand l’objectif est atteint.</p>
@@ -1875,7 +1886,7 @@ const ACT={
   startfr(a,el){if(el.classList.contains('locked'))return lockedMsg();startGame('fr','train');},
   gofr(){startGame('fr','train');},
   starttheme(a,el){if(!THEMES[a])return;if(el.classList.contains('locked'))return lockedMsg();startGame(a,'train');},
-  setth(a){const [k,n]=a.split('|');if(+n>Plan.thMax(k))return Offre.open('theme');S.settings.lv[k]=+n;save();toast(`${THEMES[k].n} : niveau ${n}`);keepScroll(render);},
+  setth(a){const [k,n]=a.split('|');if(+n>Plan.thMax(k))return Offre.open('theme');S.settings.lv[k]=+n;save();toast(`${THEMES[k].n} : monde ${n}`);keepScroll(render);},
   cofopen(id){Coffre.open(id);},
   cofpop(id){Coffre.pop(id);},
   album(){go('album');},
@@ -1963,8 +1974,8 @@ const ACT={
   tab(t){adminTab=t;render();window.scrollTo(0,0);},
   set(a){const [k,v]=a.split('|');S.settings[k]=isNaN(+v)?v:+v;save();keepScroll(render);},
   toggle(k){S.settings[k]=!S.settings[k];save();keepScroll(render);},
-  setlvl(n){S.settings.mathLevel=+n;save();toast(`Maths : niveau ${n} · ${MATH_LEVELS[n-1].n}`);keepScroll(render);},
-  setfr(n){S.settings.frLevel=+n;save();toast(`Lecture : niveau ${n} · ${FR_LEVELS[n-1].n}`);keepScroll(render);},
+  setlvl(n){S.settings.mathLevel=+n;save();toast(`Maths : monde ${n} · ${MATH_LEVELS[n-1].n}`);keepScroll(render);},
+  setfr(n){S.settings.frLevel=+n;save();toast(`Lecture : monde ${n} · ${FR_LEVELS[n-1].n}`);keepScroll(render);},
   testvoice(){Voice.say(`Bonjour ${S.name||''} ! Deux plus deux égale quatre.`);},
   changepin(){S.pin=null;save();pinStage='enter';pinBuf='';adminOk=false;go('pin');},
   maplvl(n){mapLevel=+n;keepScroll(render);},
@@ -2244,7 +2255,7 @@ const Offre={after:null,
   gate(next){if((Offre.okUntil||0)>Date.now())return next();const a=rand(6,9),b=rand(6,9);gateAns=a*b;Offre.next=next;queueModal(`<div class="bigemoji sm">👨‍👩‍👧</div><h2>Question pour les parents</h2><p>Combien font <b>${a} × ${b}</b> ?</p><input id="pgIn" class="ginput" inputmode="numeric" style="text-align:center;max-width:140px;margin:0 auto 12px;display:block" autocomplete="off"><button class="btn block" data-act="pgateok">Valider</button><button class="alink" data-act="mclose">Annuler</button>`);setTimeout(()=>{const e=$('#pgIn');if(e)e.focus();},80);},
   gateOk(){const v=parseInt(($('#pgIn')||{}).value,10);if(v!==gateAns)return toast('Ce n’est pas la bonne réponse');Offre.okUntil=Date.now()+6e5;nextModal();const n=Offre.next;Offre.next=null;if(n)setTimeout(n,60);},
   ask(src){if(SCR==='admin')return Offre.open(src);Offre.gate(()=>Offre.open(src));},
-  lock(name,n){queueModal(`<div class="bigemoji sm">🔒</div><h2>${esc(name)} : niveau ${n}</h2><p>Bravo, tu as fini les niveaux gratuits ! La suite est réservée à <b>Malino+</b> 👑</p><p>Demande à un parent de la débloquer.</p><button class="btn y block" data-act="offre" data-arg="theme">Je suis un parent</button><button class="alink" data-act="mclose">Plus tard</button>`);},
+  lock(name,n){queueModal(`<div class="bigemoji sm">🔒</div><h2>${esc(name)} : monde ${n}</h2><p>Bravo, tu as fini les mondes gratuits ! La suite est réservée à <b>Malino+</b> 👑</p><p>Demande à un parent de la débloquer.</p><button class="btn y block" data-act="offre" data-arg="theme">Je suis un parent</button><button class="alink" data-act="mclose">Plus tard</button>`);},
   open(src){
     const k=Plan.kind(),i=Plan.info||{};
     let status='';
@@ -2252,7 +2263,7 @@ const Offre={after:null,
     else if(k==='essai')status=`<p class="okline">⏳ Ton essai gratuit se termine dans <b>${Plan.jours()} jour${Plan.jours()>1?'s':''}</b>.</p>`;
     else if(k==='gratuit')status=`<p class="okline">Ton essai est terminé : les jeux de base restent gratuits.</p>`;
     const buy=k==='plus'?(i.abonne?`<button class="btn sm o block" data-act="portail">Gérer mon abonnement</button>`:''):`<button class="btn g block planbtn" data-act="payer" data-arg="annuel"><span>29,99 € par an</span><small>soit 2,50 €/mois · le plus avantageux</small></button><button class="btn sm o block" style="margin-top:8px" data-act="payer" data-arg="mensuel">3,99 € par mois</button><p class="fine">Sans engagement, résiliable en 2 clics · paiement sécurisé Stripe</p>`;
-    queueModal(`<div class="bigemoji sm">👑</div><h2>Malino+</h2>${status}<ul class="plist"><li>🎲 Toutes les thématiques, tous les niveaux</li><li>👨‍👩‍👧 Jusqu’à 4 enfants</li><li>📊 Le suivi détaillé de chaque enfant</li><li>💎 Les objets Plasma et un coffre doré chaque semaine</li></ul>${buy}<div class="orow"><button class="alink" data-act="codepromo">🎟️ J’ai un code</button><button class="alink" data-act="offrir">🎁 Offrir Malino+</button>${k==='essai'||k==='gratuit'?'<button class="alink" data-act="parrain">👥 Inviter des amis</button>':''}</div><button class="alink" data-act="mclose">Fermer</button>`);
+    queueModal(`<div class="bigemoji sm">👑</div><h2>Malino+</h2>${status}<ul class="plist"><li>🎲 Toutes les thématiques, tous les mondes</li><li>👨‍👩‍👧 Jusqu’à 4 enfants</li><li>📊 Le suivi détaillé de chaque enfant</li><li>💎 Les objets Plasma et un coffre doré chaque semaine</li></ul>${buy}<div class="orow"><button class="alink" data-act="codepromo">🎟️ J’ai un code</button><button class="alink" data-act="offrir">🎁 Offrir Malino+</button>${k==='essai'||k==='gratuit'?'<button class="alink" data-act="parrain">👥 Inviter des amis</button>':''}</div><button class="alink" data-act="mclose">Fermer</button>`);
   },
   pay(f){
     if(!Acct.user){Offre.after=()=>Offre.pay(f);nextModal();Acct.note='Connecte-toi d’abord : l’abonnement sera rattaché à ton compte.';Acct.show('login');return;}
@@ -2284,7 +2295,7 @@ const Offre={after:null,
     if(error||!data)return toast('Impossible pour le moment, réessaie');
     if(!data.ok){const M={invalide:'Code inconnu : vérifie l’orthographe',expire:'Ce code a expiré',epuise:'Ce code a atteint sa limite d’utilisations',deja:'Tu as déjà utilisé un code',abonne:'Tu es déjà abonné(e) à Malino+',trop:'Trop d’essais, réessaie dans une heure',connexion:'Connecte-toi d’abord'};return toast(M[data.error]||'Code refusé');}
     nextModal();await Plan.refresh(true);
-    queueModal(`<div class="bigemoji sm">🎉</div><h2>Malino+ activé !</h2><p><b>${data.jours} jours</b> offerts, jusqu’au <b>${fmtDate(data.fin)}</b>. Toutes les thématiques et tous les niveaux sont débloqués.</p><button class="btn g block" data-act="mclose">C’est parti ! 🚀</button>`,()=>{Sound.play('epic');Confetti.burst(180);});render();},
+    queueModal(`<div class="bigemoji sm">🎉</div><h2>Malino+ activé !</h2><p><b>${data.jours} jours</b> offerts, jusqu’au <b>${fmtDate(data.fin)}</b>. Toutes les thématiques et tous les mondes sont débloqués.</p><button class="btn g block" data-act="mclose">C’est parti ! 🚀</button>`,()=>{Sound.play('epic');Confetti.burst(180);});render();},
   // ----- parrainage -----
   invite(){
     if(!Acct.user){Offre.after=()=>Offre.invite();nextModal();Acct.show('login');return;}
@@ -2351,7 +2362,7 @@ const Onb={i:0,d:{},
         <p class="otip">🎉 Quand l’objectif est atteint, Malino félicite ${kid} et lui dit de vous le montrer. Ensuite, fixez-en un plus ambitieux dans l’Espace parents › Cadeaux.</p>`,
       ()=>`<div class="oico">👑</div><h2>${k==='plus'?'Malino+ est actif':'Malino+ offert 14 jours'}</h2>
         <p>${k==='plus'?`Tout est débloqué${pi.plus_jusqua?` jusqu’au <b>${fmtDate(pi.plus_jusqua)}</b>`:''}.`:`Jusqu’au <b>${fin}</b>, profitez de presque tout, sans carte bancaire.`}</p>
-        <div class="ocmp"><div><b>Toujours gratuit</b><span>✅ Maths et lecture</span><span>✅ Monnaie et Logique</span><span>✅ Récompenses</span></div><div class="p"><b>👑 Malino+</b><span>🎲 Tous les jeux et niveaux</span><span>👨‍👩‍👧 Jusqu’à 4 enfants</span><span>📊 Suivi détaillé</span><span>💎 Objets Plasma</span></div></div>
+        <div class="ocmp"><div><b>Toujours gratuit</b><span>✅ Maths et lecture</span><span>✅ Monnaie et Logique</span><span>✅ Récompenses</span></div><div class="p"><b>👑 Malino+</b><span>🎲 Tous les jeux et tous les mondes</span><span>👨‍👩‍👧 Jusqu’à 4 enfants</span><span>📊 Suivi détaillé</span><span>💎 Objets Plasma</span></div></div>
         ${k!=='plus'?'<p class="otip">👥 Invitez 2 amis : <b>+7 jours</b> pour chaque ami inscrit. Ensuite : 2,50 €/mois avec l’offre annuelle.</p>':''}`
     ].slice(0,2);
   },
