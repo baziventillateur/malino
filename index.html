@@ -848,7 +848,7 @@ const qWhere=x=>({ans:x.a,inst:'Où arrive le robot ?',instSay:'Suis les flèche
   onOk:()=>{const cells=walk(x.s,x.seq,x.n);cells.forEach((c,i)=>later(()=>{const h=$('#qh');if(h)h.innerHTML=whereH(x,c,cells.slice(0,i));Sound.play('tick');},280*(i+1)));},afterDelay:280*x.seq.length+800,
   fixHTML:whereH(x,x.s,walk(x.s,x.seq,x.n)),fixSay:x.seq.split('').map(c=>DIR[c][3]).join(', ')});
 // --- Découverte (suite)
-CRIS.push(...[['🐺','aouuuh','le loup'],['🐭','couic couic','la souris'],['🐐','mêêê','la chèvre'],['🦃','glouglou','le dindon']].map(([e,c,n])=>({k:n,e,c,n})));
+CRIS.push(...[['🐺','aouuuh','le loup'],['🐐','mêêê','la chèvre'],['🦃','glouglou','le dindon']].map(([e,c,n])=>({k:n,e,c,n})));
 VIT.push(...[['🐬','le dauphin','mer'],['🦔','le hérisson','foret'],['🐴','le cheval','ferme'],['🦏','le rhinocéros','savane'],['🐻‍❄️','l’ours blanc','glace'],['🦦','la loutre','mer']].map(([e,n,h])=>({k:n,e,n,h})));
 [['🧊','dur','🧸','mou'],['💡','allumé','🌑','éteint']].forEach(([a,x,b,y])=>{OPP.push({k:x,e1:a,w1:x,e2:b,w2:y},{k:y,e1:b,w1:y,e2:a,w2:x});});
 const METIERS=[['🚒','le pompier','🧑‍🚒'],['🚓','le policier','👮'],['🩺','le médecin','🧑‍⚕️'],['🍳','le cuisinier','🧑‍🍳'],['🚜','l’agriculteur','🧑‍🌾'],['🚀','l’astronaute','🧑‍🚀'],['🎨','le peintre','🧑‍🎨'],['🔧','le mécanicien','🧑‍🔧'],['✈️','le pilote','🧑‍✈️'],['📚','la maîtresse','🧑‍🏫'],['🔬','le scientifique','🧑‍🔬'],['💻','l’informaticien','🧑‍💻'],['🎤','le chanteur','🧑‍🎤'],['⚖️','le juge','🧑‍⚖️']].map(([t,n,e])=>({k:n,t,n,e}));
