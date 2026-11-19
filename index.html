@@ -1545,16 +1545,16 @@ const Coffre={plein:false,
     S.coins+=coins;save();
     const btn=item?`<div class="stack"><button class="btn p block" data-act="equipgift" data-arg="${item.id}">Le mettre tout de suite</button><button class="btn y block" data-act="mclose">Super !</button></div>`:`<button class="btn ${kind==='farce'?'w':'y'} block" data-act="mclose">${kind==='farce'?'Tant pis 😅':'Super !'}</button>`;
     $('#modal .mbox').innerHTML=html+btn;
-    if(kind==='farce'){Sound.play(Sound.custom('fail').length?'fail':'bad');if(S.settings.voice)Voice.say('Oh non ! '+g.a.n+' !');}
-    else if(kind==='bon'){Sound.play('level');Confetti.burst(110);if(S.settings.voice)Voice.say(`Bravo ! Tu gagnes ${coins} pièces${g&&!g.dup?' et un nouvel autocollant':''} !`);}
-    else{Sound.play('epic');Confetti.burst(220);setTimeout(()=>Confetti.burst(160,innerWidth*.25,innerHeight*.3),500);setTimeout(()=>Confetti.burst(160,innerWidth*.75,innerHeight*.3),900);if(S.settings.voice)Voice.say(item?'Coffre épique ! Tu gagnes un objet rare !':'Coffre épique ! Un autocollant rare !');}
-    checkBadges(null).forEach(badgeModal);if(SCR==='home')render();},
+    if(kind==='farce'){Sound.play(Sound.custom('fail').length?'fail':'bad');Sons.farce();if(S.settings.voice)Voice.say('Oh non ! '+g.a.n+' !');}
+    else if(kind==='bon'){Sound.play('level');Sons.bon();Confetti.burst(110);if(S.settings.voice)Voice.say(`Bravo ! Tu gagnes ${coins} pièces${g&&!g.dup?' et un nouvel autocollant':''} !`);}
+    else{Sound.play('epic');Confetti.burst(220);setTimeout(()=>Sons.exc(),300);setTimeout(()=>Confetti.burst(160,innerWidth*.25,innerHeight*.3),500);setTimeout(()=>Confetti.burst(160,innerWidth*.75,innerHeight*.3),900);if(S.settings.voice)Voice.say(item?'Coffre épique ! Tu gagnes un objet rare !':'Coffre épique ! Un autocollant rare !');}
+    if(g&&g.serie)setTimeout(()=>Sons.exc(),700);checkBadges(null).forEach(badgeModal);if(SCR==='home')render();},
   slotsHTML(){if(!this.on())return '';const l=this.list();let h='';
     for(let i=0;i<COF_SLOTS;i++){const c=l[i];h+=c?`<button class="cslot t-${c.t} ${this.ready(c)?'ready':''}" data-act="cofopen" data-arg="${c.id}" aria-label="${COFT[c.t].n}">${chestSVG(c.t)}<small data-cof="${c.ready}">${this.ready(c)?'Ouvrir !':'⏳ '+this.left(c)}</small></button>`:'<div class="cslot empty"><span>＋</span><small>Libre</small></div>';}
     return `<div class="cofs card"><div class="cofh"><b>🗝️ Mes coffres</b><button class="cofalb" data-act="album">📒 Album ${this.nb()}/${ALBUM.length}</button></div><div class="cslots">${h}</div>${l.length?'':'<p class="cofhint">Gagne des coffres en jouant : 3 étoiles, nouveau niveau, mission du jour… Ils s’ouvrent au bout de 12 h.</p>'}</div>`;},
   // met à jour les comptes à rebours ; prévient quand un coffre devient prêt
   tick(){if(!S||SCR!=='home')return;let flip=false;$$('[data-cof]').forEach(el=>{const t=+el.dataset.cof,b=el.closest('.cslot');if(Date.now()>=t){if(b&&!b.classList.contains('ready'))flip=true;}else el.textContent='⏳ '+this.left({ready:t});});
-    if(flip&&!modalOpen){render();Sound.play('badge');toast('🎁 Un coffre est prêt : viens l’ouvrir !');}}
+    if(flip&&!modalOpen){render();if(Sons.ok())Sons.play('warzone_notif',{max:3});else Sound.play('badge');toast('🎁 Un coffre est prêt : viens l’ouvrir !');}}
 };
 function renderAlbum(){const a=S.album||{},got=Coffre.nb();
   return `<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>Mon album</h2><span class="pill">${got}/${ALBUM.length}</span></div><p class="albhint">Les autocollants se trouvent dans les coffres. Une série complète rapporte un gros bonus !</p>`
@@ -1719,7 +1719,7 @@ function levelUpModal(from,to){
   queueModal(`<div class="bigemoji">⭐</div><h2>Niveau ${to} !</h2><div class="mav">${avatarSVG(S.avatar)}</div>${dr?`<p>🎁 Objet offert : <b>${esc(dr.name)}</b></p><div class="mav">${thumb(dr)}</div>`:''}${un.length?`<p>Nouveaux objets dans ta boutique :</p><div class="unl">${un.slice(0,6).map(i=>`<span class="ui"><span class="ith">${thumb(i)}</span>${esc(i.name)}</span>`).join('')}</div>`:'<p>Continue comme ça !</p>'}<button class="btn y block" data-act="mclose">Super ! 🎉</button>`,
    ()=>{Sound.play(to%5===0?'epic':'level');Confetti.burst(160);if(S.settings.voice)Voice.say(`Bravo ! Tu passes au niveau ${to} !`);});
 }
-function badgeModal(b){const R=RARITY[b.r]||RARITY.c,big=b.r==='e'||b.r==='l';queueModal(`<div class="bigemoji">${b.e}</div><div class="rtag" style="color:${R.col}">${R.n}</div><h2>${big?'Badge exceptionnel !':'Nouveau badge !'}</h2><p><b>${esc(b.n)}</b><br>${esc(b.d)}</p><div class="gainline">+${fmtP(cc(REWARD[b.r]||10))} 🪙</div>${b.drop?`<p>Et un objet offert : <b>${esc(b.drop.name)}</b> !</p><div class="mav">${thumb(b.drop)}</div>`:''}<button class="btn y block" data-act="mclose">Trop bien !</button>`,()=>{Sound.play(big?'epic':'badge');Confetti.burst(b.r==='l'?260:b.r==='e'?160:b.r==='r'?90:60);});}
+function badgeModal(b){const R=RARITY[b.r]||RARITY.c,big=b.r==='e'||b.r==='l';queueModal(`<div class="bigemoji">${b.e}</div><div class="rtag" style="color:${R.col}">${R.n}</div><h2>${big?'Badge exceptionnel !':'Nouveau badge !'}</h2><p><b>${esc(b.n)}</b><br>${esc(b.d)}</p><div class="gainline">+${fmtP(cc(REWARD[b.r]||10))} 🪙</div>${b.drop?`<p>Et un objet offert : <b>${esc(b.drop.name)}</b> !</p><div class="mav">${thumb(b.drop)}</div>`:''}<button class="btn y block" data-act="mclose">Trop bien !</button>`,()=>{Sound.play(big?'epic':'badge');if(b.r==='l')setTimeout(()=>Sons.exc(),300);Confetti.burst(b.r==='l'?260:b.r==='e'?160:b.r==='r'?90:60);});}
 function giftModal(g){queueModal(`<div class="bigemoji">${esc(g.emoji)}</div><h2>Cadeau gagné !</h2><p><b>${esc(g.title)}</b><br>Montre cet écran à papa ou maman 😊</p><button class="btn p block" data-act="mclose">Youpi !</button>`,()=>{Sound.play('level');Confetti.burst(140);if(S.settings.voice)Voice.say('Tu as gagné un cadeau : '+g.title);});}
 
 // ---------- Aide visuelle après une erreur ----------
@@ -1748,6 +1748,7 @@ function startGame(sub,mode){
   if(THEMES[sub]&&!S.settings.lv[sub]){S.settings.lv[sub]=1;}
   if(THEMES[sub]&&S.settings.lv[sub]>Plan.thMax(sub)){S.settings.lv[sub]=Plan.thMax(sub);save();toast('🔒 Les mondes suivants sont dans Malino+');}
   stopGame();const st=S.settings;
+  Sons.stop(.5);
   G={sub,mode,queue:[],idx:0,n:0,mainN:0,okFirst:0,combo:0,bestCombo:0,fast:0,times:[],xp:0,coins:0,wrong:0,score:0,t0:Date.now(),reviews:{},timers:[],cur:null,input:'',ended:false};
   if(sub==='math'){
     G.facts=mathFacts(st.mathLevel);
@@ -1842,7 +1843,7 @@ function submit(val){
   if(c.q.type==='flash')S.frFlashMs=ok?Math.max(500,S.frFlashMs-100):Math.min(3000,S.frFlashMs+250);
   G.n++;S.stats.n++;if(kind==='main'){G.mainN++;if(ok)G.okFirst++;}
   if(ok){
-    S.stats.ok++;S.stats.ms+=ms;G.times.push(ms);G.combo++;G.bestCombo=Math.max(G.bestCombo,G.combo);
+    S.stats.ok++;S.stats.ms+=ms;G.times.push(ms);G.combo++;G.bestCombo=Math.max(G.bestCombo,G.combo);Sons.combo(G.combo);
     let xp=10,coins=0;if(fast){xp+=5;coins+=cc(1);if(kind==='main')G.fast++;}
     G.xp+=xp;G.coins+=coins;
     Sound.play(fast?'fast':'good');praise(fast?'⚡ Rapide !':pick(PRAISE));
@@ -1885,7 +1886,7 @@ function sprintCountdown(){
 function sprintTick(){if(!G||G.ended)return;const left=Math.max(0,Math.ceil((G.endAt-Date.now())/1000)),el=$('#clock');if(el){el.textContent='⏱ '+left;el.classList.toggle('hurry',left<=10);}if(left<=0){clearInterval(G.clock);if(G.cur)G.cur.done=true;endGame();}}
 function sprintAnswer(ok,ms,fast,c){
   recordStat(S.facts,c.q.key,ok,ms,fast);S.stats.n++;
-  if(ok){S.stats.ok++;S.stats.ms+=ms;G.score++;G.times.push(ms);G.combo++;G.bestCombo=Math.max(G.bestCombo,G.combo);G.xp+=5;G.coins+=cc(1);Sound.play(fast?'fast':'good');updateHud();if(G.combo%5===0)praise(`🔥 x${G.combo}`,'combo');later(nextQ,260);}
+  if(ok){S.stats.ok++;S.stats.ms+=ms;G.score++;G.times.push(ms);G.combo++;G.bestCombo=Math.max(G.bestCombo,G.combo);Sons.combo(G.combo);G.xp+=5;G.coins+=cc(1);Sound.play(fast?'fast':'good');updateHud();if(G.combo%5===0)praise(`🔥 x${G.combo}`,'combo');later(nextQ,260);}
   else{G.combo=0;G.wrong++;Sound.play('bad');updateHud();later(()=>{const s=$('#slot');if(s){s.textContent=c.q.ans;s.className='slot ok';}},380);later(nextQ,1150);}
 }
 function endGame(){
@@ -1913,11 +1914,51 @@ function endGame(){
   if(after>before)cofs.push(Coffre.gagne(Math.floor(after/5)>Math.floor(before/5)?'epique':'or','niveau'));
   if(thUp||ups.length)cofs.push(Coffre.gagne('argent','monde'));
   if(badges.some(b=>b.r==='e'||b.r==='l'))cofs.push(Coffre.gagne('epique','badge'));
-  go('result');setTimeout(()=>{if(Acct.wall()&&SCR==='result')Acct.show('wall');},3800);Sound.play(G.mode==='sprint'?(G.record&&G.score?'level':Sound.custom('fail').length?'fail':'end'):'end');
+  if(after>before)setTimeout(()=>{after%10===0?Sons.exc():after%5===0?Sons.pal():Sons.lvl();},1000);else if(G.mode==='sprint'&&G.record&&G.score)setTimeout(()=>Sons.record(),800);else if(G.mode!=='sprint'&&G.stars>=3&&!G.wrong)setTimeout(()=>Sons.play('headshot',{max:2,fade:.3}),800);go('result');setTimeout(()=>{if(Acct.wall()&&SCR==='result')Acct.show('wall');},3800);Sound.play(G.mode==='sprint'?(G.record&&G.score?'level':Sound.custom('fail').length?'fail':'end'):'end');
   if(G.mode==='sprint'?G.record:G.stars>=2)setTimeout(()=>Confetti.burst(130),250);
   if(S.settings.voice){const nmv=S.name||'';Voice.say(G.mode==='sprint'?`${G.score} calculs justes ! ${G.record?'Nouveau record !':''}`:`Bravo ! ${G.stars} étoile${G.stars>1?'s':''} !`);}
-  setTimeout(()=>{autoUpModal(ups);if(S.settings.pauseTip!==false&&TimeT.cont>=1200&&!TimeT.tipped&&!TimeT.limited()){TimeT.tipped=true;queueModal(`<div class="bigemoji">🧃</div><h2>Une petite pause ?</h2><p>Ça fait 20 minutes que tu joues, bravo ! Bouge un peu, bois de l’eau, et reviens quand tu veux.</p><button class="btn y block" data-act="mclose">D’accord 👍</button>`);}if(thLock)Offre.lock(thT.n,thLock);if(thUp)queueModal(`<div class="bigemoji">${thT.e}</div><h2>${thT.n} : monde ${thUp} !</h2><p>${thT.levels[thUp-1].e} ${thT.levels[thUp-1].n}</p><button class="btn y block" data-act="mclose">Super ! 🎉</button>`,()=>{Sound.play('epic');Confetti.burst(100);});if(after>before)levelUpModal(before,after);badges.forEach(badgeModal);gifts.forEach(giftModal);Coffre.gainModal(cofs);},1300);
+  setTimeout(()=>{autoUpModal(ups);if(S.settings.pauseTip!==false&&TimeT.cont>=1200&&!TimeT.tipped&&!TimeT.limited()){TimeT.tipped=true;Sons.play('mario_pause',{max:3,fade:.4});queueModal(`<div class="bigemoji">🧃</div><h2>Une petite pause ?</h2><p>Ça fait 20 minutes que tu joues, bravo ! Bouge un peu, bois de l’eau, et reviens quand tu veux.</p><button class="btn y block" data-act="mclose">D’accord 👍</button>`);}if(thLock)Offre.lock(thT.n,thLock);if(thUp)queueModal(`<div class="bigemoji">${thT.e}</div><h2>${thT.n} : monde ${thUp} !</h2><p>${thT.levels[thUp-1].e} ${thT.levels[thUp-1].n}</p><button class="btn y block" data-act="mclose">Super ! 🎉</button>`,()=>{Sound.play('epic');Confetti.burst(100);});if(after>before)levelUpModal(before,after);badges.forEach(badgeModal);gifts.forEach(giftModal);Coffre.gainModal(cofs);},1300);
 }
+
+
+// ---------- Sons du Drive : classés par taille d'effet, joués avec fondu ----------
+// courts (< 4 s) · moyens (4 à 7 s) · musiques (≈ 30 s, jamais jouées en entier : coupées avec un fondu)
+const SONS_DRIVE={
+ courts:['ronaldo','suiii','headshot','flashbang','warzone_notif','among_us1','splat','amogus','cod_warzone','sonic_bubble','mario_pipe','mario_pause','mario_bros','arcade','ok','omaiga','augh','alert'],
+ moyens:['houngoungagne','sus','among_us2','mario_die','mama_mia','montagem','acelerada','spiderman'],
+ musiques:['auraaa','aura_imran','aura_slowed','dragonball_cell','dragonball','sonic_invincible','mgs2','cod141','among_us_long']};
+const SONS_POOL={
+ exc:['auraaa','aura_imran','aura_slowed'],                                   // moments exceptionnels : palier ×10, coffre épique, série d'album, badge légendaire
+ pal:['dragonball_cell','dragonball','sonic_invincible','mgs2','cod141'],     // paliers intermédiaires : ×5, nouveau jeu, monde, badge épique
+ lvl:['mario_bros','arcade','sonic_bubble','spiderman'],                       // montée de niveau ordinaire
+ bon:['mario_pipe','arcade','mario_bros','sonic_bubble'],                      // coffre sympa
+ farce:['augh','omaiga','amogus','sus','splat','mama_mia','mario_die','flashbang'],
+ combo:['cod_warzone','headshot','ok'],
+ record:['suiii','ronaldo','houngoungagne']};
+const Sons={buf:{},cur:null,tk:0,
+  url:n=>SB_URL+'/storage/v1/object/public/cris/sons/'+n+'.mp3',
+  ok(){return !!(S&&S.settings.sound&&S.settings.sndMode==='max');},
+  pick(k){const a=SONS_POOL[k];let n;do{n=a[Math.floor(Math.random()*a.length)];}while(a.length>1&&n===this.last);return this.last=n;},
+  async load(n){if(this.buf[n])return this.buf[n];Sound.unlock();const c=Sound.ctx;if(!c)return null;
+    try{const r=await fetch(this.url(n));if(!r.ok)return null;const a=await r.arrayBuffer();return this.buf[n]=await new Promise((ok,ko)=>c.decodeAudioData(a,ok,ko));}catch(e){return null;}},
+  // arrêt en douceur (fondu), jamais sec
+  stop(f){const k=this.cur;this.tk++;if(!k)return;this.cur=null;f=f||.4;try{const c=Sound.ctx,t=c.currentTime,g=k.g.gain;g.cancelScheduledValues(t);g.setValueAtTime(Math.max(g.value,.0001),t);g.linearRampToValueAtTime(.0001,t+f);k.s.stop(t+f+.03);}catch(e){}},
+  // max = durée maxi en secondes (0 = en entier) ; fade = durée du fondu final
+  async play(n,o){o=o||{};if(!this.ok())return;const my=++this.tk;this.stopSoft();const b=await this.load(n);if(!b||my!==this.tk||!this.ok())return;
+    const c=Sound.ctx;if(c.state==='suspended')try{c.resume();}catch(e){}
+    const s=c.createBufferSource(),g=c.createGain(),vol=o.vol||.8,t=c.currentTime+.02,d=o.max?Math.min(o.max,b.duration):b.duration,fade=Math.min(o.fade||1,d/2);
+    s.buffer=b;s.connect(g);g.connect(c.destination);
+    g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol,t+(d>8?.25:.04));
+    if(d<b.duration||d>8){g.gain.setValueAtTime(vol,t+d-fade);g.gain.linearRampToValueAtTime(.0001,t+d);s.stop(t+d+.03);}
+    this.cur={s,g};s.onended=()=>{if(this.cur&&this.cur.s===s)this.cur=null;};s.start(t);},
+  stopSoft(){const k=this.cur;if(!k)return;this.cur=null;try{const c=Sound.ctx,t=c.currentTime,g=k.g.gain;g.cancelScheduledValues(t);g.setValueAtTime(Math.max(g.value,.0001),t);g.linearRampToValueAtTime(.0001,t+.15);k.s.stop(t+.18);}catch(e){}},
+  exc(){this.play(this.pick('exc'),{max:14,fade:1.2});},
+  pal(){this.play(this.pick('pal'),{max:8,fade:1});},
+  lvl(){this.play(this.pick('lvl'),{max:5,fade:.5});},
+  bon(){this.play(this.pick('bon'),{max:3,fade:.4});},
+  farce(){this.play(this.pick('farce'),{max:4,fade:.4});},
+  combo(n){if(n===10||(n>10&&n%25===0))this.play(this.pick('combo'),{max:2.5,fade:.4,vol:.7});},
+  record(){this.play(this.pick('record'),{max:3.5,fade:.5});}};
 
 // ---------- Écrans ----------
 let shopSeen=1,shopAnim=false,shopBought=null;
@@ -2004,8 +2045,10 @@ function renderPin(){
 function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class="${S.settings[k]==v?'on':''}" data-act="set" data-arg="${k}|${v}">${l}</button>`).join('')}</div>`;}
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
-const VERSION='1.49';
+{const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
+const VERSION='1.50';
 const VERSIONS=[
+ ['1.50','19/11/2026 23:35','Sons du Drive : paliers, coffres, combos, avec fondu'],
  ['1.49','19/11/2026 22:15','Numéro de version dans l’Espace parents'],
  ['1.48','19/11/2026 22:05','Vrais cris pour tous les animaux'],
  ['1.45','19/11/2026 20:50','Guide « Tout comprendre » et méthode à jour'],
@@ -2013,7 +2056,7 @@ const VERSIONS=[
  ['1.41','19/11/2026 09:30','Les parties arrêtées avant la fin comptent'],
  ['1.40','19/11/2026 09:15','6 nouveaux jeux à débloquer'],
  ['1.39','19/11/2026 09:05','Mondes et nouvelles étoiles'],
- ['1.38','19/11/2026 08:55','Mondes Expert à Impossible, coffres magiques, album']];
+];
 function renderAdmin(){
   const adm=!!(Plan.info&&Plan.info.admin);
   if(adminTab==='admin'&&!adm)adminTab='compte';
