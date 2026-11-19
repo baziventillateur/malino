@@ -415,6 +415,7 @@ h1,h2,h3,h4{font-weight:700}
 .mute{color:#EF4444;text-decoration:underline dotted}
 .promo{background:#FFF1E6;color:#B4440B;border-radius:12px;padding:7px 10px;margin:0 0 8px;font-size:14.5px}.planbtn s,.btn s{opacity:.7;font-weight:500}
 .guide{max-height:58vh;overflow:auto;text-align:left;margin:0 -4px 10px;padding:0 4px}.gd{border-bottom:1px solid #EEEAFB;padding:7px 0}.gd summary{font-weight:700;font-size:15px;cursor:pointer}.gd ul{margin:6px 0 2px;padding-left:18px;font-size:13.5px;line-height:1.4;color:#4B4180}.gd li{margin:3px 0}
+.vtag{display:block;margin:14px auto 4px;font-size:11.5px;color:var(--mut);background:none;opacity:.8}.vlist{text-align:left;margin-bottom:10px;max-height:55vh;overflow:auto}.vlist div{display:grid;grid-template-columns:auto 1fr;gap:0 8px;padding:6px 0;border-bottom:1px solid #EEEAFB;font-size:13.5px}.vlist small{color:var(--mut);text-align:right}.vlist span{grid-column:1/3;color:#4B4180}
 .lvmore{display:block;width:100%;margin-top:8px;padding:9px;border-radius:12px;background:var(--soft);color:var(--v);font-weight:700;font-size:14px;border:1.5px dashed #CFC6F5}
 .lvl{display:flex;align-items:center;gap:10px;text-align:left;background:var(--soft);border-radius:14px;padding:10px;border:2px solid transparent}
 .lvl.on{border-color:var(--v);background:#F3EFFF}
@@ -2002,6 +2003,17 @@ function renderPin(){
 }
 function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class="${S.settings[k]==v?'on':''}" data-act="set" data-arg="${k}|${v}">${l}</button>`).join('')}</div>`;}
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
+// Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
+const VERSION='1.49';
+const VERSIONS=[
+ ['1.49','19/11/2026 22:15','Numéro de version dans l’Espace parents'],
+ ['1.48','19/11/2026 22:05','Vrais cris pour tous les animaux'],
+ ['1.45','19/11/2026 20:50','Guide « Tout comprendre » et méthode à jour'],
+ ['1.44','19/11/2026 20:35','Offre −30 % affichée dans Malino+'],
+ ['1.41','19/11/2026 09:30','Les parties arrêtées avant la fin comptent'],
+ ['1.40','19/11/2026 09:15','6 nouveaux jeux à débloquer'],
+ ['1.39','19/11/2026 09:05','Mondes et nouvelles étoiles'],
+ ['1.38','19/11/2026 08:55','Mondes Expert à Impossible, coffres magiques, album']];
 function renderAdmin(){
   const adm=!!(Plan.info&&Plan.info.admin);
   if(adminTab==='admin'&&!adm)adminTab='compte';
@@ -2015,7 +2027,7 @@ function renderAdmin(){
   ${sw}
   <div class="tgrp"><span class="tlab">Pour ${esc(S.name||'l’enfant')}</span><div class="tabs">${tb(enf)}</div></div>
   <div class="tgrp"><span class="tlab">Commun à la famille</span><div class="tabs">${tb(com)}</div></div>
-  ${(P[adminTab]||P.compte)()}`;
+  ${(P[adminTab]||P.compte)()}<button class="vtag" data-act="versions">Malino v${VERSION} · ${VERSIONS[0][1]}</button>`;
 }
 
 function paneCompare(){
@@ -2141,6 +2153,7 @@ const ACT={
     +sec('🎁 Cadeaux à gagner (les vrais)',['Dans l’onglet <b>Cadeaux</b>, vous fixez de vraies récompenses : une glace, une sortie, choisir le dessert…','Vous choisissez l’objectif (jours d’affilée, niveau, bonnes réponses, minutes de jeu…). L’enfant voit sa progression, et une fête s’affiche quand il l’atteint.','Conseil : récompensez la régularité plutôt que la durée.'])
     +sec('👨‍👩‍👧 Parents et famille',['Au lancement, l’écran <b>Qui joue ?</b> liste les enfants. L’Espace parents est protégé par un code.','Un second parent peut être invité (Famille et compte) : il voit les mêmes enfants et la même progression.','Les <b>rapports par e-mail</b> (nouveau niveau, récap de la semaine) se coupent d’une case dans Famille et compte.','L’onglet <b>Progrès</b> détaille la réussite, la vitesse, le temps de jeu et les calculs à retravailler. Une partie arrêtée avant la fin y est marquée ⏸️.'])
     +`</div><button class="btn y block" data-act="mclose">Fermer</button>`);},
+  versions(){queueModal(`<h2>Malino v${VERSION}</h2><div class="vlist">${VERSIONS.map(v=>`<div><b>v${v[0]}</b><small>${v[1]}</small><span>${v[2]}</span></div>`).join('')}</div><button class="btn y block" data-act="mclose">Fermer</button>`);},
   lvmore(id){LVOPEN[id]=!LVOPEN[id];keepScroll(render);},
   togth(k){S.settings.thOn[k]=S.settings.thOn[k]===false;save();keepScroll(render);},
   shop(){shopPrev=null;shopSeen=S.shopSeen||1;S.shopSeen=levelInfo(S.xp).level;save();shopAnim=true;go('shop');},badges(){go('badges');},gifts(){go('gifts');},
