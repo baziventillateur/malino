@@ -413,6 +413,7 @@ h1,h2,h3,h4{font-weight:700}
 .pboxes{display:inline-flex;flex-wrap:wrap;gap:5px;justify-content:center}.pbox{border:2px solid #CFC6F5;border-radius:10px;padding:1px 4px;font-size:18px;background:#FAF8FF}
 .plrow{display:flex;flex-wrap:wrap;justify-content:center;gap:2px}.plrow span{display:flex;flex-direction:column;align-items:center;font-size:10px}.plrow .shp{width:34px!important;height:34px!important}
 .mute{color:#EF4444;text-decoration:underline dotted}
+.promo{background:#FFF1E6;color:#B4440B;border-radius:12px;padding:7px 10px;margin:0 0 8px;font-size:14.5px}.planbtn s,.btn s{opacity:.7;font-weight:500}
 .lvmore{display:block;width:100%;margin-top:8px;padding:9px;border-radius:12px;background:var(--soft);color:var(--v);font-weight:700;font-size:14px;border:1.5px dashed #CFC6F5}
 .lvl{display:flex;align-items:center;gap:10px;text-align:left;background:var(--soft);border-radius:14px;padding:10px;border:2px solid transparent}
 .lvl.on{border-color:var(--v);background:#F3EFFF}
@@ -2490,13 +2491,17 @@ const Offre={after:null,
     if(k==='plus')status=`<p class="okline">✅ Malino+ est actif${i.abonne&&i.abo_fin?` · renouvellement le ${fmtDate(i.abo_fin)}`:i.plus_jusqua?` jusqu’au ${fmtDate(i.plus_jusqua)}`:''}</p>`;
     else if(k==='essai')status=`<p class="okline">⏳ Ton essai gratuit se termine dans <b>${Plan.jours()} jour${Plan.jours()>1?'s':''}</b>.</p>`;
     else if(k==='gratuit')status=`<p class="okline">Ton essai est terminé : les jeux de base restent gratuits.</p>`;
-    const buy=k==='plus'?(i.abonne?`<button class="btn sm o block" data-act="portail">Gérer mon abonnement</button>`:''):`<button class="btn g block planbtn" data-act="payer" data-arg="annuel"><span>29,99 € par an</span><small>soit 2,50 €/mois · le plus avantageux</small></button><button class="btn sm o block" style="margin-top:8px" data-act="payer" data-arg="mensuel">3,99 € par mois</button><p class="fine">Sans engagement, résiliable en 2 clics · paiement sécurisé Stripe</p>`;
+    const of=Offre.promo();
+    const buy=k==='plus'?(i.abonne?`<button class="btn sm o block" data-act="portail">Gérer mon abonnement</button>`:''):(of?`<p class="promo">🎁 <b>−${of.pct} %</b> pour toi jusqu’au ${fmtDate(of.jusqua)}</p>`:'')+`<button class="btn g block planbtn" data-act="payer" data-arg="annuel"><span>${of?'<s>29,99 €</s> 20,99 € la 1re année':'29,99 € par an'}</span><small>${of?'puis 29,99 € par an':'soit 2,50 €/mois · le plus avantageux'}</small></button><button class="btn sm o block" style="margin-top:8px" data-act="payer" data-arg="mensuel">${of?'<s>3,99 €</s> 2,79 € par mois pendant 3 mois':'3,99 € par mois'}</button><p class="fine">Sans engagement, résiliable en 2 clics · paiement sécurisé Stripe</p>`;
     queueModal(`<div class="bigemoji sm">👑</div><h2>Malino+</h2>${status}<ul class="plist"><li>🎲 Toutes les thématiques, tous les mondes</li><li>👨‍👩‍👧 Jusqu’à 4 enfants</li><li>📊 Le suivi détaillé de chaque enfant</li><li>💎 Les objets Plasma et un coffre doré chaque semaine</li></ul>${buy}<div class="orow"><button class="alink" data-act="codepromo">🎟️ J’ai un code</button><button class="alink" data-act="offrir">🎁 Offrir Malino+</button>${k==='essai'||k==='gratuit'?'<button class="alink" data-act="parrain">👥 Inviter des amis</button>':''}</div><button class="alink" data-act="mclose">Fermer</button>`);
   },
   pay(f){
     if(!Acct.user){Offre.after=()=>Offre.pay(f);nextModal();Acct.note='Connecte-toi d’abord : l’abonnement sera rattaché à ton compte.';Acct.show('login');return;}
-    location.href=`${PAY[f]}?client_reference_id=${Acct.user.id}&prefilled_email=${encodeURIComponent(Acct.user.email||'')}`;
+    const of=Offre.promo();
+    location.href=`${PAY[f]}?client_reference_id=${Acct.user.id}&prefilled_email=${encodeURIComponent(Acct.user.email||'')}${of&&of.code?'&prefilled_promo_code='+encodeURIComponent(of.code):''}`;
   },
+  // réduction personnelle en cours (envoyée par e-mail), tant qu'elle n'a pas expiré
+  promo(){const o=Plan.info&&Plan.info.offre;return o&&Date.parse(o.jusqua)>Date.now()&&Plan.kind()!=='plus'?o:null;},
   portail(){location.href=`${PAY.portail}?prefilled_email=${encodeURIComponent((Acct.user&&Acct.user.email)||'')}`;},
   // ----- offrir Malino+ -----
   gift(){const m=Offre.gm||3,em=(Acct.user&&Acct.user.email)||'';
