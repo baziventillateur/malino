@@ -1,0 +1,5 @@
+Cris d'animaux : extraits d'enregistrements placés dans le domaine public (CC0) sur freesound.org,
+repris du jeu de données ESC-50 (https://github.com/karolpiczak/ESC-50), recoupés et normalisés.
+chien : felix.blume (199261) · coq : cocoricosound (208021) · cochon : tompallant (257858) · vache : felix.blume (163727)
+grenouille : maphill (187201) · chat : tuberatanka (110011) · poule : eksaa (232495) · mouche : toiletrolltube (191246)
+mouton : zwier (200329) · oiseau : urupin (122616)
