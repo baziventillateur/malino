@@ -2046,8 +2046,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.51';
+const VERSION='1.52';
 const VERSIONS=[
+ ['1.52','20/11/2026 21:05','Choix garçon / fille à la création et sur chaque profil'],
  ['1.51','20/11/2026 20:55','Écran « Qui joue ? » en grandes cartes + bouton Changer de profil'],
  ['1.50','19/11/2026 23:35','Sons du Drive : paliers, coffres, combos, avec fondu'],
  ['1.49','19/11/2026 22:15','Numéro de version dans l’Espace parents'],
@@ -2055,7 +2056,6 @@ const VERSIONS=[
  ['1.45','19/11/2026 20:50','Guide « Tout comprendre » et méthode à jour'],
  ['1.44','19/11/2026 20:35','Offre −30 % affichée dans Malino+'],
  ['1.41','19/11/2026 09:30','Les parties arrêtées avant la fin comptent'],
- ['1.40','19/11/2026 09:15','6 nouveaux jeux à débloquer'],
 ];
 function renderAdmin(){
   const adm=!!(Plan.info&&Plan.info.admin);
@@ -2242,6 +2242,8 @@ const ACT={
   onbnext(){Onb.next();},onbprev(){Onb.prev();},onbskip(){Onb.skip();},onbset(a){Onb.set(a);},onbinvite(){Onb.done();setTimeout(()=>Offre.invite(),300);},onbstart(){Onb.start();},invsend(){Offre.inviteSend();},
   openlogin(){Acct.show('login');},authclose(){Acct.hide();},authsend(a){Acct.send(a==='again');},authverify(){Acct.verify();},
   who(){Famille.who(true);},
+  newgenre(g){Acct.newG=g;const v=($('#newprof')||{}).value||'';keepScroll(render);const e=$('#newprof');if(e)e.value=v;},
+  setgenre(g){S.genre=g;S.avatar=Object.assign({},S.avatar,g==='f'?{hair:'hair_long',shirt:'sh_rouge'}:{hair:'hair_court',shirt:'sh_bleu'});save();toast(g==='f'?'Profil : fille 👧':'Profil : garçon 👦');keepScroll(render);},
   authview(v){Acct.view=v;Acct.draw();},authpw(){Acct.pwLogin();},authforgot(){Acct.forgotSend();},authpick(id){Acct.pick(id);},
   acctlogout(){Acct.logout();},acctsetpw(id){Acct.setPw(id);},acctadd(){Acct.addProfile();},acctswitch(id){Acct.switchTo(id).then(()=>{SCR='admin';render();});},
   wstart(){const e=$('#wname');if(e&&e.value.trim()){S.name=e.value.trim().slice(0,20);save();}nextModal();render();},
@@ -2437,7 +2439,7 @@ const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:
   },
   async addProfile(){
     const el=$('#newprof'),nom=((el&&el.value)||'').trim().slice(0,20);if(!nom)return toast('Écris un prénom');if(this.list.length>=Plan.maxProfils())return Offre.open('profils');
-    this.push();const st=defaultState();st.name=nom;st.welcomed=true;st.gs0=0;
+    this.push();const st=defaultState();st.name=nom;st.welcomed=true;st.gs0=0;const gn=this.newG||'g';st.genre=gn;if(gn==='f')st.avatar=Object.assign({},st.avatar,{hair:'hair_long',shirt:'sh_rouge'});this.newG='g';
     const {data,error}=await this.sb.from('profils').insert({owner:this.user.id,nom,data:st}).select('id,nom,data,updated_at,created_at').single();
     if(error)return toast(error.message.includes('Maximum')?'8 profils maximum':'Profil non créé');
     this.list.push(data);this.use(data,false);toast(`Profil « ${nom} » créé ✅`);adminTab='compte';render();
@@ -2469,7 +2471,8 @@ function paneAccount(){
   <section class="acard"><h3>👑 Malino+</h3><p class="hint">${k==='plus'?(pi.abonne?`Abonnement actif${pi.abo_fin?` · prochain renouvellement le ${fmtDate(pi.abo_fin)}`:''}.`:`Offert jusqu’au ${pi.plus_jusqua?fmtDate(pi.plus_jusqua):'—'}.`):k==='essai'?`Essai gratuit : encore ${Plan.jours()} jour${Plan.jours()>1?'s':''}.`:'Version gratuite.'} Profils : ${Acct.list.length}/${Plan.maxProfils()}.</p><div class="btnrow"><button class="btn sm" data-act="offre">${k==='plus'?'Voir mon offre':'Passer à Malino+'}</button>${pi.abonne?'<button class="btn sm o" data-act="portail">Gérer l’abonnement</button>':''}<button class="btn sm o" data-act="parrain">👥 Inviter</button><button class="btn sm o" data-act="offrir">🎁 Offrir</button></div><p style="margin-top:8px"><button class="alink" style="margin:0;padding:0" data-act="onbstart">👋 Revoir la présentation</button></p>${pi.admin?'<p style="margin-top:10px"><a class="btn sm y" href="admin.html" target="_blank" rel="noopener">🛠️ Panel admin</a></p>':''}</section>
   <section class="acard"><h3>👨‍👩‍👧 Espace famille</h3>${famCard()}</section>
   <section class="acard"><h3>🧒 Profils enfants</h3><div class="seg" style="flex-wrap:wrap">${Acct.list.map(r=>`<button class="${r.id===Acct.pid?'on':''}" data-act="acctswitch" data-arg="${r.id}">${r.id===Acct.pid?'✅ ':''}${esc(r.id===Acct.pid?(S.name||r.nom):r.nom)}</button>`).join('')}</div>
-  <label class="fld" style="margin-top:10px">Ajouter un profil<input id="newprof" maxlength="20" placeholder="Prénom de l’enfant" autocomplete="off"></label><button class="btn p sm" style="margin-top:8px" data-act="acctadd">➕ Ajouter</button></section>
+  <p class="hint" style="margin-top:10px">Profil actif : <b>${esc(S.name||'')}</b></p><div class="seg">${[['g','👦 Garçon'],['f','👧 Fille']].map(([c,l])=>`<button class="${(S.genre||'g')===c?'on':''}" data-act="setgenre" data-arg="${c}">${l}</button>`).join('')}</div>
+  <label class="fld" style="margin-top:10px">Ajouter un profil<input id="newprof" maxlength="20" placeholder="Prénom de l’enfant" autocomplete="off"></label><div class="seg" style="margin-top:6px">${[['g','👦 Garçon'],['f','👧 Fille']].map(([c,l])=>`<button class="${(Acct.newG||'g')===c?'on':''}" data-act="newgenre" data-arg="${c}">${l}</button>`).join('')}</div><button class="btn p sm" style="margin-top:8px" data-act="acctadd">➕ Ajouter</button></section>
   <section class="acard"><h3>📬 Rapports par e-mail</h3><label style="display:flex;gap:10px;align-items:flex-start;font-size:15px;cursor:pointer"><input type="checkbox" id="rapOn" data-act="rapports" ${pi.rapports===false?'':'checked'} style="width:22px;height:22px;flex:none;margin-top:2px"><span>Recevoir les rapports de progression et les messages sur l’essai et l’abonnement.<br><span class="hint" style="display:block;margin-top:4px">Un message de temps en temps (jamais tous les jours) : félicitations, récap de la semaine, points à retravailler. Décochez pour tout arrêter.</span></span></label></section>
   <section class="acard"><h3>🔑 Mot de passe</h3><p class="hint">Facultatif : pour se connecter sans attendre un code par e-mail.</p><label class="fld"><input id="apw" type="password" autocomplete="new-password" placeholder="Nouveau mot de passe (8 caractères min.)"></label><button class="btn p sm" style="margin-top:8px" data-act="acctsetpw" data-arg="apw">Enregistrer</button></section>
   <section class="acard"><button class="btn r sm" data-act="acctlogout">Se déconnecter</button></section>`;
