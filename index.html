@@ -1186,7 +1186,7 @@ const it=(cat,id,name,price,lvl,r,x)=>Object.assign({cat,id,name,price,lvl,r},x|
 const ob=(id,name,k,r,price,lvl)=>it('obj',id,name,price,lvl,r,{k});
 const CATALOG=[
  it('skin','skin1','Peau 1',0,1,'',{color:'#FFE0C7'}),it('skin','skin2','Peau 2',0,1,'',{color:'#F5C9A0'}),it('skin','skin3','Peau 3',0,1,'',{color:'#D9A066'}),it('skin','skin4','Peau 4',0,1,'',{color:'#A86B3C'}),it('skin','skin5','Peau 5',0,1,'',{color:'#6E4426'}),
- it('hair','hair_court','Court',0,1,'',{style:'court'}),it('hair','hair_herisse','Hérissé',0,1,'',{style:'herisse'}),it('hair','hair_meche','Mèche',20,1,'bois',{style:'meche'}),it('hair','hair_chauve','Crâne lisse',20,1,'bois',{style:'chauve'}),it('hair','hair_boucles','Boucles',30,1,'bois',{style:'boucles'}),it('hair','hair_long','Long',30,1,'bois',{style:'long'}),it('hair','hair_afro','Afro',60,2,'cuivre',{style:'afro'}),it('hair','hair_crete','Crête',80,3,'cuivre',{style:'crete'}),
+ it('hair','hair_court','Court',0,1,'',{style:'court'}),it('hair','hair_herisse','Hérissé',0,1,'',{style:'herisse'}),it('hair','hair_meche','Mèche',20,1,'bois',{style:'meche'}),it('hair','hair_chauve','Crâne lisse',20,1,'bois',{style:'chauve'}),it('hair','hair_boucles','Boucles',0,1,'',{style:'boucles'}),it('hair','hair_long','Long',0,1,'',{style:'long'}),it('hair','hair_afro','Afro',60,2,'cuivre',{style:'afro'}),it('hair','hair_crete','Crête',80,3,'cuivre',{style:'crete'}),
  it('hairColor','hc_brun','Brun',0,1,'',{color:'#5B3A1E'}),it('hairColor','hc_noir','Noir',0,1,'',{color:'#2A2A35'}),it('hairColor','hc_blond','Blond',0,1,'',{color:'#E9C46A'}),it('hairColor','hc_roux','Roux',0,1,'',{color:'#C8562B'}),it('hairColor','hc_bleu','Bleu',60,2,'cuivre',{color:'#2EA3FF'}),it('hairColor','hc_rose','Rose',60,2,'cuivre',{color:'#FF6FB5'}),it('hairColor','hc_or','Doré',320,8,'or',{color:'#FFC400'}),it('hairColor','hc_arc','Arc-en-ciel',650,11,'epique',{color:'rainbow'}),
  it('eyes','eyes_ronds','Ronds',0,1,'',{style:'ronds'}),it('eyes','eyes_joyeux','Joyeux',0,1,'',{style:'joyeux'}),it('eyes','eyes_clin','Clin d’œil',20,1,'bois',{style:'clin'}),it('eyes','eyes_etoiles','Étoiles',150,4,'argent',{style:'etoiles'}),it('eyes','eyes_coeurs','Cœurs',150,5,'argent',{style:'coeurs'}),
  it('glasses','gl_none','Aucune',0,1,'',{style:''}),it('glasses','gl_rondes','Rondes',30,1,'bois',{style:'rondes'}),it('glasses','gl_soleil','Soleil',70,2,'cuivre',{style:'soleil'}),it('glasses','gl_masque','Masque de héros',180,5,'argent',{style:'masque'}),
@@ -1241,6 +1241,7 @@ const isPlusItem=i=>!!(i&&RAR[i.r]&&RAR[i.r].plus);
 function migrateShop(){
   let rf=0;S.owned=(S.owned||[]).filter(x=>{const p=RETIRED[x]!=null?RETIRED[x]:EXTRA_RETIRED[x];if(p!=null){rf+=p;return false;}return !!ITEM[x];});
   const av={};Object.keys(DEFAULT_AV).forEach(k=>{const v=S.avatar&&S.avatar[k];av[k]=ITEM[v]&&ITEM[v].cat===k?v:DEFAULT_AV[k];});S.avatar=av;
+  if(S.genre==='f'&&!S.fFix){S.fFix=1;if(S.avatar.hair==='hair_court')S.avatar.hair='hair_long';}
   if(rf){S.coins+=rf;S.refund=(S.refund||0)+rf;}
 }
 // ---------- Dessins : matières, objets, animaux ----------
@@ -1299,7 +1300,7 @@ function avatarSVG(av){
   if(bg.decor==='crystals')decor=[[24,150,26],[176,140,30],[40,40,16],[164,36,18]].map(([x,y,h])=>`<path d="M${x} ${y-h} L${x+h*.45} ${y} L${x} ${y+h*.5} L${x-h*.45} ${y}Z" fill="#fff" opacity=".55" stroke="#fff" stroke-width="1"/>`).join('')+sparkles([[150,70],[46,96],[110,24]],5);
   if(bg.decor==='plasma')decor=[[40,50,26],[166,150,34],[160,40,18],[30,160,20]].map(([x,y,r],i)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${['#FF4FD8','#21E3FF','#B86BFF','#FF4FD8'][i]}" stroke-width="3" opacity=".7"><animate attributeName="r" values="${r*.7};${r*1.15};${r*.7}" dur="${2+i*.4}s" repeatCount="indefinite"/></circle>`).join('');
   if(bg.decor==='clouds')decor=`<g fill="#fff" opacity=".85"><ellipse cx="30" cy="44" rx="20" ry="9"/><ellipse cx="44" cy="38" rx="13" ry="10"/><ellipse cx="170" cy="70" rx="18" ry="8"/></g>`;
-  const HB={long:`<path d="M46 92 C40 36 160 36 154 92 L158 152 C146 160 132 156 128 144 L72 144 C68 156 54 160 42 152 Z" fill="${hair}"/>`,afro:`<circle cx="100" cy="80" r="62" fill="${hair}"/>`};
+  const HB={long:`<path d="M44 92 C34 28 166 28 156 92 C166 126 174 160 168 188 C146 198 128 178 126 150 L74 150 C72 178 54 198 32 188 C26 160 34 126 44 92 Z" fill="${hair}"/>`,afro:`<circle cx="100" cy="80" r="62" fill="${hair}"/>`};
   let curls='';
   if(hs==='boucles'){curls=`<path d="M54 88 C52 56 74 44 100 44 C126 44 148 56 146 88 C136 72 120 66 100 66 C80 66 64 72 54 88Z" fill="${hair}"/>`;for(let i=0;i<9;i++){const a=Math.PI*(1.06+i*.88/8);curls+=`<circle cx="${(100+46*Math.cos(a)).toFixed(1)}" cy="${(90+44*Math.sin(a)).toFixed(1)}" r="14" fill="${hair}"/>`;}}
   const HF={
@@ -1307,7 +1308,7 @@ function avatarSVG(av){
     herisse:`<path d="M52 90 L48 58 L62 64 L62 42 L78 54 L82 30 L96 48 L104 26 L112 48 L124 32 L128 54 L142 44 L140 64 L152 60 L148 90 C140 72 124 62 100 62 C76 62 60 72 52 90Z" fill="${hair}"/>`,
     meche:`<path d="M52 92 C44 50 74 34 104 36 C136 38 156 56 148 90 C140 66 118 56 94 66 C78 72 62 78 52 92Z" fill="${hair}"/>`,
     boucles:curls,
-    long:`<path d="M52 92 C46 48 76 36 100 36 C124 36 154 48 148 92 C134 70 120 64 100 64 C80 64 66 70 52 92Z" fill="${hair}"/>`,
+    long:`<path d="M52 92 C46 48 76 36 100 36 C124 36 154 48 148 92 C134 70 120 64 100 64 C80 64 66 70 52 92Z" fill="${hair}"/><path d="M50 90 C40 120 36 156 44 182 C58 184 68 170 68 152 C68 128 62 108 58 92Z" fill="${hair}"/><path d="M150 90 C160 120 164 156 156 182 C142 184 132 170 132 152 C132 128 138 108 142 92Z" fill="${hair}"/>`,
     afro:`<path d="M54 86 C56 60 76 52 100 52 C124 52 144 60 146 86 C136 74 120 68 100 68 C80 68 64 74 54 86Z" fill="${hair}"/>`,
     crete:`<path d="M88 62 C86 42 90 22 100 10 C110 22 114 42 112 62 C104 58 96 58 88 62Z" fill="${hair}"/>`,
     chauve:`<ellipse cx="84" cy="60" rx="13" ry="6" fill="#fff" opacity=".28" transform="rotate(-18 84 60)"/>`
@@ -2046,8 +2047,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.52';
+const VERSION='1.53';
 const VERSIONS=[
+ ['1.53','20/11/2026 21:30','Cheveux longs visibles et gratuits : le profil fille s’affiche enfin'],
  ['1.52','20/11/2026 21:05','Choix garçon / fille à la création et sur chaque profil'],
  ['1.51','20/11/2026 20:55','Écran « Qui joue ? » en grandes cartes + bouton Changer de profil'],
  ['1.50','19/11/2026 23:35','Sons du Drive : paliers, coffres, combos, avec fondu'],
@@ -2055,7 +2057,6 @@ const VERSIONS=[
  ['1.48','19/11/2026 22:05','Vrais cris pour tous les animaux'],
  ['1.45','19/11/2026 20:50','Guide « Tout comprendre » et méthode à jour'],
  ['1.44','19/11/2026 20:35','Offre −30 % affichée dans Malino+'],
- ['1.41','19/11/2026 09:30','Les parties arrêtées avant la fin comptent'],
 ];
 function renderAdmin(){
   const adm=!!(Plan.info&&Plan.info.admin);
