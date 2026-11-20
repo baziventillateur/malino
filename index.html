@@ -2099,8 +2099,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.54';
+const VERSION='1.55';
 const VERSIONS=[
+ ['1.55','20/11/2026 22:10','Guide parents et admin mis à jour avec les 2 nouveaux jeux'],
  ['1.54','20/11/2026 22:00','Nouveaux jeux : Qui a changé ? et Chiffres éclair'],
  ['1.53','20/11/2026 21:30','Cheveux longs visibles et gratuits : le profil fille s’affiche enfin'],
  ['1.52','20/11/2026 21:05','Choix garçon / fille à la création et sur chaque profil'],
@@ -2108,7 +2109,6 @@ const VERSIONS=[
  ['1.50','19/11/2026 23:35','Sons du Drive : paliers, coffres, combos, avec fondu'],
  ['1.49','19/11/2026 22:15','Numéro de version dans l’Espace parents'],
  ['1.48','19/11/2026 22:05','Vrais cris pour tous les animaux'],
- ['1.45','19/11/2026 20:50','Guide « Tout comprendre » et méthode à jour'],
 ];
 function renderAdmin(){
   const adm=!!(Plan.info&&Plan.info.admin);
@@ -2239,7 +2239,7 @@ const ACT={
   pushtest(){Push.test();toast('🔔 Notification de test envoyée');},
   guide(){const sec=(t,l,o)=>`<details class="gd"${o?' open':''}><summary>${t}</summary><ul>${l.map(x=>`<li>${x}</li>`).join('')}</ul></details>`;
     queueModal(`<h2>📖 Comment marche Malino</h2><div class="guide">`
-    +sec('🎮 Les jeux et les mondes',['<b>Maths</b> et <b>Lecture</b> sont le cœur de l’appli. Le <b>Défi éclair</b> mesure la vitesse : le plus de calculs justes en 60 secondes.','Les <b>autres jeux</b> : Monnaie, Logique, Robot, Découverte, Anglais, puis ceux qui se débloquent avec le niveau du joueur : L’heure (niveau 5), Formes (8), Problèmes (12), Drapeaux (15), Sciences (20), Orthographe (25).','Chaque jeu avance par <b>mondes</b>. Les étoiles indiquent la difficulté ; au-dessus viennent Expert, Épique, Ultra et Impossible.','Le monde suivant s’ouvre quand le monde en cours est bien maîtrisé. Vous pouvez aussi le choisir vous-même dans Réglages et Autres jeux.'],1)
+    +sec('🎮 Les jeux et les mondes',['<b>Maths</b> et <b>Lecture</b> sont le cœur de l’appli. Le <b>Défi éclair</b> mesure la vitesse : le plus de calculs justes en 60 secondes.','Les <b>autres jeux</b> : Monnaie, Logique, Robot, Découverte, Anglais, puis ceux qui se débloquent avec le niveau du joueur : Qui a changé ? (niveau 7), L’heure (5), Formes (8), Chiffres éclair (10), Problèmes (12), Drapeaux (15), Sciences (20), Orthographe (25).','<b>Qui a changé ?</b> et <b>Chiffres éclair</b> travaillent la mémoire : on regarde une scène ou un nombre quelques secondes, puis on retrouve ce qui a changé ou le bon chiffre. Le temps d’affichage raccourcit de monde en monde.','Chaque jeu avance par <b>mondes</b>. Les étoiles indiquent la difficulté ; au-dessus viennent Expert, Épique, Ultra et Impossible.','Le monde suivant s’ouvre quand le monde en cours est bien maîtrisé. Vous pouvez aussi le choisir vous-même dans Réglages et Autres jeux.'],1)
     +sec('⭐ Niveau du joueur, pièces et étoiles',['Chaque bonne réponse donne de l’<b>expérience</b> : elle fait monter le <b>niveau du joueur</b> (à côté de l’avatar). Une réponse rapide rapporte plus.','Les <b>pièces 🪙</b> se gagnent avec les réponses rapides, les combos, la fin de partie et les coffres. Elles servent uniquement à acheter des objets pour le personnage.','En fin de partie : de 1 à 3 <b>étoiles</b> selon la réussite, et un bonus de pièces.','Une partie arrêtée avant la fin garde ses réponses et ses pièces, mais ne donne ni étoiles ni bonus de fin.'])
     +sec('🎯 Mission du jour, série et coffre du jour',['La <b>mission du jour</b> : une partie de maths et une partie de lecture.','Mission finie : le <b>coffre du jour 🎁</b> s’ouvre tout de suite (des pièces, parfois un objet).','La <b>série 🔥</b> compte les jours de suite où l’enfant a joué. Plus elle est longue, plus le coffre du jour est généreux.','Avec Malino+ : un <b>coffre doré</b> une fois par semaine, avec 3 fois plus de pièces et un objet.'])
     +sec('🗝️ Coffres magiques (12 heures)',['L’enfant <b>gagne</b> un coffre avec une partie à 3 étoiles (une chance sur deux), un niveau de joueur gagné, un monde gagné, la mission du jour ou un gros badge.','Il y a <b>4 emplacements</b>, et 6 coffres au maximum par jour. Chaque coffre s’ouvre <b>12 heures</b> après avoir été gagné.','5 sortes : bois, argent, or, épique, légendaire. Plus le coffre est rare, meilleur est le contenu.','À l’ouverture : une <b>farce</b> (chaussette qui pue…), un <b>bon cadeau</b> (pièces, autocollant) ou un cadeau <b>épique</b> (objet ou autocollant rare).','Les notifications « coffre prêt » s’activent dans Famille et compte, téléphone par téléphone. Les coffres se désactivent ici, dans Réglages.'])
