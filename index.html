@@ -1975,7 +1975,7 @@ function weekHTML(){const now=new Date(),dow=(now.getDay()+6)%7,mon=addDays(now,
 function renderHome(){
   const li=levelInfo(S.xp),st=S.settings,t=today(),ml=MATH_LEVELS[st.mathLevel-1],mm=levelMastery('math',st.mathLevel),mf=mathFacts(st.mathLevel).length,fl=FR_LEVELS[st.frLevel-1];
   const sprintLocked=!t.math,frLocked=st.frAfterMath&&!t.math,best=S.stats.sprintBest[st.mathLevel]||0,reached=S.gifts.filter(g=>g.reached&&!g.given),nb=Object.keys(S.badges).length,ready=chestAvailable();
-  return `<div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills"><span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span></div></div>
+  return `<div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills"><span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">🔄 Changer</button>':''}</div></div>
   <div class="week card">${weekHTML()}</div>${Plan.banner()}
   
   <div class="mission card"><div class="mtx"><h3>Mission du jour</h3><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${st.frOn?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'🎉':'🎁'}</button></div>
@@ -2046,8 +2046,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.50';
+const VERSION='1.51';
 const VERSIONS=[
+ ['1.51','20/11/2026 20:55','Écran « Qui joue ? » en grandes cartes + bouton Changer de profil'],
  ['1.50','19/11/2026 23:35','Sons du Drive : paliers, coffres, combos, avec fondu'],
  ['1.49','19/11/2026 22:15','Numéro de version dans l’Espace parents'],
  ['1.48','19/11/2026 22:05','Vrais cris pour tous les animaux'],
@@ -2055,7 +2056,6 @@ const VERSIONS=[
  ['1.44','19/11/2026 20:35','Offre −30 % affichée dans Malino+'],
  ['1.41','19/11/2026 09:30','Les parties arrêtées avant la fin comptent'],
  ['1.40','19/11/2026 09:15','6 nouveaux jeux à débloquer'],
- ['1.39','19/11/2026 09:05','Mondes et nouvelles étoiles'],
 ];
 function renderAdmin(){
   const adm=!!(Plan.info&&Plan.info.admin);
@@ -2241,6 +2241,7 @@ const ACT={
   rapports(){const el=document.getElementById('rapOn');if(!el||!Acct.sb)return;const on=!!el.checked;Acct.sb.rpc('maj_rapports',{p_on:on}).then(r=>{if(r.error){el.checked=!on;toast('Réessayez dans un instant');return;}if(Plan.info){Plan.info.rapports=on;Plan.set(Plan.info);}toast(on?'Rapports activés ✅':'Rapports désactivés');});},
   onbnext(){Onb.next();},onbprev(){Onb.prev();},onbskip(){Onb.skip();},onbset(a){Onb.set(a);},onbinvite(){Onb.done();setTimeout(()=>Offre.invite(),300);},onbstart(){Onb.start();},invsend(){Offre.inviteSend();},
   openlogin(){Acct.show('login');},authclose(){Acct.hide();},authsend(a){Acct.send(a==='again');},authverify(){Acct.verify();},
+  who(){Famille.who(true);},
   authview(v){Acct.view=v;Acct.draw();},authpw(){Acct.pwLogin();},authforgot(){Acct.forgotSend();},authpick(id){Acct.pick(id);},
   acctlogout(){Acct.logout();},acctsetpw(id){Acct.setPw(id);},acctadd(){Acct.addProfile();},acctswitch(id){Acct.switchTo(id).then(()=>{SCR='admin';render();});},
   wstart(){const e=$('#wname');if(e&&e.value.trim()){S.name=e.value.trim().slice(0,20);save();}nextModal();render();},
@@ -2723,13 +2724,15 @@ localStorage.setItem('malino_src',(t||'direct').slice(0,120));}catch(e){}})();
 const Famille={
   hiddenAt:0,
   el(){let e=document.getElementById('who');if(!e){e=document.createElement('div');e.id='who';e.style.cssText='position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;background:rgba(43,33,96,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:16px';document.body.appendChild(e);}return e;},
-  who(){
+  who(force){
     if(!Acct.user||!Acct.list||!Acct.list.length)return;
-    if(SCR==='game'||SCR==='admin'||SCR==='pin'||modalOpen||(typeof Onb!=='undefined'&&Onb.should()))return;
-    const e=this.el();
-    e.innerHTML=`<div style="background:#fff;border-radius:20px;padding:16px;width:100%;max-width:300px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25)"><div style="font-size:17px;font-weight:700;color:#2B2160;margin-bottom:10px">Qui joue ?</div><div style="display:flex;flex-direction:column;gap:8px">${Acct.list.map(r=>`<button data-who="${r.id}" style="border:0;border-radius:14px;padding:10px;background:#F4F1FF;font-size:16px;font-weight:700;color:#2B2160">${esc(r.nom)} · niv. ${levelInfo((r.data&&r.data.xp)||0).level}</button>`).join('')}</div><button data-wparent="1" style="margin-top:12px;border:0;background:none;color:#6F679C;font-size:14px;font-weight:600;text-decoration:underline">🔒 Espace parents</button></div>`;
+    if(SCR==='game'||SCR==='admin'||SCR==='pin'||(!force&&(modalOpen||(typeof Onb!=='undefined'&&Onb.should()))))return;
+    const e=this.el(),COL=[['#6C5CE7','#9B8CFF'],['#FF7A2F','#FFB04A'],['#12B886','#5FDDB0'],['#E8478F','#FF8FBE']];
+    e.style.alignItems='flex-start';e.style.overflowY='auto';
+    e.innerHTML=`<style>.wcard{display:flex;align-items:center;gap:12px;width:100%;border:0;border-radius:20px;padding:10px 12px;color:#fff;text-align:left;box-shadow:0 6px 16px rgba(0,0,0,.22);margin-bottom:10px;font-family:inherit}.wcard:active{transform:scale(.98)}.wav{flex:none;width:68px;height:68px;border-radius:50%;background:rgba(255,255,255,.28);overflow:hidden;display:flex;align-items:center;justify-content:center}.wav svg{width:100%;height:100%}.wmid{flex:1;min-width:0}.wnm{font-size:20px;font-weight:800;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wlv{font-size:12px;font-weight:700;opacity:.95;margin-top:3px;white-space:nowrap}.wbar{height:7px;border-radius:5px;background:rgba(255,255,255,.35);margin-top:5px;overflow:hidden}.wbar i{display:block;height:100%;background:#fff;border-radius:5px}.wgo{flex:none;background:#fff;border-radius:14px;padding:9px 12px;font-size:14px;font-weight:800;white-space:nowrap}</style>
+    <div style="width:100%;max-width:420px;margin:auto"><div style="text-align:center;color:#fff;font-size:26px;font-weight:800;margin:6px 0 14px;text-shadow:0 2px 8px rgba(0,0,0,.25)">Qui joue ? 🎮</div>${Acct.list.map((r,k)=>{const cur=r.id===Acct.pid,d=cur?S:(r.data||{}),li=levelInfo(d.xp||0),c=COL[k%COL.length],nom=cur?(S.name||r.nom):r.nom;return `<button class="wcard" data-who="${r.id}" style="background:linear-gradient(135deg,${c[0]},${c[1]})"><span class="wav">${avatarSVG(d.avatar)}</span><span class="wmid"><div class="wnm">${esc(nom)}</div><div class="wlv">Niveau ${li.level} · 🪙 ${fmtP(d.coins||0)}</div><div class="wbar"><i style="width:${Math.round(li.pct*100)}%"></i></div></span><span class="wgo" style="color:${c[0]}">${cur?'▶ Continuer':'▶ Jouer !'}</span></button>`;}).join('')}<div style="text-align:center;margin-top:6px"><button data-wparent="1" style="border:0;background:none;color:rgba(255,255,255,.8);font-size:12px;font-weight:600;text-decoration:underline">🔒 Espace parents</button></div></div>`;
     e.style.display='flex';
-    e.querySelectorAll('[data-who]').forEach(b=>b.onclick=()=>{e.style.display='none';Acct.switchTo(b.dataset.who);});
+    e.querySelectorAll('[data-who]').forEach(b=>b.onclick=()=>{e.style.display='none';Sound.play('tap');Acct.switchTo(b.dataset.who);});
     e.querySelector('[data-wparent]').onclick=()=>{e.style.display='none';ACT.parent();};
   },
   afterRefresh(){ if(Acct.user&&localStorage.getItem('malino_invite'))this.handleInvite(); else this.who(); },
