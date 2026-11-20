@@ -883,6 +883,34 @@ const qEnRead=x=>({ans:x.en,inst:'Lis : quel est le mot anglais ?',instSay:'Rega
   fixHTML:`<span class="emo">${x.v}</span><div class="fixsub"><b>${esc(x.en)}</b> = ${x.fr}</div>`,fixChain:[{say:x.en,lang:EN,rate:.8},{say:'veut dire '+x.fr}]});
 const qEnTr=x=>({ans:x.en,inst:'Comment dit-on en anglais ?',say:x.fr,html:`<div class="bigtxt read">${esc(x.fr)}</div>`,opts:shuffle([x.en,...similarWords(x.en,EN_ALL.map(i=>i.en),2)]).map(w=>({v:w,l:w})),optCls:'col txt',fastMs:9000,afterSay:x.en,afterLang:EN,
   fixHTML:`<span class="emo">${x.v}</span><div class="fixsub">${esc(x.fr)} = <b>${esc(x.en)}</b></div>`,fixChain:[{say:x.fr},{say:'se dit',rate:.9},{say:x.en,lang:EN,rate:.8}]});
+// ---------- Qui a changé ? et Chiffres éclair (jeux de mémoire) ----------
+const CHG_E=['🍎','🍌','🍓','🚗','⭐','🐱','🐶','🌸','⚽','🎈','🐟','🍪','🚀','🦋','🌙','🎲','🍇','🐸','🎸','🧸','🌳','🍕','🐢','🎩','🚲','☂️','🏀','🍩','🐧','🔔'];
+function chgItems(seed,n,count,kinds,base,per){const r=rng(seed),out=[];
+  for(let i=0;i<count;i++){const kind=kinds[i%kinds.length],em=rShuf(r,CHG_E),extra=kind==='move'?(n<=5?2:3):kind==='new'?1:0,cells=n+extra,cols=cells<=4?cells:cells<=6?3:cells<=8?4:cells===9?3:5;
+    const pos=rShuf(r,[...Array(cells).keys()]).slice(0,n).sort((x,y)=>x-y),a=Array(cells).fill('');pos.forEach((q,j)=>a[q]=em[j]);
+    const b=a.slice(),emp=a.map((v,j)=>v?-1:j).filter(j=>j>=0),idx=pos[Math.floor(r()*n)];let ans;
+    if(kind==='gone'){ans=a[idx];b[idx]='?';}
+    else if(kind==='rep'){ans=em[n];b[idx]=ans;}
+    else if(kind==='new'){ans=em[n];b[rPick(r,emp)]=ans;}
+    else{ans=a[idx];b[rPick(r,emp)]=ans;b[idx]='';}
+    const pres=b.filter(v=>v&&v!=='?'&&v!==ans),d=rShuf(r,pres).slice(0,n>=8?3:2);
+    out.push({k:'c'+n+kind+seed+'-'+i,cols,a,b,kind,ans,o:[ans,...d],ms:base+n*per});}
+  return out;}
+const chgScene=(c,cols)=>`<div class="seqr big" style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;justify-items:center;max-width:${cols*64}px;margin:0 auto;font-size:${cols>=4?44:52}px">${c.map(v=>v==='?'?'<span class="hole">?</span>':`<span style="min-width:46px;min-height:56px">${v}</span>`).join('')}</div>`;
+const CHG_Q={gone:'quel objet a disparu ?',new:'quel objet est arrivé ?',rep:'quel objet est nouveau ?',move:'quel objet a changé de place ?'};
+const qChg=x=>({ans:x.ans,inst:'Regarde bien… '+CHG_Q[x.kind],html:chgScene(x.a,x.cols),flashHide:x.ms,flashAfter:chgScene(x.b,x.cols),opts:shuffle(x.o).map(e=>({v:e,l:e})),optCls:'emo',fixHTML:`${chgScene(x.a,x.cols)}<div class="fixsub">devient</div>${chgScene(x.b,x.cols)}<div class="fixsub">C’est ${x.ans}</div>`,fixSay:'Regarde bien : voilà ce qui a changé'});
+function nearNums(r,s,k){const set=new Set();let g=0;while(set.size<k&&g++<80){const a=s.split('');if(a.length>1&&r()<.5){const i=Math.floor(r()*(a.length-1));[a[i],a[i+1]]=[a[i+1],a[i]];}else{const i=Math.floor(r()*a.length);a[i]=String((+a[i]+1+Math.floor(r()*8))%10);}if(a.length>1&&a[0]==='0')continue;const v=a.join('');if(v!==s)set.add(v);}let n=1;while(set.size<k){const v=String(+s+n++);if(v!==s)set.add(v);}return [...set].slice(0,k);}
+const rDigits=(r,len)=>{let s=String(1+Math.floor(r()*9));while(s.length<len)s+=Math.floor(r()*10);return s;};
+function digItems(seed,len,count){const r=rng(seed),out=[],seen=new Set();let g=0;while(out.length<count&&g++<999){const s=rDigits(r,len);if(seen.has(s)||(len>1&&new Set(s).size===1))continue;seen.add(s);out.push({k:'d'+len+'-'+s,s,o:nearNums(r,s,len>=3?3:2)});}return out;}
+const digFlash=len=>1100+len*400,numBox=s=>`<div class="seqr num big"><span style="font-size:${s.length>5?36:44}px;letter-spacing:3px">${s}</span></div>`,spk=s=>s.split('').join(' ');
+const qDig=x=>({ans:x.s,inst:'Retiens bien le nombre…',html:numBox(x.s),flashHide:digFlash(x.s.length),opts:shuffle([x.s,...x.o]).map(v=>({v,l:v})),optCls:x.s.length>=3?'txt four':'txt',fixHTML:numBox(x.s),fixSay:'C’était '+spk(x.s)});
+function bigItems(seed,count){const r=rng(seed),out=[],seen=new Set();let g=0;while(out.length<count&&g++<999){const nums=[...new Set([0,0,0,0,0].map(()=>String(10+Math.floor(r()*90))))].slice(0,3);if(nums.length<3)continue;const k='g'+nums.join('-');if(seen.has(k))continue;seen.add(k);out.push({k,nums,ans:String(Math.max(...nums.map(Number)))});}return out;}
+const qBig=x=>({ans:x.ans,inst:'Retiens les nombres… lequel est le plus grand ?',html:`<div class="seqr num big">${x.nums.map(v=>`<span>${v}</span>`).join('')}</div>`,flashHide:2600,opts:shuffle(x.nums).map(v=>({v,l:v})),optCls:'txt',fixHTML:`<div class="seqr num big">${x.nums.map(v=>`<span>${v}</span>`).join('')}</div><div class="fixsub">Le plus grand : ${x.ans}</div>`,fixSay:'Le plus grand nombre était '+x.ans});
+function revItems(seed,count){const r=rng(seed),out=[],seen=new Set();let g=0;while(out.length<count&&g++<999){const s=rDigits(r,3),v=s.split('').reverse().join('');if(seen.has(s)||v===s||v[0]==='0')continue;seen.add(s);const o=nearNums(r,v,3).filter(x=>x!==s).slice(0,2);o.push(s);out.push({k:'r'+s,s,v,o:o.slice(0,3)});}return out;}
+const qRev=x=>({ans:x.v,inst:'Retiens le nombre… puis lis-le à l’envers !',html:numBox(x.s),flashHide:2800,opts:shuffle([x.v,...x.o]).map(v=>({v,l:v})),optCls:'txt four',fixHTML:`${numBox(x.s)}<div class="fixsub">À l’envers : ${x.v}</div>`,fixSay:'À l’envers, ça fait '+spk(x.v)});
+function missItems(seed,len,count){const r=rng(seed),out=[],seen=new Set();let g=0;while(out.length<count&&g++<999){const s=rDigits(r,len),i=Math.floor(r()*len),k='m'+s+i;if(seen.has(k))continue;seen.add(k);const d=s[i];const others=rShuf(r,'0123456789'.split('').filter(c=>c!==d)).slice(0,2);out.push({k,s,i,d,o:others});}return out;}
+const missBox=(x,full)=>`<div class="seqr num big">${x.s.split('').map((c,j)=>j===x.i&&!full?'<span class="hole">?</span>':`<span>${c}</span>`).join('')}</div>`;
+const qMiss=x=>({ans:x.d,inst:'Retiens le nombre… quel chiffre a disparu ?',html:missBox(x,true),flashHide:digFlash(x.s.length),flashAfter:missBox(x,false),opts:shuffle([x.d,...x.o]).map(v=>({v,l:v})),optCls:'txt',fixHTML:`${missBox(x,true)}<div class="fixsub">Il manquait ${x.d}</div>`,fixSay:'Il manquait le '+x.d});
 const THEMES={
  money:{n:'Monnaie',e:'💶',c:'#22C55E',d:'#16A34A',desc:'Pièces et billets, compter, payer, rendre la monnaie',levels:[
   {e:'🪙',n:'Je reconnais les pièces et les billets',items:Object.keys(PIECE),q:x=>({ans:x,inst:'Écoute et trouve',say:'Trouve '+PIECE[x][2],opts:shuffle([x,...others(Object.keys(PIECE),2,[x])]).map(v=>({v,h:pc(+v)})),optCls:'',fixHTML:pc(+x)+`<div class="fixsub">${PIECE[x][2]}</div>`,fixSay:'Voici '+PIECE[x][2]})},
@@ -1149,6 +1177,30 @@ Object.assign(THEMES,{
   {e:'🧗',n:'Les mots difficiles',t:8,items:DUR,q:qSpell(false)},
   {e:'💀',n:'La dictée (sans image)',t:9,items:DUR.concat(ORT1.filter(x=>x.w.length>4)).map(x=>Object.assign({},x,{k:'z'+x.k})),q:qSpell(true)},
  ]},
+ quoi:{n:'Qui a changé ?',e:'🔦',c:'#F43F5E',d:'#BE123C',unlock:7,desc:'Retenir une scène, puis trouver ce qui a disparu, bougé ou changé',levels:[
+  {e:'👻',n:'Un objet a disparu (3)',items:chgItems(61,3,14,['gone'],1000,350),q:qChg},
+  {e:'🔍',n:'Un objet a disparu (4)',items:chgItems(62,4,14,['gone'],1000,350),q:qChg},
+  {e:'🎁',n:'Un nouvel objet est arrivé',items:chgItems(63,4,14,['new'],1000,350),q:qChg},
+  {e:'🔄',n:'Un objet a été remplacé',items:chgItems(64,5,14,['rep'],1000,350),q:qChg},
+  {e:'🏃',n:'Qui a bougé ?',t:5,items:chgItems(65,4,14,['move'],1000,350),q:qChg},
+  {e:'🎭',n:'Tout peut changer',t:6,items:chgItems(66,6,18,['gone','new','rep','move'],800,350),q:qChg},
+  {e:'🧩',n:'Une scène bien remplie',t:6,items:chgItems(67,8,18,['gone','new','rep','move'],700,350),q:qChg},
+  {e:'⏱️',n:'Très vite !',t:7,items:chgItems(68,8,18,['gone','new','rep','move'],300,350),q:qChg},
+  {e:'🌋',n:'Scène géante (9 objets)',t:8,items:chgItems(69,9,18,['gone','new','rep','move'],300,300),q:qChg},
+  {e:'💀',n:'Mémoire de champion (10 objets)',t:9,items:chgItems(70,10,20,['gone','new','rep','move'],0,280),q:qChg},
+ ]},
+ chiffres:{n:'Chiffres éclair',e:'💡',c:'#EAB308',d:'#A16207',unlock:10,desc:'Retenir un nombre qui s’affiche un instant : de 1 à 7 chiffres',levels:[
+  {e:'1️⃣',n:'Un chiffre',items:digItems(71,1,9),q:qDig},
+  {e:'2️⃣',n:'Deux chiffres',items:digItems(72,2,16),q:qDig},
+  {e:'3️⃣',n:'Trois chiffres',items:digItems(73,3,16),q:qDig},
+  {e:'4️⃣',n:'Quatre chiffres',items:digItems(74,4,16),q:qDig},
+  {e:'🏆',n:'Le plus grand nombre',t:5,items:bigItems(75,16),q:qBig},
+  {e:'5️⃣',n:'Cinq chiffres',t:6,items:digItems(76,5,16),q:qDig},
+  {e:'🔁',n:'À l’envers',t:6,items:revItems(77,16),q:qRev},
+  {e:'🕳️',n:'Le chiffre qui manque',t:7,items:missItems(78,4,16),q:qMiss},
+  {e:'6️⃣',n:'Six chiffres',t:8,items:digItems(79,6,16),q:qDig},
+  {e:'💀',n:'Sept chiffres',t:9,items:digItems(80,7,16),q:qDig},
+ ]},
 });
 // déblocage avec le niveau du joueur
 const thUnlocked=k=>{const T=THEMES[k];return !T||!T.unlock||levelInfo(S.xp).level>=T.unlock;};
@@ -1363,7 +1415,7 @@ const thumb=i=>i.cat==='obj'&&i.k?objThumb(i):i.cat==='pet'&&i.emoji?petThumb(i)
 const STORE_KEY='supercerveau_v1';
 function defaultState(){
   return {v:1,name:'',avatar:Object.assign({},DEFAULT_AV),owned:[],xp:0,coins:20,
-    settings:{mathLevel:1,nQ:10,target:8,mode:'choices',sprintSec:60,aid:true,sound:true,voice:true,voiceQ:false,frOn:true,frAfterMath:true,frLevel:1,frNQ:8,mathAuto:true,frAuto:true,dayLimit:0,pauseTip:true,sndMode:'max',thNQ:8,thAfterMath:true,thAuto:true,coffres:true,lv:{money:1,logic:1,code:1,monde:1,anglais:1,heure:1,formes:1,probl:1,drapeaux:1,espace:1,ortho:1},thOn:{money:true,logic:true,code:true,monde:true,anglais:true,heure:true,formes:true,probl:true,drapeaux:true,espace:true,ortho:true}},
+    settings:{mathLevel:1,nQ:10,target:8,mode:'choices',sprintSec:60,aid:true,sound:true,voice:true,voiceQ:false,frOn:true,frAfterMath:true,frLevel:1,frNQ:8,mathAuto:true,frAuto:true,dayLimit:0,pauseTip:true,sndMode:'max',thNQ:8,thAfterMath:true,thAuto:true,coffres:true,lv:{money:1,logic:1,code:1,monde:1,anglais:1,heure:1,formes:1,probl:1,drapeaux:1,espace:1,ortho:1,quoi:1,chiffres:1},thOn:{money:true,logic:true,code:true,monde:true,anglais:true,heure:true,formes:true,probl:true,drapeaux:true,espace:true,ortho:true,quoi:true,chiffres:true}},
     pin:null,facts:{},fr:{},frFlashMs:2000,sessions:[],days:{},streak:{cur:0,best:0,last:null},badges:{},
     stats:{ok:0,n:0,ms:0,bestCombo:0,sprintBest:{},chests:0},
     gifts:[{id:'g1',emoji:'🍦',title:'Une glace',type:'streak',target:5,reached:null,given:false},{id:'g2',emoji:'🎡',title:'Une sortie au parc',type:'level',target:10,reached:null,given:false}],
@@ -2047,8 +2099,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.53';
+const VERSION='1.54';
 const VERSIONS=[
+ ['1.54','20/11/2026 22:00','Nouveaux jeux : Qui a changé ? et Chiffres éclair'],
  ['1.53','20/11/2026 21:30','Cheveux longs visibles et gratuits : le profil fille s’affiche enfin'],
  ['1.52','20/11/2026 21:05','Choix garçon / fille à la création et sur chaque profil'],
  ['1.51','20/11/2026 20:55','Écran « Qui joue ? » en grandes cartes + bouton Changer de profil'],
@@ -2056,7 +2109,6 @@ const VERSIONS=[
  ['1.49','19/11/2026 22:15','Numéro de version dans l’Espace parents'],
  ['1.48','19/11/2026 22:05','Vrais cris pour tous les animaux'],
  ['1.45','19/11/2026 20:50','Guide « Tout comprendre » et méthode à jour'],
- ['1.44','19/11/2026 20:35','Offre −30 % affichée dans Malino+'],
 ];
 function renderAdmin(){
   const adm=!!(Plan.info&&Plan.info.admin);
