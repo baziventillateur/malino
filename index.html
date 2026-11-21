@@ -343,6 +343,15 @@ h1,h2,h3,h4{font-weight:700}
 .gbar i{display:block;height:100%;background:var(--p);border-radius:99px}
 .gcard.won{box-shadow:0 4px 0 var(--pd);border:3px solid var(--p)}
 .gcard.given{opacity:.6}
+.gcard.dem{width:100%;text-align:left;font:inherit;color:inherit;border:0;cursor:pointer}.gcard.dem.key{border:3px solid #F5C33B;background:linear-gradient(135deg,#FFF6D6,#fff 70%);box-shadow:0 4px 0 #E5B52C;animation:pulse 1.6s infinite}
+.gcard.dem.lock{cursor:default}.gcard.dem.lock .ge{filter:grayscale(.3)}.gcard.dem.wait{border:2px dashed var(--p);cursor:default}.demnx{color:#9A7A10!important;font-size:12.5px}
+.demx{background:none;border:0;color:var(--ink2);font:inherit;font-size:12.5px;text-decoration:underline;padding:4px;cursor:pointer}.demnote{font-size:13px;color:var(--ink2);margin:-4px 4px 10px}
+.demgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:8px 0 2px}.demgrid button{background:#fff;border:2px solid #ECE8FA;border-radius:14px;padding:6px 3px 7px;font:inherit;font-size:12px;font-weight:700;color:var(--ink);line-height:1.15;cursor:pointer}.demgrid button span{display:block;font-size:30px;line-height:1.2}.demgrid button.on{border-color:var(--p);background:#F4F1FF}
+.demgrid.sm button span{font-size:22px}.demdefi{background:#FFF6D6;border-radius:12px;padding:8px 10px}.pmot{background:#F4F1FF;border-radius:12px;padding:8px 10px;font-style:italic}
+.dreq{border:2px solid #F5C33B;border-radius:16px;padding:10px;margin:8px 0;background:#FFFCF2}.dqh{display:flex;gap:10px;align-items:center}.dqh b{display:block}.dqh small{color:var(--ink2)}.dqe{font-size:38px}
+.dqlab{margin:8px 0 4px;font-size:13px;font-weight:700}.dchips{display:flex;flex-wrap:wrap;gap:6px}.dchip{border:2px solid #E3DEF8;background:#fff;border-radius:99px;padding:6px 10px;font:inherit;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer}.dchip.on{border-color:var(--p);background:var(--p);color:#fff}
+.dadj{display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0}.dadj .btn{min-width:34px;padding:3px 12px}.dno{color:var(--ink2);text-decoration:underline;font-weight:600}.dlink{background:none;border:0;color:var(--p);font:inherit;font-size:13px;font-weight:700;padding:4px 0;cursor:pointer}
+.dreq .ginput{margin-top:6px}.dact{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
 
 /* Modale */
 .modal{position:fixed;inset:0;background:rgba(36,38,58,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
@@ -1869,8 +1878,84 @@ function checkBadges(sess){const out=[];BADGES.forEach(b=>{if(S.badges[b.id])ret
 
 // ---------- Cadeaux des parents ----------
 const GIFT_TYPES={streak:'jours d’affilée',level:'niveau à atteindre',days:'jours d’entraînement au total',ok:'bonnes réponses au total',tdays:'jours dans la semaine avec 10 min de jeu (7 max)',tweek:'minutes de jeu dans la semaine',tfr:'minutes de lecture au total',ttot:'minutes de jeu au total'};
-function giftCond(g){if(g.type==='tdays')return `10 min par jour, ${g.target} jour${g.target>1?'s':''} dans la semaine`;if(g.type==='tweek')return `${g.target} min de jeu dans la semaine`;if(g.type==='tfr')return `${g.target} min de lecture au total`;if(g.type==='ttot')return `${g.target} min de jeu au total`;return g.type==='level'?`Atteindre le niveau ${g.target}`:g.type==='streak'?`${g.target} jours d’affilée`:g.type==='days'?`${g.target} jours d’entraînement`:`${g.target} bonnes réponses`;}
-function giftVal(g){switch(g.type){case 'streak':return curStreak();case 'level':return levelInfo(S.xp).level;case 'days':return Object.values(S.days).filter(dayDone).length;case 'ok':return S.stats.ok;case 'tdays':return TimeT.weekDays(600);case 'tweek':return Math.floor(TimeT.weekSec()/60);case 'tfr':return Math.floor(TimeT.all('f')/60);case 'ttot':return Math.floor(TimeT.all()/60);}return 0;}
+const fmtMinG=m=>m>=60&&m%60===0?`${m/60} h`:m>=60?`${Math.floor(m/60)} h ${pad2(m%60)}`:`${m} min`;
+function giftCond(g){if(g.base!=null){if(g.type==='ttot')return `${fmtMinG(g.target)} de jeu`;if(g.type==='tfr')return `${fmtMinG(g.target)} de lecture`;if(g.type==='ok')return `${g.target} bonnes réponses`;if(g.type==='days')return `${g.target} jours de jeu`;}if(g.type==='tdays')return `10 min par jour, ${g.target} jour${g.target>1?'s':''} dans la semaine`;if(g.type==='tweek')return `${g.target} min de jeu dans la semaine`;if(g.type==='tfr')return `${g.target} min de lecture au total`;if(g.type==='ttot')return `${g.target} min de jeu au total`;return g.type==='level'?`Atteindre le niveau ${g.target}`:g.type==='streak'?`${g.target} jours d’affilée`:g.type==='days'?`${g.target} jours d’entraînement`:`${g.target} bonnes réponses`;}
+function giftVal(g){let v=giftRaw(g.type);if(g.type==='streak'&&g.since)v=Math.min(v,Math.round((Date.parse(dayKey())-Date.parse(g.since))/864e5)+1);else if(g.base!=null)v=Math.max(0,v-g.base);return v;}
+function giftRaw(type){const g={type};switch(g.type){case 'streak':return curStreak();case 'level':return levelInfo(S.xp).level;case 'days':return Object.values(S.days).filter(dayDone).length;case 'ok':return S.stats.ok;case 'tdays':return TimeT.weekDays(600);case 'tweek':return Math.floor(TimeT.weekSec()/60);case 'tfr':return Math.floor(TimeT.all('f')/60);case 'ttot':return Math.floor(TimeT.all()/60);}return 0;}
+// ---------- Demandes de cadeaux : en montant de niveau, l'enfant gagne des clés pour demander un cadeau ----------
+const DEM_IDEES=[['glace','🍦','Une glace','petit'],['gateau','🍰','Un gâteau','petit'],['console','🎮','30 min de console','petit'],['tard','🌙','Se coucher plus tard','petit'],['pizza','🍕','Une pizza','moyen'],['parc','🎡','Une sortie au parc','moyen'],['livre','📚','Un livre','moyen'],['foot','⚽','Un match de foot','moyen'],['activite','🎨','Une activité créative','moyen'],['cine','🎬','Une séance de ciné','gros'],['piscine','🏊','Une sortie piscine','gros'],['jouet','🧸','Un petit jouet','gros']];
+const DEM_DEFIS={petit:[['streak',3],['ttot',30],['ok',100]],moyen:[['streak',5],['ttot',60],['days',7]],gros:[['streak',7],['ttot',180],['level',3]]};
+const DEM_PAS={streak:1,ttot:15,ok:50,days:1,level:1},DEM_MIN={streak:1,ttot:15,ok:50,days:1,level:1};
+const demDefi=(t,n)=>t==='streak'?`🔥 ${n} jour${n>1?'s':''} d’affilée`:t==='ttot'?`⏱️ ${fmtMinG(n)} de jeu`:t==='ok'?`✅ ${n} bonnes réponses`:t==='days'?`📅 ${n} jours de jeu`:`⭐ Monter de ${n} niveau${n>1?'x':''}`;
+const Dem={
+  seuils(L){const o=[3,6,10,15,20].filter(k=>k<=L);for(let k=25;k<=L;k+=5)o.push(k);return o;},
+  prochain(L){const n=[3,6,10,15,20].find(k=>k>L);return n||Math.max(25,(Math.floor(L/5)+1)*5);},
+  gagnees(L){return this.seuils(L==null?levelInfo(S.xp).level:L).length;},
+  dispo(){return Math.max(0,this.gagnees()-(S.clesUsees||0));},
+  attente(){return S.demande&&S.demande.statut==='attente'?S.demande:null;},
+  enLigne(){return !!(Acct.user&&Acct.sb&&Acct.pid);},
+  idee(k){return DEM_IDEES.find(x=>x[0]===k);},
+  // fête quand une clé est gagnée en fin de partie
+  apresNiveau(from,to){if(this.gagnees(to)>this.gagnees(from))queueModal(`<div class="bigemoji">🔑</div><h2>Tu as gagné une clé !</h2><p>Avec une clé, tu peux <b>demander un cadeau</b> à papa et maman.</p><button class="btn y block" data-act="demcat">Choisir mon cadeau 🎁</button><button class="btn sm o block" data-act="mclose" style="margin-top:8px">Plus tard</button>`,()=>{Sound.play('badge');Confetti.burst(80);if(S.settings.voice)Voice.say('Tu as gagné une clé ! Tu peux demander un cadeau.');});},
+  async envoyer(k){const x=this.idee(k);if(!x||this.attente()||!this.dispo())return;closeAllModals();
+    const d={idee:x[0],emoji:x[1],titre:x[2],taille:x[3],statut:'attente',at:Date.now()};
+    if(this.enLigne()){const {data,error}=await Acct.sb.from('cadeaux_demandes').insert({profil_id:Acct.pid,prenom:S.name||'',idee:d.idee,emoji:d.emoji,titre:d.titre,taille:d.taille}).select('id').single();
+      if(error)return toast(/duplicate|unique/i.test(error.message||'')?'Une demande est déjà en attente':'Pas de connexion : réessaie dans un moment');
+      d.id=data.id;this.notifier(d.id);}else{d.id='l'+Date.now().toString(36);d.local=true;}
+    S.demande=d;S.clesUsees=(S.clesUsees||0)+1;save();if(SCR==='gifts')keepScroll(render);
+    queueModal(`<div class="bigemoji">📨</div><h2>C’est envoyé !</h2><p><b>${esc(d.emoji)} ${esc(d.titre)}</b></p><p>Papa ou maman va choisir ton défi. Tu verras la réponse ici ⏳</p><button class="btn p block" data-act="mclose">D’accord !</button>`,()=>{Sound.play('coin');if(S.settings.voice)Voice.say('C’est envoyé ! Papa ou maman va choisir ton défi.');});},
+  async notifier(id){try{const {data}=await Acct.sb.auth.getSession(),tk=data&&data.session&&data.session.access_token;if(tk)fetch(SB_URL+'/functions/v1/malino-cadeau',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+tk},body:JSON.stringify({mode:'notifier',id})}).catch(()=>{});}catch(e){}},
+  async annuler(){const d=this.attente();if(!d)return;if(!confirm('Annuler ta demande ? Ta clé te sera rendue.'))return;
+    if(!d.local&&this.enLigne()){const {error}=await Acct.sb.from('cadeaux_demandes').update({statut:'annule',applique_le:new Date().toISOString()}).eq('id',d.id).eq('statut','attente');if(error)return toast('Pas de connexion : réessaie');}
+    S.demande=null;S.clesUsees=Math.max(0,(S.clesUsees||0)-1);save();keepScroll(render);},
+  // réponse des parents : transformée en cadeau à gagner (le défi compte à partir de maintenant)
+  appliquer(r){const L=levelInfo(S.xp).level,t=r.r_type,n=Math.max(1,r.r_cible|0);
+    if(r.statut==='accepte'&&t){const g={id:'d'+String(r.id).slice(0,10),emoji:r.r_emoji||r.emoji,title:r.r_titre||r.titre,type:t,target:n,reached:null,given:false,dem:1,mot:r.mot||''};
+      if(t==='level')g.target=L+n;else if(t==='streak')g.since=dayKey();else g.base=giftRaw(t);
+      if(!S.gifts.some(x=>x.id===g.id))S.gifts.push(g);const autre=r.r_titre&&r.r_titre!==r.titre;
+      queueModal(`<div class="bigemoji">${esc(g.emoji)}</div><h2>${autre?'Tes parents ont une idée !':'Tes parents ont dit OUI !'} 🎉</h2>${autre?`<p>À la place de ${esc(r.titre)}, ils te proposent : <b>${esc(g.title)}</b></p>`:`<p><b>${esc(g.title)}</b></p>`}<p class="demdefi">Ton défi : <b>${esc(giftCond(g))}</b></p>${g.mot?`<p class="pmot">💬 « ${esc(g.mot)} »</p>`:''}<button class="btn p block" data-act="demvoir">C’est parti ! 💪</button>`,()=>{Sound.play('level');Confetti.burst(150);if(S.settings.voice)Voice.say(`Tes parents ont dit oui ! Ton défi : ${giftCond(g)}`);});}
+    else if(r.statut==='refuse'){S.clesUsees=Math.max(0,(S.clesUsees||0)-1);
+      queueModal(`<div class="bigemoji">🤗</div><h2>Pas cette fois</h2><p>Tes parents préfèrent attendre pour <b>${esc(r.titre)}</b>.</p>${r.mot?`<p class="pmot">💬 « ${esc(r.mot)} »</p>`:''}<p>Ta clé 🔑 t’est rendue : tu pourras demander autre chose !</p><button class="btn p block" data-act="mclose">D’accord</button>`);}
+    if(S.demande&&S.demande.id===r.id)S.demande=null;save();},
+  _t:0,
+  async sync(force){if(!force&&Date.now()-this._t<20000)return;this._t=Date.now();
+    const d=S.demande;if(d&&d.local&&d.statut!=='attente'){this.appliquer(d);if(SCR==='gifts'||SCR==='home')keepScroll(render);return;}
+    if(!this.enLigne())return;try{const {data,error}=await Acct.sb.from('cadeaux_demandes').select('*').eq('profil_id',Acct.pid).is('applique_le',null).in('statut',['accepte','refuse']).order('repondu_le');
+      if(error||!data||!data.length)return;for(const r of data){this.appliquer(r);await Acct.sb.from('cadeaux_demandes').update({applique_le:new Date().toISOString()}).eq('id',r.id);}
+      if(SCR==='gifts'||SCR==='home')keepScroll(render);}catch(e){}},
+  // écran enfant : la carte en haut de « Mes cadeaux »
+  carte(){const L=levelInfo(S.xp).level,n=this.dispo(),d=this.attente(),nx=this.prochain(L),pv=[1].concat(this.seuils(L)).pop()||1,pc=Math.max(0,Math.min(100,Math.round((L-pv+levelInfo(S.xp).pct)/(nx-pv)*100)));
+    const suite=`<small class="demnx">Prochaine clé 🔑 au niveau ${nx}</small>`;
+    if(d)return `<div class="gcard dem wait"><span class="ge">${esc(d.emoji)}</span><div class="gt"><b>${esc(d.titre)}</b><small>⏳ Chez papa ou maman</small><small>Ils vont choisir ton défi</small></div><button class="demx" data-act="demann">Annuler</button></div>`+(n?`<p class="demnote">🔑 Encore ${n} clé${n>1?'s':''} pour plus tard</p>`:'');
+    if(n)return `<button class="gcard dem key" data-act="demcat"><span class="ge">🔑</span><div class="gt"><b>Demander un cadeau</b><small>Tu as ${n} clé${n>1?'s':''} : choisis ton cadeau !</small>${suite}</div></button>`;
+    return `<div class="gcard dem lock"><span class="ge">🔒</span><div class="gt"><b>Demander un cadeau</b><small>${S.clesUsees?'Prochaine':'Ta 1re'} clé 🔑 au niveau ${nx}</small><span class="gbar"><i style="width:${pc}%"></i></span><small>Niveau ${L} / ${nx}</small></div></div>`;},
+  catalogue(){closeAllModals();if(this.attente())return toast('Ta demande est déjà chez papa ou maman ⏳');if(!this.dispo())return toast('Gagne une clé 🔑 en montant de niveau');
+    queueModal(`<h2>Quel cadeau veux-tu ?</h2><div class="demgrid">${DEM_IDEES.map(x=>`<button data-act="demidee" data-arg="${x[0]}"><span>${x[1]}</span>${esc(x[2])}</button>`).join('')}</div><button class="btn sm o block" data-act="mclose" style="margin-top:10px">Plus tard</button>`);},
+  confirmer(k){const x=this.idee(k);if(!x)return;closeAllModals();
+    queueModal(`<div class="bigemoji">${x[1]}</div><h2>${esc(x[2])}</h2><p>On envoie ta demande à papa et maman ?</p><button class="btn p block" data-act="demenv" data-arg="${x[0]}">📨 Envoyer</button><button class="btn sm o block" data-act="demcat" style="margin-top:8px">← Choisir autre chose</button>`,()=>{if(S.settings.voice)Voice.say(x[2]);});},
+  // espace parents : les demandes en attente (tous les enfants de la famille)
+  P:{},L:[],
+  async parentCharger(){const el=document.getElementById('demP');if(!el)return;let L=[];
+    if(this.enLigne()){const {data}=await Acct.sb.from('cadeaux_demandes').select('*').eq('statut','attente').order('cree_le');L=data||[];}
+    else if(this.attente())L=[Object.assign({prenom:S.name||''},S.demande)];
+    this.L=L;this.parentDessiner();},
+  parentDessiner(){const el=document.getElementById('demP');if(!el)return;if(!this.L.length){el.innerHTML='';return;}
+    el.innerHTML=`<section class="acard dreqs"><h3>📨 Demandes de cadeaux</h3>`+this.L.map(r=>{const st=this.P[r.id]||(this.P[r.id]={i:0,n:(DEM_DEFIS[r.taille]||DEM_DEFIS.petit)[0][1],e:r.emoji,t:r.titre,chg:false}),D=DEM_DEFIS[r.taille]||DEM_DEFIS.petit,ty=D[st.i][0];
+      return `<div class="dreq"><div class="dqh"><span class="dqe">${esc(st.e)}</span><div><b>${esc(r.prenom||nm())} demande : ${esc(st.t)}</b>${st.t!==r.titre?`<small>au lieu de ${esc(r.emoji)} ${esc(r.titre)}</small>`:''}</div></div>
+       <p class="dqlab">Choisissez son défi :</p><div class="dchips">${D.map(([t,n0],i)=>`<button class="dchip ${st.i===i?'on':''}" data-act="dpick" data-arg="${r.id}|${i}">${demDefi(t,i===st.i?st.n:n0)}</button>`).join('')}</div>
+       <div class="dadj"><button class="btn sm o" data-act="dplus" data-arg="${r.id}|-1">−</button><b>${demDefi(ty,st.n)}</b><button class="btn sm o" data-act="dplus" data-arg="${r.id}|1">+</button></div>
+       <button class="dlink" data-act="dchg" data-arg="${r.id}">${st.chg?'▴':'▾'} Proposer un autre cadeau</button>
+       ${st.chg?`<div class="demgrid sm">${DEM_IDEES.map(x=>`<button class="${st.t===x[2]?'on':''}" data-act="dide" data-arg="${r.id}|${x[0]}"><span>${x[1]}</span>${esc(x[2])}</button>`).join('')}</div><input class="ginput full" id="dt-${r.id}" maxlength="40" placeholder="Ou écrivez votre idée" value="${DEM_IDEES.some(x=>x[2]===st.t)?'':esc(st.t)}">`:''}
+       <input class="ginput full" id="dm-${r.id}" maxlength="120" placeholder="Petit mot pour ${esc(r.prenom||nm())} (facultatif)" value="${esc(st.m||'')}">
+       <div class="dact"><button class="btn g sm" data-act="dok" data-arg="${r.id}">✅ Valider le défi</button><button class="dlink dno" data-act="dno" data-arg="${r.id}">Pas cette fois</button></div></div>`;}).join('')+`</section>`;},
+  lireTextes(id){const st=this.P[id];if(!st)return;const m=document.getElementById('dm-'+id),t=document.getElementById('dt-'+id);if(m)st.m=m.value.trim();if(t&&t.value.trim()){st.t=t.value.trim();st.e='🎁';}},
+  async repondre(id,oui){const r=this.L.find(x=>String(x.id)===String(id)),st=this.P[id];if(!r||!st)return;this.lireTextes(id);
+    if(!oui&&!confirm(`Refuser la demande « ${r.titre} » ? La clé sera rendue à ${r.prenom||nm()}.`))return;
+    const D=DEM_DEFIS[r.taille]||DEM_DEFIS.petit,maj=oui?{statut:'accepte',r_emoji:st.e,r_titre:st.t,r_type:D[st.i][0],r_cible:st.n,mot:st.m||null,repondu_le:new Date().toISOString()}:{statut:'refuse',mot:st.m||null,repondu_le:new Date().toISOString()};
+    if(r.local||String(id).startsWith('l')){if(S.demande&&S.demande.id===id)Object.assign(S.demande,maj);save();}
+    else{const {error}=await Acct.sb.from('cadeaux_demandes').update(maj).eq('id',id).eq('statut','attente');if(error)return toast('Non enregistré : réessayez');}
+    delete this.P[id];this.L=this.L.filter(x=>x!==r);this.parentDessiner();toast(oui?`✅ Défi envoyé : ${r.prenom||nm()} le verra à sa prochaine partie`:'Réponse envoyée');}
+};
 function checkGifts(){const out=[];S.gifts.forEach(g=>{if(!g.reached&&!g.given&&giftVal(g)>=g.target){g.reached=Date.now();out.push(g);}});if(out.length)save();return out;}
 // ---------- Coffres magiques : gagnés en jouant, ils s'ouvrent au bout de 12 h ----------
 const COF_MS=12*3600e3,COF_SLOTS=4,COF_DAY=6;
@@ -2357,7 +2442,7 @@ function endGame(){
   if(after>before)setTimeout(()=>{after%10===0?Sons.exc():after%5===0?Sons.pal():Sons.lvl();},1000);else if(G.mode==='sprint'&&G.record&&G.score)setTimeout(()=>Sons.record(),800);else if(G.mode!=='sprint'&&G.stars>=3&&!G.wrong)setTimeout(()=>Sons.play('headshot',{max:2,fade:.3}),800);go('result');setTimeout(()=>{if(Acct.wall()&&SCR==='result')Acct.show('wall');},3800);Sound.play(G.mode==='sprint'?(G.record&&G.score?'level':Sound.custom('fail').length?'fail':'end'):'end');
   if(G.mode==='sprint'?G.record:G.stars>=2)setTimeout(()=>Confetti.burst(130),250);
   if(S.settings.voice){const nmv=S.name||'';Voice.say(G.mode==='sprint'?`${G.score} calculs justes ! ${G.record?'Nouveau record !':''}`:`Bravo ! ${G.stars} étoile${G.stars>1?'s':''} !`);}
-  setTimeout(()=>{autoUpModal(ups);if(S.settings.pauseTip!==false&&TimeT.cont>=1200&&!TimeT.tipped&&!TimeT.limited()){TimeT.tipped=true;Sons.play('mario_pause',{max:3,fade:.4});queueModal(`<div class="bigemoji">🧃</div><h2>Une petite pause ?</h2><p>Ça fait 20 minutes que tu joues, bravo ! Bouge un peu, bois de l’eau, et reviens quand tu veux.</p><button class="btn y block" data-act="mclose">D’accord 👍</button>`);}if(thLock)Offre.lock(thT.n,thLock);if(thUp)queueModal(`<div class="bigemoji">${thT.e}</div><h2>${thT.n} : monde ${thUp} !</h2><p>${thT.levels[thUp-1].e} ${thT.levels[thUp-1].n}</p><button class="btn y block" data-act="mclose">Super ! 🎉</button>`,()=>{Sound.play('epic');Confetti.burst(100);});if(after>before)levelUpModal(before,after);badges.forEach(badgeModal);gifts.forEach(giftModal);Coffre.gainModal(cofs);},1300);
+  setTimeout(()=>{autoUpModal(ups);if(S.settings.pauseTip!==false&&TimeT.cont>=1200&&!TimeT.tipped&&!TimeT.limited()){TimeT.tipped=true;Sons.play('mario_pause',{max:3,fade:.4});queueModal(`<div class="bigemoji">🧃</div><h2>Une petite pause ?</h2><p>Ça fait 20 minutes que tu joues, bravo ! Bouge un peu, bois de l’eau, et reviens quand tu veux.</p><button class="btn y block" data-act="mclose">D’accord 👍</button>`);}if(thLock)Offre.lock(thT.n,thLock);if(thUp)queueModal(`<div class="bigemoji">${thT.e}</div><h2>${thT.n} : monde ${thUp} !</h2><p>${thT.levels[thUp-1].e} ${thT.levels[thUp-1].n}</p><button class="btn y block" data-act="mclose">Super ! 🎉</button>`,()=>{Sound.play('epic');Confetti.burst(100);});if(after>before)levelUpModal(before,after);badges.forEach(badgeModal);gifts.forEach(giftModal);Coffre.gainModal(cofs);Dem.apresNiveau(before,after);},1300);
 }
 
 
@@ -2412,7 +2497,7 @@ function render(){
   if(SCR==='home'&&!modalOpen&&!(typeof Onb!=='undefined'&&Onb.should()))setTimeout(()=>{try{if(SCR==='home'&&!modalOpen)unlockCheck();}catch(e){}},350);
 }
 function weekHTML(){const now=new Date(),dow=(now.getDay()+6)%7,mon=addDays(now,-dow),t=dayKey();return (window.MLANG==='en'?['M','T','W','T','F','S','S']:['L','M','M','J','V','S','D']).map((n,i)=>{const d=dayKey(addDays(mon,i)),st=S.days[d],done=dayDone(st);const cls=(done?'done ':d<t?'miss ':'')+(d===t?'today':'');return `<div class="day ${cls}">${n}<b>${done?'🔥':d===t?'⭐':''}</b></div>`;}).join('');}
-function renderHome(){
+function renderHome(){Dem.sync();
   const li=levelInfo(S.xp),st=S.settings,t=today(),ml=MATH_LEVELS[st.mathLevel-1],mm=levelMastery('math',st.mathLevel),mf=mathFacts(st.mathLevel).length,fl=FR_LEVELS[st.frLevel-1];
   const sprintLocked=!t.math,frLocked=st.frAfterMath&&!t.math,best=S.stats.sprintBest[st.mathLevel]||0,reached=S.gifts.filter(g=>g.reached&&!g.given),nb=Object.keys(S.badges).length,ready=chestAvailable();
   return `<div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills"><span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">🔄 Changer</button>':''}</div></div>
@@ -2424,7 +2509,7 @@ function renderHome(){
   <button class="play ${sprintLocked?'locked':''}" style="--c:var(--o);--d:var(--od)" data-act="startsprint"><span class="ico">⚡</span><span class="tx"><span class="t1">Défi éclair</span><span class="t2">${sprintLocked?'Après ton entraînement de maths':best?`Record : ${best} calculs en ${st.sprintSec} s`:`Le plus de calculs en ${st.sprintSec} s !`}</span></span>${sprintLocked?'<span class="lock">🔒</span>':''}</button>
   ${frOnNow()?`<button class="play ${frLocked?'locked':''} ${!frLocked&&!t.fr?'pulse':''}" style="--c:var(--p);--d:var(--pd)" data-act="startfr"><span class="ico">📖</span><span class="tx"><span class="t1">Lecture</span><span class="t2">${frLocked?'Après ton entraînement de maths':`Monde ${st.frLevel} · ${fl.n}`}</span></span>${frLocked?'<span class="lock">🔒</span>':''}</button>`:''}
   ${themesHTML()}
-  <div class="minis"><button class="mini" data-act="shop"><span>🎨</span>Mon perso</button><button class="mini" data-act="badges"><span>🏆</span>Badges ${nb}/${BADGES.length}</button><button class="mini ${S.gifts.some(g=>g.reached&&!g.given)?'blink':''}" data-act="gifts"><span>🎁</span>Cadeaux${S.gifts.some(g=>g.reached&&!g.given)?`<i class="dot">${S.gifts.filter(g=>g.reached&&!g.given).length}</i>`:''}</button></div>
+  <div class="minis"><button class="mini" data-act="shop"><span>🎨</span>Mon perso</button><button class="mini" data-act="badges"><span>🏆</span>Badges ${nb}/${BADGES.length}</button><button class="mini ${S.gifts.some(g=>g.reached&&!g.given)||(Dem.dispo()&&!Dem.attente())?'blink':''}" data-act="gifts"><span>🎁</span>Cadeaux${S.gifts.some(g=>g.reached&&!g.given)?`<i class="dot">${S.gifts.filter(g=>g.reached&&!g.given).length}</i>`:Dem.dispo()&&!Dem.attente()?'<i class="dot">🔑</i>':''}</button></div>
   <div class="parentrow"><button class="parentbtn" data-act="parent">🔒 Espace parents</button><a class="parentbtn" href="aide.html" target="_blank" rel="noopener">💬 Aide</a>${Acct.user?'':'<button class="parentbtn" data-act="openlogin">🔑 Connexion</button>'}${Plan.pill()}<button class="parentbtn" data-act="offrir">🎁 Offrir</button></div>`;
 }
 function renderGame(){
@@ -2467,13 +2552,14 @@ function renderShop(){setTimeout(()=>{shopAnim=false;shopBought=null;},700);
 function renderBadges(){const got=BADGES.filter(b=>S.badges[b.id]).length;return `<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>Mes badges</h2><span class="pill">${got}/${BADGES.length}</span></div>`+Object.entries(RARITY).map(([k,R])=>{const L=BADGES.filter(b=>b.r===k),g=L.filter(b=>S.badges[b.id]).length;return `<div class="rarsec"><h3 class="rarh" style="color:${R.col}">${R.n}<small>${g}/${L.length}</small></h3><div class="badges">${L.map(b=>{const ok=!!S.badges[b.id],pr=!ok&&b.p?b.p():null;return `<div class="badge r-${k} ${ok?'got':''}" style="--rc:${R.col}"><span class="be">${b.e}</span><b>${esc(b.n)}</b><small>${esc(b.d)}</small>${pr?`<span class="bp"><i style="width:${Math.round(pr[0]/pr[1]*100)}%"></i></span><em>${pr[0]}/${pr[1]}</em>`:''}</div>`;}).join('')}</div></div>`;}).join('');}
 const fdate=t=>t?new Date(t).toLocaleDateString(LOC,{day:'numeric',month:'short',year:'numeric'}):'';
 function giftGiven(id){const g=S.gifts.find(x=>x.id===id);if(g&&!g.given){g.given=true;g.givenAt=Date.now();save();}pinBuf='';pinGift=null;toast('Cadeau remis ✅');go('gifts');}
-function renderGifts(){
+function renderGifts(){Dem.sync();
   const show=S.gifts.filter(g=>!g.given),hist=S.gifts.filter(g=>g.given).sort((a,b)=>(b.givenAt||0)-(a.givenAt||0));
   const card=g=>{const pend=!!g.reached&&!g.given,v=Math.min(giftVal(g),g.target);return pend
     ?`<button class="gcard won shine" data-act="giftcard" data-arg="${g.id}"><span class="ge">${esc(g.emoji)}</span><div class="gt"><b>${esc(g.title)}</b><small>Gagné le ${fdate(g.reached)}</small><small><b>Touche pour le montrer 🎉</b></small></div></button>`
-    :`<div class="gcard"><span class="ge">${esc(g.emoji)}</span><div class="gt"><b>${esc(g.title)}</b><small>${giftCond(g)}</small><span class="gbar"><i style="width:${Math.round(v/g.target*100)}%"></i></span><small>${v} / ${g.target}</small></div></div>`;};
+    :`<div class="gcard"><span class="ge">${esc(g.emoji)}</span><div class="gt"><b>${esc(g.title)}</b><small>${giftCond(g)}</small><span class="gbar"><i style="width:${Math.round(v/g.target*100)}%"></i></span><small>${v} / ${g.target}${['ttot','tfr','tweek'].includes(g.type)?' min':''}</small></div></div>`;};
   return `<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>Mes cadeaux</h2></div><p class="lead">Papa et maman ont prévu des cadeaux. Entraîne-toi pour les gagner !</p>
-  ${show.length?show.map(card).join(''):(S.gifts.length?'':'<div class="empty">Pas encore de cadeau. Papa ou maman peuvent en ajouter dans l’espace parents.</div>')}
+  ${Dem.carte()}
+  ${show.length?show.map(card).join(''):(S.gifts.length?'':'<div class="empty">Pas encore de cadeau. Gagne une clé 🔑 pour en demander un, ou demande à papa ou maman d’en ajouter.</div>')}
   ${hist.length?`<div class="histg"><h3>Déjà reçus</h3>${hist.map(g=>`<div class="hrow"><span class="ge">${esc(g.emoji)}</span><div class="gt"><b>${esc(g.title)}</b><small>Gagné le ${fdate(g.reached)} · remis le ${fdate(g.givenAt||g.reached)}</small></div></div>`).join('')}</div>`:''}`;
 }
 
@@ -2486,7 +2572,7 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.67';
+const VERSION='1.68';
 const VERSIONS=[
  ['1.65','21/11/2026 15:20','Espace parents : bouton Admin et cloche en haut'],
  ['1.64','21/11/2026 15:00','Voix des contributions : plusieurs voix par son, sons des lettres, cris, anglais'],
@@ -2598,8 +2684,8 @@ function paneProgressFull(){
   <section class="acard"><h3>🎲 Autres jeux</h3>${themeSummary()}</section>
   <section class="acard"><h3>🕘 Dernières parties</h3>${last.length?`<table class="hist">${last.map(s=>`<tr><td>${fmtD(s.d)}</td><td>${s.type==='math'?'🔢 Maths':s.type==='fr'?'📖 Lecture':THEMES[s.type]?THEMES[s.type].e+' '+THEMES[s.type].n:'⚡ Éclair'}</td><td>monde ${s.lvl}</td><td>${s.type==='sprint'?s.score+' justes':s.ok+'/'+s.n}${s.p?' <span title="Partie arrêtée avant la fin">⏸️</span>':''}</td><td>${s.avgMs?sec(s.avgMs):'–'}</td></tr>`).join('')}</table>`:'<div class="empty">Aucune partie pour l’instant.</div>'}</section>`;
 }
-function paneGifts(){
-  return `<section class="acard"><h3>🎁 Cadeaux à gagner</h3><p class="hint">Fixez de vraies récompenses. ${nm()} voit sa progression vers chacune, et une fête s’affiche quand l’objectif est atteint.</p>
+function paneGifts(){setTimeout(()=>Dem.parentCharger(),0);
+  return `<div id="demP"></div><section class="acard"><h3>🎁 Cadeaux à gagner</h3><p class="hint">Fixez de vraies récompenses. ${nm()} voit sa progression vers chacune, et une fête s’affiche quand l’objectif est atteint.</p>
   ${S.gifts.length?S.gifts.map(g=>`<div class="giftrow"><span class="ge">${esc(g.emoji)}</span><div class="gt"><b>${esc(g.title)}</b><small>${giftCond(g)} · actuellement ${giftVal(g)}</small></div>${g.given?'<span class="tag">Donné ✅</span>':g.reached?`<button class="btn g sm" data-act="giftgiven" data-arg="${g.id}">Donné ✓</button>`:''}<button class="del" data-act="giftdel" data-arg="${g.id}" aria-label="Supprimer">🗑️</button></div>`).join(''):'<div class="empty">Aucun cadeau.</div>'}</section>
   <section class="acard"><h3>➕ Ajouter un cadeau</h3><div class="gform"><input id="gEmoji" class="ginput" value="🎁" maxlength="4" aria-label="Émoji"><input id="gTitle" class="ginput" placeholder="Ex. : choisir le dessert" maxlength="40"><select id="gType" class="ginput full">${Object.entries(GIFT_TYPES).map(([k,l])=>`<option value="${k}">Objectif : ${l}</option>`).join('')}</select><input id="gTarget" class="ginput full" type="number" min="1" inputmode="numeric" placeholder="Nombre à atteindre (ex. 7)"><button class="btn g full" data-act="giftadd">Ajouter</button></div><p class="hint">Conseil : récompensez la régularité plutôt que la durée, par exemple « 10 min par jour, 5 jours dans la semaine ».</p><p class="hint">Idées : une glace, choisir le dessert, une sortie au parc, un autocollant, 15 min de dessin animé, inviter un copain…</p></section>`;
 }
@@ -2614,6 +2700,12 @@ function importFile(file){const r=new FileReader();r.onload=()=>{try{const d=JSO
 // ---------- Actions ----------
 const lockedMsg=()=>{toast('Fais d’abord ton entraînement de maths ! 🔢');if(S.settings.voice)Voice.say('Fais d’abord ton entraînement de maths !');};
 const ACT={
+  demcat(){Dem.catalogue();},demvoir(){nextModal();if(SCR!=='gifts')go('gifts');},demidee(a){Dem.confirmer(a);},demenv(a){Dem.envoyer(a);},demann(){Dem.annuler();},
+  dpick(a){const [id,i]=a.split('|'),st=Dem.P[id],r=Dem.L.find(x=>String(x.id)===id);if(!st||!r)return;Dem.lireTextes(id);st.i=+i;st.n=(DEM_DEFIS[r.taille]||DEM_DEFIS.petit)[+i][1];Dem.parentDessiner();},
+  dplus(a){const [id,k]=a.split('|'),st=Dem.P[id],r=Dem.L.find(x=>String(x.id)===id);if(!st||!r)return;Dem.lireTextes(id);const t=(DEM_DEFIS[r.taille]||DEM_DEFIS.petit)[st.i][0];st.n=Math.max(DEM_MIN[t],Math.min(t==='ok'?2000:t==='ttot'?900:30,st.n+(+k)*DEM_PAS[t]));Dem.parentDessiner();},
+  dchg(a){const st=Dem.P[a];if(!st)return;Dem.lireTextes(a);st.chg=!st.chg;Dem.parentDessiner();},
+  dide(a){const [id,k]=a.split('|'),st=Dem.P[id],x=Dem.idee(k);if(!st||!x)return;Dem.lireTextes(id);st.e=x[1];st.t=x[2];const t=document.getElementById('dt-'+id);if(t)t.value='';Dem.parentDessiner();},
+  dok(a){Dem.repondre(a,true);},dno(a){Dem.repondre(a,false);},
   home(){stopGame();closeAllModals();go('home');checkGifts().forEach(giftModal);},
   startmath(){startGame('math','train');},
   startsprint(a,el){if(el.classList.contains('locked'))return lockedMsg();startGame('math','sprint');},
@@ -2984,7 +3076,7 @@ const Plan={info:null,
     try{const k='malino_src_sent_'+Acct.user.id;if(!localStorage.getItem(k))Acct.sb.rpc('maj_source',{p_source:localStorage.getItem('malino_src')||'direct'}).then(r=>{if(!r.error)localStorage.setItem(k,'1');});}catch(e){}
     Famille.afterRefresh();
     if(Onb.should()&&SCR!=='game')setTimeout(()=>{if(Onb.should())Onb.start();},500);
-    try{const g=new URLSearchParams(location.search).get('go');if(g&&!Plan._go){Plan._go=1;setTimeout(()=>{if(SCR==='game'||Onb.should())return;if(g==='offre')ACT.offre('mail');else if(g==='inviter')ACT.parrain();},1200);}}catch(e){}
+    try{const g=new URLSearchParams(location.search).get('go');if(g&&!Plan._go){Plan._go=1;setTimeout(()=>{if(SCR==='game'||Onb.should())return;if(g==='offre')ACT.offre('mail');else if(g==='inviter')ACT.parrain();else if(g==='cadeaux'){adminTab='cadeaux';ACT.parent();}},1200);}}catch(e){}
     if(data.cadeaux>0&&!quiet)queueModal(`<div class="bigemoji sm">🎁</div><h2>Cadeau activé !</h2><p>Malino+ est débloqué jusqu’au <b>${fmtDate(data.plus_jusqua)}</b>.</p><button class="btn g block" data-act="mclose">Génial ! 🎉</button>`,()=>Confetti.burst(140));
     if(before!==this.kind()&&SCR!=='game')render();
     return data;
