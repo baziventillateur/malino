@@ -220,7 +220,7 @@ function drawContrib(){
     if(v==='cloturee'&&!confirm('Clôturer cette contribution ? Elle disparaît de la page publique et plus personne ne peut la faire.'))return;
     b.disabled=true;const {error}=await sb.rpc('admin_contrib_statut',{p_id:id,p_statut:v});if(error){b.disabled=false;b.textContent='Échec';return;}loadDev();});
   app.querySelectorAll('[data-cper]').forEach(b=>b.onclick=()=>{const id=b.dataset.cper;DVOPEN[id]=!DVOPEN[id];
-    const x=R.find(y=>y.r.id===id);if(DVOPEN[id]&&x&&isNew(x.r)){x.r.vu=true;sb.rpc('admin_contrib_vu',{p_ids:[id]});const t=$('#tabN'),k=R.filter(y=>isNew(y.r)).length;if(t)t.textContent=k||'';}
+    const x=R.find(y=>y.r.id===id);if(DVOPEN[id]&&x&&isNew(x.r)){x.r.vu=true;sb.rpc('admin_contrib_vu',{p_ids:[id]}).then(({error})=>{if(error)x.r.vu=false;},()=>{x.r.vu=false;});const t=$('#tabN'),k=R.filter(y=>isNew(y.r)).length;if(t)t.textContent=k||'';}
     drawContrib();});
   app.querySelectorAll('[data-cdel]').forEach(b=>b.onclick=async()=>{if(!confirm('Supprimer cette contribution reçue ? (ex. un essai ou un spam)'))return;await sb.rpc('admin_contrib_suppr',{p_id:b.dataset.cdel});loadDev();});
   bindVoix(app,()=>loadDev());

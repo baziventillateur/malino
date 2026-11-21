@@ -1173,8 +1173,38 @@ const AR_G1=arGrp('g1'),AR_G2=arGrp('g2'),AR_G3=arGrp('g3'),AR_G4=arGrp('g4'),AR
 const AR_R12=AR_G1.concat(AR_G2),AR_R15=AR_R12.concat(AR_G3,AR_G4,AR_G5);
 // une fois la lettre vue dans un sens (lettre → nom), une fois dans l'autre (nom → lettre)
 const qArLetMix=(L,g)=>x=>Object.assign(Math.random()<.5?qArLet(L)(x):qArLet2(L)(x),{lesson:g});
+const qArLetAll=x=>Math.random()<.5?qArLet(AR_LET)(x):qArLet2(AR_LET)(x);
+// --- Syllabes : la lettre + une petite voyelle (harakat). On garde les noms de clés/romanisation au format de arR()
+const AR_HAR=[['َ','a','fatha','un petit trait au-dessus'],['ِ','i','kasra','un petit trait en dessous'],['ُ','u','damma','un petit و au-dessus']];
+const AR_CONS={'ا':'','ب':'b','ت':'t','ث':'th','ج':'j','ح':'ḥ','خ':'kh','د':'d','ذ':'dh','ر':'r','ز':'z','س':'s','ش':'sh','ص':'ṣ','ض':'ḍ','ط':'ṭ','ظ':'ẓ','ع':'ʿ','غ':'gh','ف':'f','ق':'q','ك':'k','ل':'l','م':'m','ن':'n','ه':'h','و':'w','ي':'y'};
+const arSyl=c=>AR_HAR.map(([h,v,nmH,desc],j)=>{const base=c==='ا'?(j===1?'إ':'أ'):c;return {k:'S'+(AR_CONS[c]||'a')+v,ar:base+h,r:AR_CONS[c]+v,l:c,v,hn:nmH,hd:desc};});
+const arSylGrp=str=>str.split(' ').flatMap(arSyl);
+const AR_S1=arSylGrp('ا ب ت ث ج ح خ'),AR_S2=arSylGrp('د ذ ر ز س ش'),AR_S3=arSylGrp('ص ض ط ظ ع غ'),AR_S4=arSylGrp('ف ق ك ل م ن'),AR_S5=arSylGrp('ه و ي');
+const AR_SYL=AR_S1.concat(AR_S2,AR_S3,AR_S4,AR_S5);
+const arSylFix=x=>`<span class="arw big" lang="ar">${x.ar}</span><div class="fixsub">se lit <b>« ${arR(x.r)} »</b> : ${x.hd} → « ${arR(x.v)} »</div>`;
+const qArSyl=L=>x=>{const same=L.filter(i=>i.l===x.l&&i!==x),oth=others(L.filter(i=>i.v===x.v&&i.l!==x.l),2,[x]);
+  const opt=Math.random()<.6||oth.length<2?shuffle([x,...same]):shuffle([x,...oth]);
+  const fix={fixHTML:arSylFix(x),fixChain:[{say:x.ar,lang:AR,rate:.7},{say:'se lit'},{say:x.ar,lang:AR,rate:.7}]};
+  if(Math.random()<.5)return Object.assign({ans:x.k,inst:'Comment se lit cette syllabe ?',html:`<div class="arw big" lang="ar">${x.ar}</div>`,opts:shuffle([x,...same]).map(i=>({v:i.k,l:arR(i.r)})),optCls:'col txt',afterSay:x.ar,afterLang:AR,lesson:'h1'},fix);
+  return Object.assign({ans:x.k,inst:'Écoute et trouve la syllabe',html:`<div class="bigtxt read">${arR(x.r)}</div>`,chain:[{say:x.ar,lang:AR,rate:.7}],opts:opt.map(i=>({v:i.k,h:`<span class="arw" lang="ar">${i.ar}</span>`})),optCls:'emo',afterSay:x.ar,afterLang:AR,lesson:'h1'},fix);};
+// leçon des petites voyelles (avant les syllabes)
+const ArHar={
+  open(done,replay){this.done=done;this.replay=!!replay;this.i=0;ArAudio.preload(['بَ','بِ','بُ','تَ','تِ','تُ']);queueModal('<div id="arhar"></div>',()=>this.draw());},
+  draw(){const e=document.getElementById('arhar');if(!e)return;const x=this.replay?'<button class="xbtn arx" data-act="arlesx" aria-label="Fermer">✕</button>':'',sp=t=>`<button class="arspk" data-act="arhsay" data-arg="${t}" aria-label="Écouter">🔊</button>`;
+    if(this.i===0){e.innerHTML=`<div class="arles">${x}<div class="arbig" lang="ar">بَ</div><h2>Les petites voyelles</h2><ul class="arintro"><li>👀 Tu connais les <b>28 lettres</b> : bravo !</li><li>✏️ Pour <b>lire</b>, on ajoute de <b>petits signes</b> au-dessus ou en dessous de la lettre.</li><li>🔊 Chaque signe dit quel son faire : <b>a</b>, <b>i</b> ou <b>ou</b>.</li></ul><div class="arnav"><button class="btn g" data-act="arhnext">Je découvre ➜</button></div></div>`;return;}
+    if(this.i<=3){const [h,v,nmH,desc]=AR_HAR[this.i-1],ex=['ب','ت','ج'].map(c=>c+h);
+      e.innerHTML=`<div class="arles">${x}<div class="arstep">Leçon · signe ${this.i} sur 3</div><div class="arbig" lang="ar">${ex[0]}</div><div class="arname">${arR('b'+v)} ${sp(ex[0])}</div>
+        <div class="arline"><b>Signe</b> ${esc(desc)} (${nmH})</div><div class="arline"><b>Son</b> on dit « ${arR(v)} »</div>
+        <div class="arrow2 big">${ex.map(t=>`<span class="ok" lang="ar" data-act="arhsay" data-arg="${t}">${t}</span>`).join('')}</div><p class="small">${ex.map(t=>arR(AR_CONS[t[0]]+v)).join(' · ')}</p>
+        <div class="arnav"><button class="btn w" data-act="arhprev">←</button><button class="btn g" data-act="arhnext">${this.i<3?'Signe suivant ➜':'Récapitulatif ➜'}</button></div></div>`;
+      setTimeout(()=>ArAudio.play(ex[0]),350);return;}
+    e.innerHTML=`<div class="arles">${x}<div class="bigemoji">🎉</div><h2>Bravo !</h2><p>Une lettre, trois sons :</p><div class="arrow2 big">${AR_HAR.map(([h])=>`<span class="ok" lang="ar" data-act="arhsay" data-arg="ب${h}">ب${h}</span>`).join('')}</div><p><b>ba · bi · bou</b></p><button class="btn y block" data-act="arhend">${this.replay?'Terminer ✓':'C’est parti ! 🚀'}</button></div>`;
+    S.arLesson=S.arLesson||{};if(!this.replay&&!S.arLesson.h1){S.arLesson.h1=Date.now();save();Sound.play('level');Confetti.burst(100);}},
+  next(){this.i=Math.min(4,this.i+1);this.draw();},prev(){this.i=Math.max(0,this.i-1);this.draw();},
+  end(){nextModal();const d=this.done;this.done=null;if(d)setTimeout(d,150);}
+};
 const ArLesson={
-  open(g,done,replay){this.g=g;this.L=arGrp(g);ArAudio.preload(this.L.flatMap(l=>[l.nm,AR_INFO[l.ar][2][0]]));this.done=done;this.replay=!!replay;this.i=(!replay&&!S.arIntro)?-1:0;this.phase='learn';this.queueQ=[];
+  open(g,done,replay){if(String(g).startsWith('h'))return ArHar.open(done,replay);this.g=g;this.L=arGrp(g);ArAudio.preload(this.L.flatMap(l=>[l.nm,AR_INFO[l.ar][2][0]]));this.done=done;this.replay=!!replay;this.i=(!replay&&!S.arIntro)?-1:0;this.phase='learn';this.queueQ=[];
     queueModal('<div id="arles"></div>',()=>this.draw());},
   el(){return document.getElementById('arles');},
   say(c){const x=AR_LET.find(l=>l.ar===c);if(x)Voice.say(x.nm,{lang:AR,rate:.75});},
@@ -1299,29 +1329,34 @@ const THEMES={
   {e:'📖',n:'Je lis le mot anglais (sans le son)',t:8,items:EN_ALL,q:qEnRead},
   {e:'💀',n:'Traduis en anglais',t:9,items:EN_ALL,q:qEnTr},
  ]},
- arabe:{n:'Arabe',e:'ع',c:'#0E9F6E',d:'#0B7A55',desc:'Pour débutants : l’alphabet par petits groupes avec une leçon, puis les premiers mots',levels:[
+ arabe:{n:'Arabe',e:'ع',c:'#0E9F6E',d:'#0B7A55',desc:'Pour débutants : les 28 lettres par petits groupes, puis les syllabes (a, i, ou), puis les premiers mots',levels:[
   {e:'⛵',n:'Lettres 1 : ا ب ت ث',t:1,lesson:'g1',items:AR_G1,q:qArLetMix(AR_G1,'g1')},
   {e:'🪝',n:'Lettres 2 : ج ح خ',t:1,lesson:'g2',items:AR_G2,q:qArLetMix(AR_G2,'g2')},
-  {e:'🎨',n:'Les couleurs',t:2,items:AR_COL,q:qAr(AR_COL,vCol)},
-  {e:'🔁',n:'Révision : lettres 1 et 2',t:2,items:AR_R12,q:qArLet2(AR_R12)},
+  {e:'🔁',n:'Révision : lettres 1 et 2',t:1,items:AR_R12,q:qArLet2(AR_R12)},
   {e:'📐',n:'Lettres 3 : د ذ ر ز',t:2,lesson:'g3',items:AR_G3,q:qArLetMix(AR_G3,'g3')},
-  {e:'🔢',n:'Les nombres de 1 à 10',t:3,items:AR_N1,q:qAr(AR_N1,vNum)},
-  {e:'🦷',n:'Lettres 4 : س ش ص ض',t:3,lesson:'g4',items:AR_G4,q:qArLetMix(AR_G4,'g4')},
-  {e:'🐶',n:'Les animaux',t:3,items:AR_ANI,q:qAr(AR_ANI,vEmo)},
-  {e:'✨',n:'Lettres 5 : ط ظ ع غ',t:4,lesson:'g5',items:AR_G5,q:qArLetMix(AR_G5,'g5')},
-  {e:'👨‍👩‍👧',n:'La famille',t:4,items:AR_FAM,q:qAr(AR_FAM,vEmo)},
-  {e:'🔁',n:'Révision : lettres 1 à 5',t:4,items:AR_R15,q:qArLet2(AR_R15)},
-  {e:'🍋',n:'Lettres 6 : ف ق ك ل',t:5,lesson:'g6',items:AR_G6,q:qArLetMix(AR_G6,'g6')},
-  {e:'🍎',n:'Les aliments',t:5,items:AR_FOOD,q:qAr(AR_FOOD,vEmo)},
-  {e:'🌹',n:'Lettres 7 : م ن ه و ي',t:5,lesson:'g7',items:AR_G7,q:qArLetMix(AR_G7,'g7')},
-  {e:'🧮',n:'Les chiffres écrits en arabe (١ ٢ ٣)',t:6,items:AR_DIG,q:qArDig},
+  {e:'🦷',n:'Lettres 4 : س ش ص ض',t:2,lesson:'g4',items:AR_G4,q:qArLetMix(AR_G4,'g4')},
+  {e:'✨',n:'Lettres 5 : ط ظ ع غ',t:2,lesson:'g5',items:AR_G5,q:qArLetMix(AR_G5,'g5')},
+  {e:'🔁',n:'Révision : lettres 1 à 5',t:2,items:AR_R15,q:qArLet2(AR_R15)},
+  {e:'🍋',n:'Lettres 6 : ف ق ك ل',t:3,lesson:'g6',items:AR_G6,q:qArLetMix(AR_G6,'g6')},
+  {e:'🌹',n:'Lettres 7 : م ن ه و ي',t:3,lesson:'g7',items:AR_G7,q:qArLetMix(AR_G7,'g7')},
+  {e:'🔠',n:'Tout l’alphabet (28 lettres)',t:3,items:AR_LET,q:qArLetAll},
+  {e:'✏️',n:'Syllabes 1 : أَ بِ تُ… (a, i, ou)',t:4,lesson:'h1',items:AR_S1,q:qArSyl(AR_S1)},
+  {e:'🔤',n:'Syllabes 2 : د ذ ر ز س ش',t:4,items:AR_S2,q:qArSyl(AR_S2)},
+  {e:'🔡',n:'Syllabes 3 : ص ض ط ظ ع غ',t:4,items:AR_S3,q:qArSyl(AR_S3)},
+  {e:'📝',n:'Syllabes 4 : ف ق ك ل م ن',t:5,items:AR_S4,q:qArSyl(AR_S4)},
+  {e:'🏁',n:'Syllabes 5 : ه و ي',t:5,items:AR_S5,q:qArSyl(AR_S5)},
+  {e:'🔢',n:'Les nombres de 1 à 10',t:5,items:AR_N1,q:qAr(AR_N1,vNum)},
+  {e:'🎨',n:'Les couleurs',t:5,items:AR_COL,q:qAr(AR_COL,vCol)},
+  {e:'🐶',n:'Les animaux',t:5,items:AR_ANI,q:qAr(AR_ANI,vEmo)},
+  {e:'👨‍👩‍👧',n:'La famille',t:6,items:AR_FAM,q:qAr(AR_FAM,vEmo)},
+  {e:'🍎',n:'Les aliments',t:6,items:AR_FOOD,q:qAr(AR_FOOD,vEmo)},
   {e:'👂',n:'Le corps',t:6,items:AR_BODY,q:qAr(AR_BODY,vEmo)},
   {e:'🏠',n:'La maison et l’école',t:6,items:AR_HOME,q:qAr(AR_HOME,vEmo)},
   {e:'☀️',n:'La nature',t:7,items:AR_NAT,q:qAr(AR_NAT,vEmo)},
+  {e:'🧮',n:'Les chiffres écrits en arabe (١ ٢ ٣)',t:7,items:AR_DIG,q:qArDig},
   {e:'👋',n:'Les mots de tous les jours',t:7,items:AR_MOTS,q:qArTxt(AR_MOTS)},
-  {e:'📅',n:'Les jours de la semaine',t:7,items:AR_JOURS,q:qArTxt(AR_JOURS)},
+  {e:'📅',n:'Les jours de la semaine',t:8,items:AR_JOURS,q:qArTxt(AR_JOURS)},
   {e:'🔟',n:'Les nombres de 11 à 20',t:8,items:AR_N2,q:qAr(AR_N2,vNum)},
-  {e:'🔠',n:'Tout l’alphabet',t:8,items:AR_LET,q:qArLet2(AR_LET)},
   {e:'💬',n:'Comment dit-on en arabe ?',t:8,items:AR_ALL,q:qArTr},
   {e:'💀',n:'Je lis le mot arabe, sans aide',t:9,items:AR_ALL,q:qArRead},
  ]},
@@ -1768,7 +1803,16 @@ function defaultState(){
 }
 function deepMerge(base,over){for(const k in over){const o=over[k],b=base[k];if(o&&typeof o==='object'&&!Array.isArray(o)&&b&&typeof b==='object'&&!Array.isArray(b))base[k]=deepMerge(b,o);else base[k]=o;}return base;}
 let S;
-function load(){try{const raw=localStorage.getItem(STORE_KEY);if(raw){const d=JSON.parse(raw);S=deepMerge(defaultState(),d);if(!d.frV){S.frV=2;S.fr={};S.settings.frLevel=1;S.frFlashMs=2000;}S.settings.frLevel=Math.min(Math.max(1,S.settings.frLevel),FR_LEVELS.length);S.settings.mathLevel=Math.min(Math.max(1,S.settings.mathLevel),MATH_LEVELS.length);Object.keys(THEMES).forEach(k=>{S.settings.lv[k]=Math.min(Math.max(1,S.settings.lv[k]||1),THEMES[k].levels.length);});migrateShop();return;}}catch(e){}S=defaultState();}
+// Arabe v2 : l'alphabet en entier, puis les syllabes, puis les mots. Les niveaux, séances et acquis sont renumérotés,
+// et l'enfant reprend au premier niveau pas encore maîtrisé.
+const AR_MIG=[0,1,2,17,3,4,16,5,18,6,19,7,8,20,9,24,21,22,23,25,26,27,10,28,29];
+function arMigrate(){if(!S||S.arV>=2)return;const m=n=>AR_MIG[n]||n;
+  (S.sessions||[]).forEach(x=>{if(x.type==='arabe'&&x.lvl)x.lvl=m(x.lvl);});
+  const fr={};Object.keys(S.fr||{}).forEach(k=>{const r=/^arabe(\d+):(.*)$/.exec(k);fr[r?'arabe'+m(+r[1])+':'+r[2]:k]=S.fr[k];});S.fr=fr;
+  if(S.settings&&S.settings.lv&&S.settings.lv.arabe){const len=THEMES.arabe.levels.length;let to=1;while(to<len&&levelMastery('arabe',to)>=.8)to++;S.settings.lv.arabe=to;}
+  S.arV=2;}
+function load(){load0();try{arMigrate();}catch(e){}}
+function load0(){try{const raw=localStorage.getItem(STORE_KEY);if(raw){const d=JSON.parse(raw);S=deepMerge(defaultState(),d);if(!d.frV){S.frV=2;S.fr={};S.settings.frLevel=1;S.frFlashMs=2000;}S.settings.frLevel=Math.min(Math.max(1,S.settings.frLevel),FR_LEVELS.length);S.settings.mathLevel=Math.min(Math.max(1,S.settings.mathLevel),MATH_LEVELS.length);Object.keys(THEMES).forEach(k=>{S.settings.lv[k]=Math.min(Math.max(1,S.settings.lv[k]||1),THEMES[k].levels.length);});migrateShop();return;}}catch(e){}S=defaultState();}
 function save(){try{S.ts=Date.now();localStorage.setItem(STORE_KEY,JSON.stringify(S));}catch(e){}if(window.__dirty)window.__dirty();}
 const nm=()=>esc(S.name||'Champion');
 
@@ -2192,6 +2236,7 @@ const ArAudio={buf:{},cur:null,
     this.stop();const s=c.createBufferSource(),g=c.createGain();s.buffer=b;g.gain.value=b.g||1;s.connect(g);g.connect(c.destination);s.start(0,b.off||0);this.cur=s;s.onended=()=>{if(this.cur===s)this.cur=null;};},
   preload(list){(list||[]).forEach(t=>{if(t)this.load(t);});}
 };
+try{AR_SYL.forEach(x=>AR_SYN.add(ArAudio.key(x.ar)));}catch(e){}
 // ---------- Voix (synthèse vocale du navigateur) ----------
 // Voix des contributions choisies dans l'admin (« Utiliser ») : cris/voix/index.json donne, pour chaque son
 // (ar:mot, fr:phrase, en:word, cri:meuh, son:s), la liste des enregistrements ; l'appli en tire un au hasard.
@@ -2363,7 +2408,7 @@ function drawQ(){
     else if(q.type==='wread')h+=sylHTML(q.word.sy)+'<button class="helpbtn" data-act="sylhelp">👂 Aide : syllabe par syllabe</button>';
     else if(q.type==='sent')h+=`<div class="sentence read">${esc(q.show)}</div>`;
     if(q.lesson)h+=`<button class="helpbtn" data-act="arlesson" data-arg="${q.lesson}">📘 Revoir la leçon</button>`;
-    if(q.say||q.chain)h+='<button class="speaker" data-act="replay" aria-label="Réécouter">🔊</button>';
+    if(q.say||q.chain||instTxt(q))h+='<button class="speaker" data-act="replay" aria-label="Réécouter">🔊</button>';
     if(!Voice.ok&&(q.say||(q.chain||[]).some(c=>c&&c.say&&!/^ar/.test(c.lang||''))))h+='<div class="nosound">🔇 Ce navigateur ne sait pas parler. Ouvrez l’appli dans Safari ou Chrome.</div>';
   }
   card.className='qcard';card.innerHTML=h;restart(card,'in');
@@ -2374,7 +2419,9 @@ function drawQ(){
   const tb=$('#tbar');if(tb){const T=S.settings.target*1000;tb.style.transition='none';tb.style.width='100%';void tb.offsetWidth;tb.style.transition=`width ${T}ms linear`;tb.style.width='0%';}
   if(q.type!=='math'){
     const first=G.idx===0&&qi.kind==='main',steps=(q.chain||(q.say?[{say:q.say,rate:q.type==='syll'?.8:.88}]:[])).filter(Boolean);
-    if(first)steps.unshift({say:(q.instSay||q.inst).replace('… ⚡','')});
+    // la consigne est lue à la 1re question, et à chaque fois qu'elle change quand c'est elle qui porte la question (ex. « Avec quoi respire-t-on ? »)
+    const it=instTxt(q);if(it&&(first||(!steps.length&&it!==G.lastInst)))steps.unshift({say:it});
+    G.lastInst=it;
     if(steps.length)Chain.run(steps);
   }else if(S.settings.voiceQ&&G.mode!=='sprint')Voice.say(q.say);
   if(q.type==='flash'||q.flashHide){
@@ -2382,6 +2429,7 @@ function drawQ(){
     later(()=>{const w=$('#flashw');if(w)w.innerHTML=q.flashAfter||'<span class="word gone">❓</span>';ans.classList.remove('veil');if(G.cur)G.cur.start=performance.now();},ms);
   }
 }
+function instTxt(q){const t=String(q.instSay||q.inst||'').replace(/<[^>]*>/g,' ').replace('… ⚡','').replace(/\p{Extended_Pictographic}|\uFE0F/gu,'').replace(/\s+/g,' ').trim();return t;}
 function updateHud(){const c=$('#combo');if(c)c.textContent=G.combo>=2?`🔥 x${G.combo}`:'';const ss=$('#sscore');if(ss)ss.textContent=G.mode==='sprint'?`✅ ${G.score}`:`🪙 ${fmtP(G.coins)}`;}
 function markAnswer(val,ok){
   const q=G.cur.q;
@@ -2612,7 +2660,7 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.70';
+const VERSION='1.71';
 const VERSIONS=[
  ['1.65','21/11/2026 15:20','Espace parents : bouton Admin et cloche en haut'],
  ['1.64','21/11/2026 15:00','Voix des contributions : plusieurs voix par son, sons des lettres, cris, anglais'],
@@ -2735,7 +2783,7 @@ function paneData(){
   <section class="acard"><h3>ℹ️ Crédits</h3><p class="hint">Bruitages : pack « uisfx », thème arcade, domaine public (CC0). Cris d’animaux et voix arabes des mots : arabophones de Wikimedia Commons et Lingua Libre (CC BY, CC BY-SA, CC0), <a href="ar/sources-mots.txt" target="_blank" rel="noopener">auteurs et licences</a>. Noms des lettres arabes : dépôt « arabic-alphabet-audio » (MIT). Autres mots arabes : voix de synthèse libre Piper.</p></section>
   <section class="acard"><h3>♻️ Remise à zéro</h3><p class="hint">Efface pièces, niveaux, badges et statistiques. Les réglages, le code et les cadeaux sont conservés.</p><button class="btn r sm" data-act="reset">Tout remettre à zéro</button></section>`;
 }
-function importFile(file){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||typeof d!=='object'||!('xp' in d))throw 0;S=deepMerge(defaultState(),d);save();toast('Sauvegarde importée ✅');render();}catch(e){toast('Fichier non reconnu');}};r.readAsText(file);}
+function importFile(file){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||typeof d!=='object'||!('xp' in d))throw 0;S=deepMerge(defaultState(),d);try{arMigrate();}catch(e){}save();toast('Sauvegarde importée ✅');render();}catch(e){toast('Fichier non reconnu');}};r.readAsText(file);}
 
 // ---------- Actions ----------
 const lockedMsg=()=>{toast('Fais d’abord ton entraînement de maths ! 🔢');if(S.settings.voice)Voice.say('Fais d’abord ton entraînement de maths !');};
@@ -2789,7 +2837,7 @@ const ACT={
     const s=$('#slot');if(s){s.textContent=G.input||'?';s.className='slot'+(G.input?' filled':'');}
     if(G.input.length>=String(G.cur.q.ans).length)submit(parseInt(G.input,10));},
   choose(a){submit(Number(a));},pickopt(a){submit(a);},
-  replay(){if(!G||!G.cur)return;const q=G.cur.q;if(q.chain)Chain.run(q.chain);else if(q.say)Voice.say(q.say,{rate:.8});},
+  replay(){if(!G||!G.cur)return;const q=G.cur.q;if(q.chain)Chain.run(q.chain);else if(q.say)Voice.say(q.say,{rate:.8});else if(instTxt(q))Voice.say(instTxt(q),{rate:.85});},
   sylhelp(){if(!G||!G.cur||G.cur.done||!G.cur.q.word)return;G.cur.helped=true;Chain.run(sylChain(G.cur.q.word));},
   recsnd(k){Rec.record(k,()=>keepScroll(render));},
   playsnd(k){if(Rec.ok(k)){Voice.stop();Rec.play(k);}else{const p=PHON[k];Voice.say(p&&p.tts?p.tts:'la lettre '+(LETTER_NAME[k]||k));}},
@@ -2819,7 +2867,7 @@ const ACT={
   onbnext(){Onb.next();},onbprev(){Onb.prev();},onbskip(){Onb.skip();},onbset(a){Onb.set(a);},onbinvite(){Onb.done();setTimeout(()=>Offre.invite(),300);},onbstart(){Onb.start();},invsend(){Offre.inviteSend();},
   openlogin(){Acct.show('login');},authclose(){Acct.hide();},authsend(a){Acct.send(a==='again');},authverify(){Acct.verify();},
   who(){Famille.who(true);},
-  arlesson(g){ArLesson.open(g,null,true);},arlesnext(){ArLesson.next();},arlesprev(){ArLesson.prev();},arlesx(){nextModal();},arsay(c){ArLesson.say(c);},arword(w){Voice.say(w,{lang:AR});},archk(c){ArLesson.check(c);},arlesend(){ArLesson.end();},
+  arlesson(g){ArLesson.open(g,null,true);},arhnext(){ArHar.next();},arhprev(){ArHar.prev();},arhend(){ArHar.end();},arhsay(t){ArAudio.play(t);},arlesnext(){ArLesson.next();},arlesprev(){ArLesson.prev();},arlesx(){nextModal();},arsay(c){ArLesson.say(c);},arword(w){Voice.say(w,{lang:AR});},archk(c){ArLesson.check(c);},arlesend(){ArLesson.end();},
   setlang(l){if(l===(window.MLANG||'fr'))return;if(window.I18N)I18N.set(l);},
   newgenre(g){Acct.newG=g;const v=($('#newprof')||{}).value||'';keepScroll(render);const e=$('#newprof');if(e)e.value=v;},
   setgenre(g){S.genre=g;S.avatar=Object.assign({},S.avatar,g==='f'?{hair:'hair_long',shirt:'sh_rouge'}:{hair:'hair_court',shirt:'sh_bleu'});save();toast(g==='f'?'Profil : fille 👧':'Profil : garçon 👦');keepScroll(render);},
