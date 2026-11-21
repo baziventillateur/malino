@@ -70,7 +70,8 @@ const eur=c=>(c/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const d=x=>x?new Date(x).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—';
 const dh=x=>x?new Date(x).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
 const ago=x=>{if(!x)return '—';const m=(Date.now()-Date.parse(x))/6e4;return m<60?Math.round(m)+' min':m<1440?Math.round(m/60)+' h':Math.round(m/1440)+' j';};
-const lvl=xp=>{let L=1,r=xp||0;while(r>=80+40*L){r-=80+40*L;L++;}return L;};
+// même barème que l'appli (v2)
+const xpTot=L=>Math.round(425*Math.pow(Math.max(0,L-1),2.15)/10)*10,lvl=xp=>{let L=1;while((xp||0)>=xpTot(L+1))L++;return L;};
 const jours=x=>Math.max(0,Math.ceil((Date.parse(x)-Date.now())/864e5));
 let D=null,email='',q='',VIEW=/^#(contrib|dev)$/.test(location.hash)?'contrib':'tableau';
 
