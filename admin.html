@@ -47,6 +47,10 @@ details summary{cursor:pointer;font-weight:700;font-size:15px}
 .evol .kpis{margin-bottom:0;grid-template-columns:repeat(3,1fr);gap:6px}.evol .kpi{padding:7px 8px}.evol .kpi b{font-size:17px}.evol .kpi small{font-size:11px}.evol .dl{font-size:10.5px}.nowh{font-size:14px;margin:4px 2px 6px;color:var(--ink2)}
 .rk{display:flex;align-items:center;gap:8px;padding:6px 2px;border-top:1px solid #F1EEFB;cursor:pointer}.rk:active{background:#FAF8FF}.rkn{width:26px;text-align:center;font-weight:800;color:var(--ink2);font-size:13px}.rkn.top{font-size:18px}
 .rkm{flex:1;min-width:0}.rkm b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rkm small{display:block;color:var(--ink2);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rkv{font-weight:800;font-size:13px;color:var(--v);white-space:nowrap}
+.jcard h2{margin-bottom:6px}.jrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid #F1EEFB}.jrow span{flex:1;min-width:0}.jrow b{display:block;font-size:14px}.jrow small{display:block;color:var(--ink2);font-size:12px;line-height:1.3}.jrow .jbase{color:#A39BC9;font-size:11px}
+.jrow input{width:84px;text-align:right;font-weight:700}.jrow.chg input{border-color:var(--v);background:#F4F1FF}.jrow.chg b::after{content:" · modifié";color:var(--v);font-size:11px;font-weight:700}
+.jprev{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:6px}.jprev span{background:#F4F1FF;border-radius:10px;padding:5px 4px;text-align:center;font-size:12px}.jprev b{display:block;font-size:12px;color:var(--v)}
+.jbar{position:sticky;bottom:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:rgba(244,241,255,.96);padding:10px 4px;margin:0 -4px;backdrop-filter:blur(6px)}
 .kpis.k6{grid-template-columns:repeat(3,1fr)}.kpis.k4{grid-template-columns:repeat(4,1fr);gap:6px}.kpis.k4 .kpi{padding:6px 8px}.kpis.k4 .kpi b{font-size:17px}.kpis.k4 small{font-size:11px}.kpis.k6 .kpi b{font-size:17px}
 .bars{display:flex;align-items:flex-end;gap:2px;height:96px;padding:2px 0;border-bottom:1px solid #E6E3F2}.bc{flex:1;height:100%;display:flex;align-items:flex-end;border-radius:3px}.bc.acc{background:#F6F2FF}.bc i{display:block;width:100%;background:var(--v);border-radius:3px 3px 0 0}
 .barax{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:3px}.sw-acc{display:inline-block;width:10px;height:10px;border-radius:3px;background:#F6F2FF;border:1px solid #E3DAFF;vertical-align:-1px}
@@ -62,7 +66,7 @@ textarea{font:inherit;border:1px solid #D9D3F3;border-radius:9px;padding:6px 8px
 </head>
 <body>
 <header><img src="logo.svg" alt=""><h1>Malino · Admin</h1><button class="o bell" id="bell" title="Notifications">🔔<b id="bellN"></b></button><button class="o" id="refresh" title="Actualiser">↻</button><a href="./" style="font-size:13px;color:var(--vd);font-weight:600;text-decoration:none">Appli</a></header>
-<nav id="tabs" class="tabs hidden"><button data-view="tableau">📊 Tableau de bord</button><button data-view="contrib">🤝 Contributions <b id="tabN"></b></button></nav>
+<nav id="tabs" class="tabs hidden"><button data-view="tableau">📊 Tableau</button><button data-view="contrib">🤝 Contributions <b id="tabN"></b></button><button data-view="reglages">⚙️ Réglages</button></nav>
 <main id="app"><p class="mut">Chargement…</p></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
@@ -75,9 +79,13 @@ const d=x=>x?new Date(x).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digi
 const dh=x=>x?new Date(x).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
 const ago=x=>{if(!x)return '—';const m=(Date.now()-Date.parse(x))/6e4;return m<60?Math.round(m)+' min':m<1440?Math.round(m/60)+' h':Math.round(m/1440)+' j';};
 // même barème que l'appli (v2)
-const xpTot=L=>Math.round(425*Math.pow(Math.max(0,L-1),2.15)/10)*10,lvl=xp=>{let L=1;while((xp||0)>=xpTot(L+1))L++;return L;};
+const xpTot=L=>Math.round(JEU.xpK*Math.pow(Math.max(0,L-1),JEU.xpE)/10)*10,lvl=xp=>{let L=1;while((xp||0)>=xpTot(L+1))L++;return L;};
 const jours=x=>Math.max(0,Math.ceil((Date.parse(x)-Date.now())/864e5));
-let D=null,email='',q='',VIEW=/^#(contrib|dev)$/.test(location.hash)?'contrib':'tableau';
+// ---- Réglages du jeu : mêmes valeurs de base que l'appli (index.html, CFG0) ----
+const JEU0={xpK:425,xpE:2.15,coinLv:5,coinMul:100,cofDay:3,cofSlots:4,cofH:12,cof3:25,cof2:8,cofGame:1,cofWorld:40,keyEvery:2,wall:2,
+  u_heure:3,u_quoi:4,u_formes:5,u_chiffres:6,u_probl:7,u_drapeaux:8,u_espace:10,u_ortho:12};
+let JEU=Object.assign({},JEU0);
+let D=null,email='',q='',VIEW=/^#(contrib|dev)$/.test(location.hash)?'contrib':location.hash==='#reglages'?'reglages':'tableau';
 
 function loginView(step,msg){
   app.innerHTML=`<div id="login" class="card"><img src="logo.svg" width="56" height="56" style="border-radius:14px"><h2 style="justify-content:center">Connexion admin</h2>
@@ -98,7 +106,8 @@ async function load(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session)return loginView('mail');
   app.innerHTML='<p class="mut">Chargement…</p>';
-  const [{data,error},ser]=await Promise.all([sb.rpc('admin_tableau'),sb.rpc('admin_series').then(r=>r,()=>({data:null}))]);
+  const [{data,error},ser,jeu]=await Promise.all([sb.rpc('admin_tableau'),sb.rpc('admin_series').then(r=>r,()=>({data:null})),sb.rpc('malino_jeu').then(r=>r,()=>({data:null}))]);
+  JEU=Object.assign({},JEU0,(jeu&&jeu.data)||{});
   if(error){app.innerHTML=`<div class="card"><h2>Accès refusé</h2><p>Le compte <b>${esc(session.user.email)}</b> n’est pas administrateur.</p><button id="out" class="o">Changer de compte</button></div>`;$('#out').onclick=async()=>{await sb.auth.signOut({scope:'local'});loginView('mail');};return;}
   D=data;D.series=ser&&ser.data||null;$('#tabs').classList.remove('hidden');render();loadDev();bellCount();if(!load.t)load.t=setInterval(bellCount,60000);
   if(location.hash==='#notifs'&&!load.nb){load.nb=1;openBell();}
@@ -187,9 +196,9 @@ function devLink(){const el=$('#devlink');if(!el)return;if(!DV){el.innerHTML='';
   const n=DV.reduce((a,d)=>a+(d.reponses||[]).filter(isNew).length,0),on=DV.filter(d=>d.statut==='en_ligne').length;
   el.innerHTML=`<div class="card row" style="cursor:pointer;justify-content:space-between" id="goC"><b>🤝 Contributions</b><span class="row"><span class="small mut">${on} en ligne</span>${n?`<span class="tag t-chaud">${n} nouvelle${n>1?'s':''}</span>`:''}<span class="go">›</span></span></div>`;
   $('#goC').onclick=()=>setView('contrib');}
-function setView(v){VIEW=v;try{history.replaceState(null,'',v==='contrib'?'#contrib':location.pathname);}catch(e){}
+function setView(v){VIEW=v;try{history.replaceState(null,'',v==='contrib'?'#contrib':v==='reglages'?'#reglages':location.pathname);}catch(e){}
   document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('on',b.dataset.view===v));window.scrollTo(0,0);render();}
-function render(){if(!D)return;if(VIEW==='contrib')drawContrib();else draw();}
+function render(){if(!D)return;if(VIEW==='contrib')drawContrib();else if(VIEW==='reglages')drawJeu();else draw();}
 function persItems(dm,r){const f=r.fichiers||{};return `<div class="its">${dm.items.map(x=>{const e=f[x.id];return `<div class="it"><span class="ar" ${/[؀-ۿ]/.test(x.texte)?'dir="rtl"':''}>${esc(x.texte)}</span><span class="s">${esc(x.sens||'')}</span>${!e?'<span class="small mut">pas encore</span>':e.texte?`<span>${esc(e.texte)}</span>`:`<audio controls preload="none" data-path="${esc(e.path)}"></audio>${adoptBtn(r.id,x,e)}<a class="dl" data-dl="${esc(e.path)}" title="Télécharger">⬇️</a>`}</div>`;}).join('')}</div>`;}
 function drawContrib(){
   if(!DV){app.innerHTML=`<div class="card"><h2>🤝 Contributions</h2><p class="small mut">${DVERR==='base'?'La base des contributions doit être mise à jour sur Supabase.':DVERR?'Chargement impossible.':'Chargement…'}</p></div>`;return;}
@@ -521,6 +530,38 @@ function draw(){
   app.querySelectorAll('[data-unstop]').forEach(b=>b.onclick=async()=>{await sb.rpc('admin_stop',{mail:b.dataset.unstop,ajouter:false});load();});
 }
 
+const JEUF=[
+ ['📈 Niveaux du joueur','Plus les niveaux sont longs, plus un haut niveau veut dire « a joué longtemps ».',[
+   ['xpK','XP pour passer du niveau 1 au 2','Plus c’est haut, plus tous les niveaux sont longs.',50,5000,5],
+   ['xpE','Courbe','2 : chaque niveau un peu plus long que le précédent · 2,5 : beaucoup plus long en haut.',1,3.5,0.05]],'niv'],
+ ['🪙 Pièces','',[
+   ['coinMul','Quantité de pièces (%)','100 = normal · 50 = deux fois moins · 200 = deux fois plus.',10,300,5],
+   ['coinLv','Bonus de pièces par niveau (%)','5 = +5 % à chaque niveau (deux fois plus au niveau 21).',0,20,0.5]]],
+ ['🗝️ Coffres','',[
+   ['cofDay','Coffres par jour, au maximum','Mission du jour comprise.',1,10,1],
+   ['cofGame','Coffres de partie par jour, au maximum','Gagnés après une bonne partie.',0,5,1],
+   ['cof3','Chance après une partie à 3 ⭐ (%)','',0,100,1],
+   ['cof2','Chance après une partie à 2 ⭐ (%)','',0,100,1],
+   ['cofWorld','Chance quand un monde est terminé (%)','',0,100,1],
+   ['cofH','Heures avant de pouvoir ouvrir','',1,48,1],
+   ['cofSlots','Emplacements de coffres','',1,8,1]]],
+ ['🎁 Demandes de cadeaux','',[['keyEvery','Une clé 🔑 tous les … niveaux','',1,10,1]]],
+ ['🔓 Jeux débloqués au niveau','Un jeu déjà ouvert pour un enfant le reste.',[['u_heure','🕐 L’heure'],['u_quoi','🔦 Qui a changé ?'],['u_formes','📐 Formes'],['u_chiffres','💡 Chiffres éclair'],['u_probl','🧮 Problèmes'],['u_drapeaux','🚩 Drapeaux'],['u_espace','🪐 Sciences'],['u_ortho','✍️ Orthographe']].map(([k,l])=>[k,l,'',1,60,1])],
+ ['👋 Sans compte','',[['wall','Parties avant la connexion obligatoire','',1,10,1]]]];
+let JEUD=null;
+function jeuNiv(v){const t=L=>Math.round(v.xpK*Math.pow(Math.max(0,L-1),v.xpE)/10)*10,h=L=>{const m=Math.round(t(L)/160);return m<60?`${m} min`:m<1440?`${Math.round(m/6)/10} h`.replace('.',','):`${Math.round(m/60)} h`;};
+  return `<div class="jprev">${[5,10,20,30,50].map(L=>`<span><b>Niv. ${L}</b>${h(L)}</span>`).join('')}</div><p class="small mut" style="margin:4px 0 0">Temps de jeu estimé pour atteindre le niveau (environ 160 XP par minute de jeu).</p>`;}
+function drawJeu(){const v=JEUD||(JEUD=Object.assign({},JEU));
+  app.innerHTML=`<p class="small mut" style="margin:0 0 8px">Ces réglages s’appliquent à tous les enfants, au prochain lancement de l’appli. Les valeurs de base sont rappelées sous chaque case.</p>`+JEUF.map(([t,h,F,x])=>`<div class="card jcard"><h2>${t}</h2>${h?`<p class="small mut" style="margin:-4px 0 6px">${h}</p>`:''}${F.map(([k,l,a,mn,mx,stp])=>`<label class="jrow ${v[k]!==JEU0[k]?'chg':''}"><span><b>${l}</b>${a?`<small>${a}</small>`:''}<small class="jbase">base : ${String(JEU0[k]).replace('.',',')}</small></span><input type="number" inputmode="decimal" data-jeu="${k}" min="${mn}" max="${mx}" step="${stp}" value="${v[k]}"></label>`).join('')}${x==='niv'?`<div id="jniv">${jeuNiv(v)}</div>`:''}</div>`).join('')
+   +`<div class="jbar"><button id="jSave">💾 Enregistrer</button><button class="o" id="jBase">↺ Valeurs de base</button><span class="msg" id="jRes"></span></div>`;
+  app.querySelectorAll('[data-jeu]').forEach(i=>i.oninput=()=>{const k=i.dataset.jeu,n=parseFloat(String(i.value).replace(',','.'));if(isFinite(n))JEUD[k]=n;i.closest('.jrow').classList.toggle('chg',JEUD[k]!==JEU0[k]);if(k==='xpK'||k==='xpE')$('#jniv').innerHTML=jeuNiv(JEUD);});
+  $('#jBase').onclick=()=>{if(!confirm('Revenir à toutes les valeurs de base ?'))return;JEUD=Object.assign({},JEU0);drawJeu();};
+  $('#jSave').onclick=async()=>{const r=$('#jRes'),p={};let bad='';
+    JEUF.forEach(([,,F])=>F.forEach(([k,l,,mn,mx])=>{const n=+JEUD[k];if(!isFinite(n)||n<mn||n>mx)bad=bad||`${l} : entre ${mn} et ${mx}`;else if(n!==JEU0[k])p[k]=n;}));
+    if(bad){r.className='msg';r.textContent='⚠️ '+bad;return;}
+    r.className='msg ok';r.textContent='Enregistrement…';const {data,error}=await sb.rpc('admin_jeu_set',{p});
+    if(error){r.className='msg';r.textContent='Échec, réessaie';return;}
+    JEU=Object.assign({},JEU0,data||{});JEUD=Object.assign({},JEU);drawJeu();const n=$('#jRes');n.className='msg ok';n.textContent='✅ Enregistré : appliqué au prochain lancement de l’appli';};}
 function keepY(fn){const y=scrollY;fn();scrollTo(0,y);}
 async function offrir(mail,mois,message){
   const res=$('#gRes');mail=(mail||'').trim();if(!/^\S+@\S+\.\S+$/.test(mail)){res.className='msg';res.textContent='Vérifie l’e-mail';return;}

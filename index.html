@@ -688,6 +688,10 @@ h1,h2,h3,h4{font-weight:700}
    Un seul fichier, aucune dépendance. Données : localStorage.
    ========================================================= */
 
+// ---------- Réglages du jeu (modifiables dans l'admin › Réglages du jeu) ----------
+const CFG0={xpK:425,xpE:2.15,coinLv:5,coinMul:100,cofDay:3,cofSlots:4,cofH:12,cof3:25,cof2:8,cofGame:1,cofWorld:40,keyEvery:2,wall:2,
+  u_heure:3,u_quoi:4,u_formes:5,u_chiffres:6,u_probl:7,u_drapeaux:8,u_espace:10,u_ortho:12};
+const CFG=Object.assign({},CFG0);try{Object.assign(CFG,JSON.parse(localStorage.getItem('malino_cfg')||'{}'));}catch(e){}
 // ---------- Outils ----------
 const $=(s,el=document)=>el.querySelector(s);
 const $$=(s,el=document)=>Array.from(el.querySelectorAll(s));
@@ -1599,6 +1603,8 @@ Object.assign(THEMES,{
 const LANG_OFF={en:['anglais','ortho','monde','probl','drapeaux','espace','arabe']};
 (LANG_OFF[window.MLANG]||[]).forEach(k=>{delete THEMES[k];});
 // déblocage avec le niveau du joueur
+function cfgApply(){Object.keys(THEMES).forEach(k=>{const u=CFG['u_'+k];if(u!=null&&THEMES[k].unlock)THEMES[k].unlock=Math.max(1,u|0);});}
+cfgApply();
 const thUnlocked=k=>{const T=THEMES[k];return !T||!T.unlock||levelInfo(S.xp).level>=T.unlock||!!(S.thUnl&&S.thUnl[k]);};
 function unlockCheck(){S.thUnl=S.thUnl||{};const lv=levelInfo(S.xp).level,neu=Object.keys(THEMES).filter(k=>THEMES[k].unlock&&lv>=THEMES[k].unlock&&!S.thUnl[k]);if(!neu.length)return;neu.forEach(k=>S.thUnl[k]=Date.now());save();
   queueModal(`<div class="unlk">${neu.map(k=>`<span style="--c:${THEMES[k].c}">${THEMES[k].e}</span>`).join('')}</div><h2>${neu.length>1?`${neu.length} nouveaux jeux débloqués !`:'Nouveau jeu débloqué !'}</h2><p>${neu.map(k=>`<b>${THEMES[k].n}</b>`).join(' · ')}</p><p class="hint">${neu.length>1?'Ils t’attendent':'Il t’attend'} dans « Autres jeux » 🎮</p><button class="btn y block" data-act="mclose">Trop bien ! 🚀</button>`,()=>{Sound.play('epic');Confetti.burst(200);if(S.settings.voice)Voice.say(neu.length>1?'Nouveaux jeux débloqués : '+neu.map(k=>THEMES[k].n).join(', '):'Nouveau jeu débloqué : '+THEMES[neu[0]].n+' !');});}
@@ -1676,7 +1682,7 @@ const fmtP=n=>{n=Math.round(Number(n)||0);const sg=n<0?'-':'';n=Math.abs(n);if(n
   if(n<1e6){const v=n/1e3;return v>=999.5?f(1,'M').replace('1M','1M'):f(v,'K');}
   if(n<1e9)return f(n/1e6,'M');return f(n/1e9,'Md');};
 // récompenses qui grandissent doucement avec le niveau (x1 au niveau 1, x1,5 au niveau 11, x2 au niveau 21)
-const cmul=()=>1+0.05*(levelInfo(S.xp).level-1);
+const cmul=()=>(1+CFG.coinLv/100*(levelInfo(S.xp).level-1))*CFG.coinMul/100;
 const cc=n=>n?Math.max(1,Math.round(n*cmul())):0;
 const ITEM=Object.fromEntries(CATALOG.map(i=>[i.id,i]));
 const CATN={skin:'Peau',hair:'Coiffure',hairColor:'Couleur des cheveux',eyes:'Yeux',glasses:'Lunettes',shirt:'T-shirts',cape:'Capes',hat:'Chapeaux',bg:'Fonds',pet:'Animaux',obj:'Objets'};
@@ -1845,7 +1851,7 @@ const nm=()=>esc(S.name||'Champion');
 // ---------- Progression ----------
 // Barème v2 : monter haut demande de jouer longtemps (≈ niv. 5 en 1 h de jeu, niv. 10 en 5 h, niv. 20 en 25 h, niv. 30 en 60 h).
 // Même formule dans admin.html et la fonction malino-rapports.
-const xpTot=L=>Math.round(425*Math.pow(Math.max(0,L-1),2.15)/10)*10;
+const xpTot=L=>Math.round(CFG.xpK*Math.pow(Math.max(0,L-1),CFG.xpE)/10)*10;
 const needFor=L=>xpTot(L+1)-xpTot(L);
 function levelInfo(xp){let L=1,r=xp;while(r>=needFor(L)){r-=needFor(L);L++;}return {level:L,into:r,need:needFor(L),pct:r/needFor(L)};}
 function curStreak(){const t=dayKey(),y=dayKey(addDays(new Date(),-1));return (S.streak.last===t||S.streak.last===y)?S.streak.cur:0;}
@@ -1968,8 +1974,8 @@ const DEM_DEFIS={petit:[['streak',3],['ttot',30],['ok',100]],moyen:[['streak',5]
 const DEM_PAS={streak:1,ttot:15,ok:50,days:1,level:1},DEM_MIN={streak:1,ttot:15,ok:50,days:1,level:1};
 const demDefi=(t,n)=>t==='streak'?`🔥 ${n} jour${n>1?'s':''} d’affilée`:t==='ttot'?`⏱️ ${fmtMinG(n)} de jeu`:t==='ok'?`✅ ${n} bonnes réponses`:t==='days'?`📅 ${n} jours de jeu`:`⭐ Monter de ${n} niveau${n>1?'x':''}`;
 const Dem={
-  seuils(L){const o=[];for(let k=2;k<=L;k+=2)o.push(k);return o;},
-  prochain(L){return (Math.floor(Math.max(1,L)/2)+1)*2;},
+  seuils(L){const e=Math.max(1,CFG.keyEvery|0),o=[];for(let k=e;k<=L;k+=e)o.push(k);return o;},
+  prochain(L){const e=Math.max(1,CFG.keyEvery|0);return (Math.floor(Math.max(1,L)/e)+1)*e;},
   gagnees(L){return this.seuils(L==null?levelInfo(S.xp).level:L).length;},
   dispo(){return Math.max(0,this.gagnees()-(S.clesUsees||0));},
   attente(){return S.demande&&S.demande.statut==='attente'?S.demande:null;},
@@ -2079,7 +2085,7 @@ const Install={
 };
 function checkGifts(){const out=[];S.gifts.forEach(g=>{if(!g.reached&&!g.given&&giftVal(g)>=g.target){g.reached=Date.now();out.push(g);}});if(out.length)save();return out;}
 // ---------- Coffres magiques : gagnés en jouant, ils s'ouvrent au bout de 12 h ----------
-const COF_MS=12*3600e3,COF_SLOTS=4,COF_DAY=3;   // au plus 3 coffres gagnés par jour (mission comprise)
+// nombre de coffres par jour, emplacements, délai d'ouverture : voir CFG (cofDay, cofSlots, cofH)
 // p = chances sur 100 : [farce, bon, épique] ; m = multiplicateur de pièces
 const COFT={bois:{n:'Coffre en bois',c1:'#D9A066',c2:'#8E5B2C',p:[30,62,8],m:1},argent:{n:'Coffre d’argent',c1:'#EEF2F6',c2:'#8592A1',p:[20,65,15],m:1.6},or:{n:'Coffre en or',c1:'#FFE27A',c2:'#D49A00',p:[10,62,28],m:2.5},epique:{n:'Coffre épique',c1:'#D7B8FF',c2:'#6A2BE0',p:[0,55,45],m:4},legende:{n:'Coffre légendaire',c1:'#FF9AE6',c2:'#4B1FB8',p:[0,25,75],m:7}};
 const ALBUM_S={animaux:{n:'Animaux du monde',r:'c',b:150},monstres:{n:'Monstres et magie',r:'r',b:300},espace:{n:'L’espace',r:'e',b:600},tresors:{n:'Trésors',r:'l',b:1500},farces:{n:'Farces',r:'f',b:200}};
@@ -2105,15 +2111,15 @@ const Coffre={plein:false,
   left(c){const tm=Math.max(1,Math.ceil((c.ready-Date.now())/6e4)),h=Math.floor(tm/60),m=tm%60;return h?`${h} h ${pad2(m)}`:`${m} min`;},
   nb(){const a=S.album||{};return ALBUM.filter(x=>a[x.id]).length;},
   gagne(t,why){if(!this.on()||!COFT[t])return null;const l=this.list(),d=dayKey();if(!S.cofDay||S.cofDay.d!==d)S.cofDay={d,n:0};
-    if(S.cofDay.n>=COF_DAY)return null;if(l.length>=COF_SLOTS){this.plein=true;return null;}
-    const c={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t,won:Date.now(),ready:Date.now()+COF_MS,why};l.push(c);S.cofDay.n++;save();this.rappel(c);return c;},
+    if(S.cofDay.n>=CFG.cofDay)return null;if(l.length>=CFG.cofSlots){this.plein=true;return null;}
+    const c={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t,won:Date.now(),ready:Date.now()+CFG.cofH*3600e3,why};l.push(c);S.cofDay.n++;save();this.rappel(c);return c;},
   // rappel côté serveur : notification sur le téléphone des parents quand le coffre est prêt
   rappel(c){try{if(Acct.user&&Acct.sb&&Acct.pid)Acct.sb.rpc('malino_rappel_coffre',{p_profil:Acct.pid,p_prenom:S.name||'',p_quand:new Date(c.ready).toISOString(),p_cle:Acct.pid+':'+c.id}).then(()=>{},()=>{});}catch(e){}},
-  apresPartie(sess){if(!sess||sess.type==='sprint'||!this.on())return null;const d=dayKey();if(!S.cofG||S.cofG.d!==d)S.cofG={d,n:0};if(S.cofG.n>=1)return null;
-    const ch=sess.stars===3?.25:sess.stars===2?.08:0;if(Math.random()>=ch)return null;
+  apresPartie(sess){if(!sess||sess.type==='sprint'||!this.on())return null;const d=dayKey();if(!S.cofG||S.cofG.d!==d)S.cofG={d,n:0};if(S.cofG.n>=CFG.cofGame)return null;
+    const ch=sess.stars===3?CFG.cof3/100:sess.stars===2?CFG.cof2/100:0;if(Math.random()>=ch)return null;
     const c=this.gagne(wPick(['bois','argent','or','epique'],k=>({bois:55,argent:30,or:12,epique:3})[k]),'partie');if(c)S.cofG.n++;return c;},
   gainModal(l){l=(l||[]).filter(Boolean);if(!l.length){if(this.plein){this.plein=false;toast('🗝️ Tes 4 emplacements de coffres sont pleins : ouvre-en un !');}return;}this.plein=false;const n=l.length,big=l.some(c=>c.t==='epique'||c.t==='legende');
-    queueModal(`<div class="cofwin">${l.map(c=>`<span>${chestSVG(c.t)}</span>`).join('')}</div><h2>${n>1?`${n} coffres gagnés !`:'Coffre gagné !'}</h2><p>${l.map(c=>`<b>${COFT[c.t].n}</b>`).join(' · ')}</p><p>Il${n>1?'s s’ouvriront':' s’ouvrira'} dans <b>12 heures</b>. On te préviendra ! ⏰</p><button class="btn y block" data-act="mclose">Trop bien !</button>`,
+    queueModal(`<div class="cofwin">${l.map(c=>`<span>${chestSVG(c.t)}</span>`).join('')}</div><h2>${n>1?`${n} coffres gagnés !`:'Coffre gagné !'}</h2><p>${l.map(c=>`<b>${COFT[c.t].n}</b>`).join(' · ')}</p><p>Il${n>1?'s s’ouvriront':' s’ouvrira'} dans <b>${CFG.cofH} heures</b>. On te préviendra ! ⏰</p><button class="btn y block" data-act="mclose">Trop bien !</button>`,
       ()=>{Sound.play(big?'level':'badge');if(big)Confetti.burst(90);if(S.settings.voice)Voice.say(n>1?'Tu gagnes des coffres ! Ils s’ouvriront dans douze heures.':`Tu gagnes un ${COFT[l[0].t].n.toLowerCase()} ! Il s’ouvrira dans douze heures.`);});},
   open(id){const c=this.list().find(x=>x.id===id);if(!c)return;if(!this.ready(c)){Sound.play('tap');toast(`⏳ Encore ${this.left(c)} avant de l’ouvrir`);return;}
     queueModal(`<div class="cofbig t-${c.t}" id="cofbig" data-act="cofpop" data-arg="${c.id}">${chestSVG(c.t)}</div><h2>${COFT[c.t].n}</h2><p>Touche le coffre pour l’ouvrir !</p>`,()=>{if(S.settings.voice)Voice.say('Touche le coffre pour l’ouvrir !');});},
@@ -2141,8 +2147,8 @@ const Coffre={plein:false,
     else{Sound.play('epic');Confetti.burst(220);setTimeout(()=>Sons.exc(),300);setTimeout(()=>Confetti.burst(160,innerWidth*.25,innerHeight*.3),500);setTimeout(()=>Confetti.burst(160,innerWidth*.75,innerHeight*.3),900);if(S.settings.voice)Voice.say(item?'Coffre épique ! Tu gagnes un objet rare !':'Coffre épique ! Un autocollant rare !');}
     if(g&&g.serie)setTimeout(()=>Sons.exc(),700);checkBadges(null).forEach(badgeModal);if(SCR==='home')render();},
   slotsHTML(){if(!this.on())return '';const l=this.list();let h='';
-    for(let i=0;i<COF_SLOTS;i++){const c=l[i];h+=c?`<button class="cslot t-${c.t} ${this.ready(c)?'ready':''}" data-act="cofopen" data-arg="${c.id}" aria-label="${COFT[c.t].n}">${chestSVG(c.t)}<small data-cof="${c.ready}">${this.ready(c)?'Ouvrir !':'⏳ '+this.left(c)}</small></button>`:'<div class="cslot empty"><span>＋</span><small>Libre</small></div>';}
-    return `<div class="cofs card"><div class="cofh"><b>🗝️ Mes coffres</b><button class="cofalb" data-act="album">📒 Album ${this.nb()}/${ALBUM.length}</button></div><div class="cslots">${h}</div>${l.length?'':'<p class="cofhint">Gagne des coffres en jouant : 3 étoiles, nouveau niveau, mission du jour… Ils s’ouvrent au bout de 12 h.</p>'}</div>`;},
+    for(let i=0;i<CFG.cofSlots;i++){const c=l[i];h+=c?`<button class="cslot t-${c.t} ${this.ready(c)?'ready':''}" data-act="cofopen" data-arg="${c.id}" aria-label="${COFT[c.t].n}">${chestSVG(c.t)}<small data-cof="${c.ready}">${this.ready(c)?'Ouvrir !':'⏳ '+this.left(c)}</small></button>`:'<div class="cslot empty"><span>＋</span><small>Libre</small></div>';}
+    return `<div class="cofs card"><div class="cofh"><b>🗝️ Mes coffres</b><button class="cofalb" data-act="album">📒 Album ${this.nb()}/${ALBUM.length}</button></div><div class="cslots">${h}</div>${l.length?'':'<p class="cofhint">Gagne des coffres en jouant : 3 étoiles, nouveau niveau, mission du jour… Ils s’ouvrent au bout de ${CFG.cofH} h.</p>'}</div>`;},
   // met à jour les comptes à rebours ; prévient quand un coffre devient prêt
   tick(){if(!S||SCR!=='home')return;let flip=false;$$('[data-cof]').forEach(el=>{const t=+el.dataset.cof,b=el.closest('.cslot');if(Date.now()>=t){if(b&&!b.classList.contains('ready'))flip=true;}else el.textContent='⏳ '+this.left({ready:t});});
     if(flip&&!modalOpen){render();if(Sons.ok())Sons.play('warzone_notif',{max:3});else Sound.play('badge');toast('🎁 Un coffre est prêt : viens l’ouvrir !');}}
@@ -2574,7 +2580,7 @@ function endGame(){
   const after=levelInfo(S.xp).level,badges=checkBadges(sess),gifts=checkGifts(),cofs=[];
   if(G.mode!=='sprint')cofs.push(Coffre.apresPartie(sess));
   if(after>before)cofs.push(Coffre.gagne(Math.floor(after/5)>Math.floor(before/5)?'epique':'or','niveau'));
-  if((thUp||ups.length)&&Math.random()<.4)cofs.push(Coffre.gagne('argent','monde'));
+  if((thUp||ups.length)&&Math.random()<CFG.cofWorld/100)cofs.push(Coffre.gagne('argent','monde'));
   if(badges.some(b=>b.r==='e'||b.r==='l'))cofs.push(Coffre.gagne('epique','badge'));
   if(after>before)setTimeout(()=>{after%10===0?Sons.exc():after%5===0?Sons.pal():Sons.lvl();},1000);else if(G.mode==='sprint'&&G.record&&G.score)setTimeout(()=>Sons.record(),800);else if(G.mode!=='sprint'&&G.stars>=3&&!G.wrong)setTimeout(()=>Sons.play('headshot',{max:2,fade:.3}),800);go('result');setTimeout(()=>{if(Acct.wall()&&SCR==='result')Acct.show('wall');},3800);Sound.play(G.mode==='sprint'?(G.record&&G.score?'level':Sound.custom('fail').length?'fail':'end'):'end');
   if(G.mode==='sprint'?G.record:G.stars>=2)setTimeout(()=>Confetti.burst(130),250);
@@ -2710,7 +2716,7 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.77';
+const VERSION='1.78';
 const VERSIONS=[
  ['1.65','21/11/2026 15:20','Espace parents : bouton Admin et cloche en haut'],
  ['1.64','21/11/2026 15:00','Voix des contributions : plusieurs voix par son, sons des lettres, cris, anglais'],
@@ -2762,7 +2768,7 @@ function paneSettings(){
   return `<section class="acard"><h3>💡 La méthode</h3><ul class="tips"><li>10 minutes par jour suffisent : maths, puis lecture, puis le coffre du jour. Les autres jeux et les coffres magiques viennent en bonus.</li><li>Lecture (méthode syllabique) : le son des lettres → j’assemble (s + e = se) → mots de 2 syllabes → mots de 3 syllabes → petites phrases. Les syllabes sont en couleurs alternées, avec les lettres muettes en gris. Ensuite vient « lire et comprendre » : qui, quoi, où, les reprises (il, elle, le, lui), les petites histoires, les liens de famille, les « pourquoi », le vrai ou faux, puis des histoires lues et racontées de mémoire.</li><li>Chaque partie répète quelques questions plusieurs fois. Une erreur ? Correction à l’écran et à voix haute, il refait la question tout de suite, puis on la lui repose plus loin.</li><li>Un calcul est « maîtrisé » après 3 bonnes réponses rapides d’affilée.</li><li>Chaque jeu avance par <b>mondes</b>, du plus facile jusqu’à Expert, Épique, Ultra et Impossible. Passez au monde suivant au-delà de 80 % de maîtrise (ou laissez l’appli le faire seule). En maths, passez ensuite au clavier, puis baissez l’objectif de vitesse (8 s → 6 s → 4 s).</li><li>Le <b>niveau du joueur</b> monte avec tout ce qu’il fait et débloque de nouveaux jeux : l’heure, les formes, les problèmes, les drapeaux, les sciences, l’orthographe.</li><li>Une partie arrêtée avant la fin compte quand même : réponses, pièces et temps sont gardés.</li></ul><button class="btn sm o" data-act="guide">📖 Tout comprendre : coffres, cadeaux, objets…</button></section>
   <section class="acard"><h3>🌐 Langue · Language</h3><div class="seg" data-noi18n>${[['fr','🇫🇷 Français'],['en','🇬🇧 English']].map(([c,l])=>`<button class="${(window.MLANG||'fr')===c?'on':''}" data-act="setlang" data-arg="${c}">${l}</button>`).join('')}</div><p class="hint">En anglais : maths et jeux visuels. La lecture et l’orthographe restent en français.</p></section>
   <section class="acard"><h3>👦 Enfant</h3><label class="fld">Prénom<input data-field="name" value="${esc(S.name)}" maxlength="20" autocomplete="off"></label><div class="seg" style="margin-top:8px"><button class="${S.genre==='g'?'on':''}" data-act="setgenre" data-arg="g">👦 Garçon</button><button class="${S.genre==='f'?'on':''}" data-act="setgenre" data-arg="f">👧 Fille</button></div></section>
-  <section class="acard"><h3>🗝️ Coffres magiques</h3>${tog('coffres','Coffres à ouvrir après 12 h','Gagnés en jouant : 3 étoiles, nouveau niveau, mission du jour. Dedans : pièces, autocollants, objets… ou une farce !')}</section>
+  <section class="acard"><h3>🗝️ Coffres magiques</h3>${tog('coffres',`Coffres à ouvrir après ${CFG.cofH} h`,'Gagnés en jouant : 3 étoiles, nouveau niveau, mission du jour. Dedans : pièces, autocollants, objets… ou une farce !')}</section>
   <section class="acard"><h3>🔢 Maths : les mondes</h3>${rec}${lvlList('math',MATH_LEVELS,st.mathLevel,(L,i)=>{const n=i+1,mm=levelMastery('math',n);return `<button class="lvl ${n===st.mathLevel?'on':''}" data-act="setlvl" data-arg="${n}"><span class="le">${L.e}</span><span class="ln"><b>${n}. ${L.n}</b><small>${diffTxt(i,MATH_LEVELS)} · ${mathFacts(n).length} calculs · ${pct(mm)} maîtrisés</small><span class="mbar2"><i style="width:${mm*100}%"></i></span></span>${n===st.mathLevel?'<span class="cur">Actuel</span>':''}</button>`;})}${tog('mathAuto','Passer seul au monde suivant','Plus vite si tu réussis très bien, plus lent si tu as du mal')}</section>
   <section class="acard"><h3>🎮 Partie de maths</h3>
    <div class="row"><span>Questions par partie</span>${seg('nQ',[[5,'5'],[10,'10'],[15,'15'],[20,'20'],[30,'30']])}</div>
@@ -2869,7 +2875,7 @@ const ACT={
     +sec('🎮 Les jeux et les mondes',['<b>Maths</b> et <b>Lecture</b> sont le cœur de l’appli. Le <b>Défi éclair</b> mesure la vitesse : le plus de calculs justes en 60 secondes.','Les <b>autres jeux</b> : Monnaie, Logique, Robot, Découverte, Anglais, Arabe, puis ceux qui se débloquent avec le niveau du joueur : Qui a changé ? (niveau 7), L’heure (5), Formes (8), Chiffres éclair (10), Problèmes (12), Drapeaux (15), Sciences (20), Orthographe (25).','<b>Arabe</b> (arabe standard), pensé pour partir de zéro : l’alphabet est appris par petits groupes de lettres qui se ressemblent (seuls les points changent). Avant chaque groupe, une <b>leçon obligatoire</b> présente chaque lettre (son nom, son son, un mot exemple), puis vérifie qu’elle est reconnue. Ensuite viennent les premiers mots, toujours écrits en arabe avec leur prononciation. La voix lit l’arabe si l’appareil possède une voix arabe. 24 mondes.','<b>Qui a changé ?</b> et <b>Chiffres éclair</b> travaillent la mémoire : on regarde une scène ou un nombre quelques secondes, puis on retrouve ce qui a changé ou le bon chiffre. Le temps d’affichage raccourcit de monde en monde.','Chaque jeu avance par <b>mondes</b>. Les étoiles indiquent la difficulté ; au-dessus viennent Expert, Épique, Ultra et Impossible.','Le monde suivant s’ouvre quand le monde en cours est bien maîtrisé. Vous pouvez aussi le choisir vous-même dans Réglages et Autres jeux.'],1)
     +sec('⭐ Niveau du joueur, pièces et étoiles',['Chaque bonne réponse donne de l’<b>expérience</b> : elle fait monter le <b>niveau du joueur</b> (à côté de l’avatar). Une réponse rapide rapporte plus.','Les <b>pièces 🪙</b> se gagnent avec les réponses rapides, les combos, la fin de partie et les coffres. Elles servent uniquement à acheter des objets pour le personnage.','En fin de partie : de 1 à 3 <b>étoiles</b> selon la réussite, et un bonus de pièces.','Une partie arrêtée avant la fin garde ses réponses et ses pièces, mais ne donne ni étoiles ni bonus de fin.'])
     +sec('🎯 Mission du jour, série et coffre du jour',['La <b>mission du jour</b> : une partie de maths et une partie de lecture.','Mission finie : le <b>coffre du jour 🎁</b> s’ouvre tout de suite (des pièces, parfois un objet).','La <b>série 🔥</b> compte les jours de suite où l’enfant a joué. Plus elle est longue, plus le coffre du jour est généreux.','Avec Malino+ : un <b>coffre doré</b> une fois par semaine, avec 3 fois plus de pièces et un objet.'])
-    +sec('🗝️ Coffres magiques (12 heures)',['L’enfant <b>gagne</b> un coffre avec une partie à 3 étoiles (une chance sur deux), un niveau de joueur gagné, un monde gagné, la mission du jour ou un gros badge.','Il y a <b>4 emplacements</b>, et 6 coffres au maximum par jour. Chaque coffre s’ouvre <b>12 heures</b> après avoir été gagné.','5 sortes : bois, argent, or, épique, légendaire. Plus le coffre est rare, meilleur est le contenu.','À l’ouverture : une <b>farce</b> (chaussette qui pue…), un <b>bon cadeau</b> (pièces, autocollant) ou un cadeau <b>épique</b> (objet ou autocollant rare).','Les notifications « coffre prêt » s’activent dans Famille et compte, téléphone par téléphone. Les coffres se désactivent ici, dans Réglages.'])
+    +sec(`🗝️ Coffres magiques (${CFG.cofH} heures)`,['L’enfant <b>gagne</b> un coffre avec la mission du jour, un niveau de joueur gagné, parfois une partie à 3 étoiles ou un monde gagné, et avec un gros badge.',`Il y a <b>${CFG.cofSlots} emplacements</b>, et ${CFG.cofDay} coffres au maximum par jour. Chaque coffre s’ouvre <b>${CFG.cofH} heures</b> après avoir été gagné.`,'5 sortes : bois, argent, or, épique, légendaire. Plus le coffre est rare, meilleur est le contenu.','À l’ouverture : une <b>farce</b> (chaussette qui pue…), un <b>bon cadeau</b> (pièces, autocollant) ou un cadeau <b>épique</b> (objet ou autocollant rare).','Les notifications « coffre prêt » s’activent dans Famille et compte, téléphone par téléphone. Les coffres se désactivent ici, dans Réglages.'])
     +sec('📒 Album d’autocollants',['44 autocollants en 5 séries : Animaux, Monstres et magie, L’espace, Trésors, et même les Farces.','On les trouve seulement dans les coffres magiques. Un doublon donne quelques pièces.','Une série complète donne un gros bonus de pièces.'])
     +sec('🎨 Objets du personnage',['Dans <b>Mon perso</b>, l’enfant achète avec ses pièces des coiffures, vêtements, accessoires et décors.','Les objets ont une rareté (bois, cuivre, argent, or… jusqu’à Plasma) et certains demandent un niveau de joueur minimum.','Les objets <b>Plasma</b> sont réservés à Malino+.','Rien ne s’achète avec de l’argent réel : uniquement avec les pièces gagnées en jouant.'])
     +sec('🏆 Badges',['Des trophées pour la régularité, la vitesse, les mondes terminés, les coffres ouverts, l’album…','4 raretés : commun, rare, épique, légendaire. La page Badges montre la progression vers chacun.'])
@@ -2998,10 +3004,10 @@ document.addEventListener('keydown',e=>{
 });
 
 // ---------- Compte parent (Supabase) : on joue d'abord en invité, on se connecte ensuite ----------
-const SB_URL='https://fcfkfuqzgsmckkxqfwuo.supabase.co',SB_KEY='sb_publishable_a3SNrQOSCH20T5sKsJxuAA_s7H4yCSR',WALL_AFTER=2;
+const SB_URL='https://fcfkfuqzgsmckkxqfwuo.supabase.co',SB_KEY='sb_publishable_a3SNrQOSCH20T5sKsJxuAA_s7H4yCSR';
 const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:'email',email:'',forgot:false,wait:0,_l:null,note:'',
   guestN(){return S.sessions.length-(S.gs0||0);},
-  wall(){return !this.user&&this.guestN()>=WALL_AFTER;},
+  wall(){return !this.user&&this.guestN()>=CFG.wall;},
   hasLocal(){return S.xp>0||S.sessions.length>0;},
   lib(){if(this.sb)return Promise.resolve(this.sb);
     return this._l||(this._l=new Promise((ok,ko)=>{
@@ -3149,7 +3155,7 @@ function famCard(){
 }
 function paneAccount(){return paneAccount0()+Install.card()+`<section class="acard"><h3>🧭 Visite guidée</h3><p class="hint">Revoir la présentation de l’écran d’accueil avec ${esc(nm())}.</p><button class="btn sm o" data-act="tourgo">▶ Revoir la visite</button></section>`;}
 function paneAccount0(){
-  if(!Acct.user)return `<section class="acard"><h3>👤 Compte parent</h3><p class="hint">Sans compte, la progression reste sur cet appareil. Avec un compte (gratuit), elle est sauvegardée et on la retrouve sur toutes les tablettes. Après ${WALL_AFTER} séances, la connexion est demandée pour continuer.</p><button class="btn p sm" data-act="openlogin">Se connecter / créer un compte</button></section>`;
+  if(!Acct.user)return `<section class="acard"><h3>👤 Compte parent</h3><p class="hint">Sans compte, la progression reste sur cet appareil. Avec un compte (gratuit), elle est sauvegardée et on la retrouve sur toutes les tablettes. Après ${CFG.wall} séances, la connexion est demandée pour continuer.</p><button class="btn p sm" data-act="openlogin">Se connecter / créer un compte</button></section>`;
   const k=Plan.kind(),pi=Plan.info||{};
   return `<section class="acard"><h3>👤 Compte parent</h3><p class="hint">Connecté : <b>${esc(Acct.user.email||'')}</b>. La progression est sauvegardée automatiquement.</p></section>${Push.card()}
   <section class="acard"><h3>👑 Malino+</h3><p class="hint">${k==='plus'?(pi.abonne?`Abonnement actif${pi.abo_fin?` · prochain renouvellement le ${fmtDate(pi.abo_fin)}`:''}.`:`Offert jusqu’au ${pi.plus_jusqua?fmtDate(pi.plus_jusqua):'—'}.`):k==='essai'?`Essai gratuit : encore ${Plan.jours()} jour${Plan.jours()>1?'s':''}.`:'Version gratuite.'} Profils : ${Acct.list.length}/${Plan.maxProfils()}.</p><div class="btnrow"><button class="btn sm" data-act="offre">${k==='plus'?'Voir mon offre':'Passer à Malino+'}</button>${pi.abonne?'<button class="btn sm o" data-act="portail">Gérer l’abonnement</button>':''}<button class="btn sm o" data-act="parrain">👥 Inviter</button><button class="btn sm o" data-act="offrir">🎁 Offrir</button></div><p style="margin-top:8px"><button class="alink" style="margin:0;padding:0" data-act="onbstart">👋 Revoir la présentation</button></p>${pi.admin?'<p style="margin-top:10px"><a class="btn sm y" href="admin.html" target="_blank" rel="noopener">🛠️ Panel admin</a></p>':''}</section>
@@ -3347,7 +3353,7 @@ const Onb={i:0,d:{},
         <p class="olab">Sa classe</p><div class="ochips">${[['gs','Grande section'],['cp','CP'],['ce1','CE1']].map(([c,l])=>`<button class="${d.classe===c?'on':''}" data-act="onbset" data-arg="classe|${c}">${l}</button>`).join('')}</div>
         <p class="otip">👨‍👩‍👧 Vous avez plusieurs enfants ? Ajoutez-les ensuite dans <b>Espace parents › Compte</b> : chacun a son profil, ses niveaux et ses récompenses${k==='plus'?' (jusqu’à 4 enfants)':' (2 pendant l’essai, jusqu’à 4 avec Malino+)'}.</p>`,
       ()=>`<div class="oico">🎮</div><h2>Comment ça marche ?</h2>
-        <div class="ocards"><div><span>🎯</span><b>Une mission par jour</b><small>Les maths, la lecture, puis le coffre. 10 minutes suffisent.</small></div><div><span>🪙</span><b>Des pièces et des niveaux</b><small>Chaque bonne réponse rapporte. Les niveaux ouvrent de nouveaux jeux.</small></div><div><span>🗝️</span><b>Des coffres</b><small>Gagnés en jouant, ils s’ouvrent au bout de 12 h.</small></div><div><span>🔑</span><b>De vrais cadeaux</b><small>Une clé tous les 2 niveaux pour demander un cadeau à ses parents.</small></div><div><span>🔒</span><b>L’espace parents</b><small>Réglages, progrès et cadeaux, protégé par un code.</small></div></div>
+        <div class="ocards"><div><span>🎯</span><b>Une mission par jour</b><small>Les maths, la lecture, puis le coffre. 10 minutes suffisent.</small></div><div><span>🪙</span><b>Des pièces et des niveaux</b><small>Chaque bonne réponse rapporte. Les niveaux ouvrent de nouveaux jeux.</small></div><div><span>🗝️</span><b>Des coffres</b><small>Gagnés en jouant, ils s’ouvrent au bout de ${CFG.cofH} h.</small></div><div><span>🔑</span><b>De vrais cadeaux</b><small>Une clé tous les ${CFG.keyEvery} niveaux pour demander un cadeau à ses parents.</small></div><div><span>🔒</span><b>L’espace parents</b><small>Réglages, progrès et cadeaux, protégé par un code.</small></div></div>
         <p class="otip">Juste après, une petite visite de l’écran d’accueil avec ${kid}.</p>`,
       ()=>`<div class="oico">🗓️</div><h2>Chaque jour, une mission</h2><div class="osteps"><div><b>1</b><span><b>Maths</b> · 5 min de calcul mental, du plus facile au plus dur.</span></div><div><b>2</b><span><b>Lecture</b> · les sons, les syllabes, puis les mots et les phrases.</span></div><div><b>3</b><span><b>Le coffre</b> · des pièces pour habiller son personnage.</span></div></div>
         <p class="otip">🧠 Malino s’adapte : ce que ${kid} rate revient plus souvent, ce qu’il maîtrise revient moins. Une voix lit les consignes, il peut jouer seul.</p>`,
@@ -3404,13 +3410,17 @@ const Onb={i:0,d:{},
     setTimeout(()=>Tour.start(),450);
   }
 };
+// réglages du jeu choisis dans l'admin : gardés sur l'appareil pour le prochain lancement
+async function cfgLoad(){try{if(!Acct.sb)return;const {data,error}=await Acct.sb.rpc('malino_jeu');if(error||!data||typeof data!=='object')return;
+  const prev=JSON.stringify(CFG);Object.keys(CFG).forEach(k=>delete CFG[k]);Object.assign(CFG,CFG0,data);localStorage.setItem('malino_cfg',JSON.stringify(data));cfgApply();
+  if(JSON.stringify(CFG)!==prev&&SCR==='home'&&!modalOpen)render();}catch(e){}}
 // Visite guidée de l'accueil (bulles sur les éléments, comme dans PaceApp) : après l'accueil, puis à la demande
 const Tour={i:0,on:false,
   S:[{s:'.mission',e:'🎯',t:'Ta mission du jour',p:'Chaque jour : les maths, la lecture, puis le coffre 🎁. 10 minutes suffisent !'},
      {s:'[data-act=startmath]',e:'🔢',t:'Commence par ici',p:'Les calculs s’adaptent à toi : ce que tu rates revient, ce que tu sais revient moins.'},
-     {s:'.cofs',e:'🗝️',t:'Tes coffres',p:'En jouant, tu gagnes des coffres. Ils s’ouvrent au bout de 12 heures.'},
+     {s:'.cofs',e:'🗝️',t:'Tes coffres',p:`En jouant, tu gagnes des coffres. Ils s’ouvrent au bout de ${CFG.cofH} heures.`},
      {s:'.top .me',e:'🎨',t:'Ton personnage',p:'Avec tes pièces 🪙, habille ton personnage. En montant de niveau, tu ouvres de nouveaux jeux.'},
-     {s:'.minis [data-act=gifts]',e:'🎁',t:'De vrais cadeaux',p:'Tous les 2 niveaux, tu gagnes une clé 🔑 pour demander un cadeau à papa ou maman.'},
+     {s:'.minis [data-act=gifts]',e:'🎁',t:'De vrais cadeaux',p:`Tous les ${CFG.keyEvery} niveaux, tu gagnes une clé 🔑 pour demander un cadeau à papa ou maman.`},
      {s:'.parentrow [data-act=parent]',e:'🔒',t:'Pour les parents',p:'Réglages, progrès et cadeaux, protégés par un code.'}],
   liste(){return this.S.filter(x=>document.querySelector(x.s));},
   start(){if(SCR!=='home')go('home');closeAllModals();this.on=true;this.i=0;setTimeout(()=>this.draw(),250);},
@@ -3491,7 +3501,7 @@ setTimeout(()=>{if(localStorage.getItem('malino_invite')&&!Acct.user&&typeof ACT
 try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
 setInterval(()=>{try{Coffre.tick();}catch(e){}},20000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(()=>{try{Coffre.tick();}catch(e){}},400);});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')try{ckpt();}catch(e){}});addEventListener('pagehide',()=>{try{ckpt();}catch(e){}});
-Rec.load();Pack.load();load();recoverPartial();Voice.init();VoixC.init();Plan.load();Confetti.init();TimeT.init();render();autoUpModal(autoUp());Acct.init().then(()=>Offre.fromUrl());
+Rec.load();Pack.load();load();recoverPartial();Voice.init();VoixC.init();Plan.load();Confetti.init();TimeT.init();render();autoUpModal(autoUp());Acct.init().then(()=>{Offre.fromUrl();cfgLoad();});
 if(S.refund){const r=S.refund;S.refund=0;save();queueModal(`<div class="bigemoji sm">🛍️</div><h2>Nouvelle boutique !</h2><p>Des objets en bois, cuivre, argent, or… jusqu’au <b>Plasma</b> !</p><p>Certains anciens objets sont partis : tu récupères <b>${fmtP(r)} 🪙</b>.</p><button class="btn y block" data-act="mclose">Super !</button>`);}
 if(!S.welcomed){S.welcomed=true;save();queueModal(`<div class="mav">${avatarSVG(S.avatar)}</div><h2>Salut ${nm()} ! 👋</h2>${S.name?'':'<label class="fld" style="text-align:left">Comment tu t’appelles ?<input id="wname" maxlength="20" autocomplete="off" placeholder="Ton prénom"></label>'}<p>Chaque jour :<br><b>1.</b> Entraîne-toi en maths 🔢<br><b>2.</b> Fais ta lecture 📖<br><b>3.</b> Ouvre ton coffre 🎁</p><p>Gagne des pièces 🪙 pour habiller ton personnage et débloquer des surprises !</p><button class="btn g block" data-act="wstart">C’est parti ! 🚀</button>`);}
 else checkGifts().forEach(giftModal);
