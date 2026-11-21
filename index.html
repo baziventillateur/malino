@@ -721,7 +721,7 @@ h1,h2,h3,h4{font-weight:700}
    ========================================================= */
 
 // ---------- Réglages du jeu (modifiables dans l'admin › Réglages du jeu) ----------
-const CFG0={xpK:425,xpE:2.15,coinLv:5,coinMul:100,cofDay:3,cofSlots:4,cofH:12,cof3:25,cof2:8,cofGame:1,cofWorld:40,keyDays:5,keyMin:180,keyChest:6,wall:2,
+const CFG0={xpK:425,xpE:2.15,coinLv:5,coinMul:100,cofDay:3,cofSlots:4,cofH:12,cof3:25,cof2:8,cofGame:1,cofWorld:40,keyDays:5,keyMin:180,keyChest:6,wall:2,objPartie:1,
   u_heure:3,u_quoi:4,u_formes:5,u_chiffres:6,u_probl:7,u_drapeaux:8,u_espace:10,u_ortho:12};
 const CFG=Object.assign({},CFG0);try{Object.assign(CFG,JSON.parse(localStorage.getItem('malino_cfg')||'{}'));}catch(e){}
 // ---------- Outils ----------
@@ -1989,10 +1989,12 @@ const BADGES=[
  {id:'mathall',e:'🌍',n:'Champion du monde',d:'Maîtriser tous les mondes de maths',r:'l',t:()=>MATH_LEVELS.every((L,i)=>levelMastery('math',i+1)>=1)},
 ];
 // Objet offert : rare. Un délai minimum entre deux cadeaux, et seulement lors d'un vrai moment fort.
+// Au plus CFG.objPartie objet(s) entre deux parties (niveau, badge, coffres compris), même pour les cadeaux « forcés ».
 function dropItem(minP,maxP,force){
+  if((S.objN||0)>=CFG.objPartie)return null;
   if(!force&&S.lastDrop&&Date.now()-S.lastDrop<3*864e5)return null;
   const L=levelInfo(S.xp).level,c=CATALOG.filter(i=>i.price>=minP&&i.price<=maxP&&i.lvl<=L&&!S.owned.includes(i.id)&&!isPlusItem(i)&&i.cat!=='bg');
-  if(!c.length)return null;const i=pick(c);S.owned.push(i.id);S.lastDrop=Date.now();return i;}
+  if(!c.length)return null;const i=pick(c);S.owned.push(i.id);S.lastDrop=Date.now();S.objN=(S.objN||0)+1;return i;}
 function checkBadges(sess){const out=[];BADGES.forEach(b=>{if(S.badges[b.id])return;let ok=false;try{ok=b.t(sess);}catch(e){}if(ok){S.badges[b.id]=Date.now();S.coins+=cc(REWARD[b.r]||10);let bb=b;if(b.r==='l'||b.r==='e'){const d=dropItem(b.r==='l'?3000:600,b.r==='l'?30000:6000,true);if(d)bb=Object.assign({},b,{drop:d});}out.push(bb);}});if(out.length)save();return out;}
 
 // ---------- Cadeaux des parents ----------
@@ -2460,7 +2462,7 @@ function startGame(sub,mode){if(sub==='fr')frPreload();
   if(sub==='arabe'&&mode==='theme'){const cur=S.settings.lv.arabe||1,sk=THEMES.arabe.levels.findIndex((L,i)=>i<cur-1&&L.lesson&&!(S.arLesson||{})[L.lesson]&&!S.sessions.some(x=>x.type==='arabe'&&x.lvl===i+1));
     if(sk>=0){S.settings.lv.arabe=sk+1;save();toast(`On apprend d’abord : ${THEMES.arabe.levels[sk].n}`);}}
   if(sub==='arabe'&&mode==='theme'){const AL=THEMES.arabe.levels[(S.settings.lv.arabe||1)-1];if(AL&&AL.lesson&&!(S.arLesson||{})[AL.lesson])return ArLesson.open(AL.lesson,()=>startGame(sub,mode));}
-  stopGame();const st=S.settings;
+  stopGame();const st=S.settings;S.objN=0;
   Sons.stop(.5);
   G={sub,mode,queue:[],idx:0,n:0,mainN:0,okFirst:0,combo:0,bestCombo:0,fast:0,times:[],xp:0,coins:0,wrong:0,score:0,t0:Date.now(),reviews:{},timers:[],cur:null,input:'',ended:false};
   if(sub==='math'){
@@ -2768,8 +2770,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.81';
+const VERSION='1.82';
 const VERSIONS=[
+ ['1.82','21/11/2026 22:55','Objets offerts : 1 par partie au maximum (réglable dans l’admin)'],
  ['1.81','21/11/2026 22:40','Zoom bloqué sur tablette et téléphone (pincement, double-tap)'],
  ['1.65','21/11/2026 15:20','Espace parents : bouton Admin et cloche en haut'],
  ['1.64','21/11/2026 15:00','Voix des contributions : plusieurs voix par son, sons des lettres, cris, anglais'],
@@ -2930,7 +2933,7 @@ const ACT={
     +sec('🎯 Mission du jour, série et coffre du jour',['La <b>mission du jour</b> : une partie de maths et une partie de lecture.','Mission finie : le <b>coffre du jour 🎁</b> s’ouvre tout de suite (des pièces, parfois un objet).','La <b>série 🔥</b> compte les jours de suite où l’enfant a joué. Plus elle est longue, plus le coffre du jour est généreux.','Avec Malino+ : un <b>coffre doré</b> une fois par semaine, avec 3 fois plus de pièces et un objet.'])
     +sec(`🗝️ Coffres magiques (${CFG.cofH} heures)`,['L’enfant <b>gagne</b> un coffre avec la mission du jour, un niveau de joueur gagné, parfois une partie à 3 étoiles ou un monde gagné, et avec un gros badge.',`Il y a <b>${CFG.cofSlots} emplacements</b>, et ${CFG.cofDay} coffres au maximum par jour. Chaque coffre s’ouvre <b>${CFG.cofH} heures</b> après avoir été gagné.`,'5 sortes : bois, argent, or, épique, légendaire. Plus le coffre est rare, meilleur est le contenu.','À l’ouverture : une <b>farce</b> (chaussette qui pue…), un <b>bon cadeau</b> (pièces, autocollant) ou un cadeau <b>épique</b> (objet ou autocollant rare).','Les notifications « coffre prêt » s’activent dans Famille et compte, téléphone par téléphone. Les coffres se désactivent ici, dans Réglages.'])
     +sec('📒 Album d’autocollants',['44 autocollants en 5 séries : Animaux, Monstres et magie, L’espace, Trésors, et même les Farces.','On les trouve seulement dans les coffres magiques. Un doublon donne quelques pièces.','Une série complète donne un gros bonus de pièces.'])
-    +sec('🎨 Objets du personnage',['Dans <b>Mon perso</b>, l’enfant achète avec ses pièces des coiffures, vêtements, accessoires et décors.','Les objets ont une rareté (bois, cuivre, argent, or… jusqu’à Plasma) et certains demandent un niveau de joueur minimum.','Les objets <b>Plasma</b> sont réservés à Malino+.','Rien ne s’achète avec de l’argent réel : uniquement avec les pièces gagnées en jouant.'])
+    +sec('🎨 Objets du personnage',['Dans <b>Mon perso</b>, l’enfant achète avec ses pièces des coiffures, vêtements, accessoires et décors.','Les objets ont une rareté (bois, cuivre, argent, or… jusqu’à Plasma) et certains demandent un niveau de joueur minimum.','Les objets <b>Plasma</b> sont réservés à Malino+.','Parfois un objet est offert (niveau, badge rare, coffre) : au plus '+CFG.objPartie+' par partie.','Rien ne s’achète avec de l’argent réel : uniquement avec les pièces gagnées en jouant.'])
     +sec('🏆 Badges',['Des trophées pour la régularité, la vitesse, les mondes terminés, les coffres ouverts, l’album…','4 raretés : commun, rare, épique, légendaire. La page Badges montre la progression vers chacun.'])
     +sec('🎁 Cadeaux à gagner (les vrais)',['Dans l’onglet <b>Cadeaux</b>, vous fixez de vraies récompenses : une glace, une sortie, choisir le dessert…','Vous choisissez l’objectif (jours d’affilée, niveau, bonnes réponses, minutes de jeu…). L’enfant voit sa progression, et une fête s’affiche quand il l’atteint.','Conseil : récompensez la régularité plutôt que la durée.'])
     +sec('👨‍👩‍👧 Parents et famille',['Au lancement, l’écran <b>Qui joue ?</b> liste les enfants. L’Espace parents est protégé par un code.','Un second parent peut être invité (Famille et compte) : il voit les mêmes enfants et la même progression.','Les <b>rapports par e-mail</b> (nouveau niveau, récap de la semaine) se coupent d’une case dans Famille et compte.','L’onglet <b>Progrès</b> détaille la réussite, la vitesse, le temps de jeu et les calculs à retravailler. Une partie arrêtée avant la fin y est marquée ⏸️.'])

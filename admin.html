@@ -82,7 +82,7 @@ const ago=x=>{if(!x)return '—';const m=(Date.now()-Date.parse(x))/6e4;return m
 const xpTot=L=>Math.round(JEU.xpK*Math.pow(Math.max(0,L-1),JEU.xpE)/10)*10,lvl=xp=>{let L=1;while((xp||0)>=xpTot(L+1))L++;return L;};
 const jours=x=>Math.max(0,Math.ceil((Date.parse(x)-Date.now())/864e5));
 // ---- Réglages du jeu : mêmes valeurs de base que l'appli (index.html, CFG0) ----
-const JEU0={xpK:425,xpE:2.15,coinLv:5,coinMul:100,cofDay:3,cofSlots:4,cofH:12,cof3:25,cof2:8,cofGame:1,cofWorld:40,keyDays:5,keyMin:180,keyChest:6,wall:2,
+const JEU0={xpK:425,xpE:2.15,coinLv:5,coinMul:100,cofDay:3,cofSlots:4,cofH:12,cof3:25,cof2:8,cofGame:1,cofWorld:40,keyDays:5,keyMin:180,keyChest:6,wall:2,objPartie:1,
   u_heure:3,u_quoi:4,u_formes:5,u_chiffres:6,u_probl:7,u_drapeaux:8,u_espace:10,u_ortho:12};
 let JEU=Object.assign({},JEU0);
 let D=null,email='',q='',VIEW=/^#(contrib|dev)$/.test(location.hash)?'contrib':location.hash==='#reglages'?'reglages':'tableau';
@@ -547,6 +547,8 @@ const JEUF=[
    ['cofWorld','Chance quand un monde est terminé (%)','',0,100,1],
    ['cofH','Heures avant de pouvoir ouvrir','',1,48,1],
    ['cofSlots','Emplacements de coffres','',1,8,1]]],
+ ['🎨 Objets offerts','Objets du perso donnés en cadeau : niveau gagné, badge rare, coffre épique, coffre du jour.',[
+   ['objPartie','Objets offerts par partie, au maximum','Compte tout ce qui est gagné jusqu’à la partie suivante (coffres ouverts compris). 0 = jamais.',0,5,1]]],
  ['🎁 Demandes de cadeaux','Une clé 🔑 permet à l’enfant de demander un cadeau.',[
    ['keyDays','Jours de jeu pour gagner une clé','Comptés depuis la dernière clé gagnée en jouant.',1,30,1],
    ['keyMin','Minutes de jeu pour gagner une clé','180 = 3 h, sur ces jours.',10,1200,10],
