@@ -522,7 +522,8 @@ h1,h2,h3,h4{font-weight:700}
 .price{display:inline-block;background:var(--y);color:#4a3200;border-radius:12px;padding:2px 14px;font-size:30px;font-weight:700;vertical-align:middle}
 .bigemo.sm{font-size:64px;vertical-align:middle}
 .bigtxt{font-size:38px;font-weight:700;line-height:1.3}
-.arw{font-family:'Noto Naskh Arabic','Noto Sans Arabic','Geeza Pro','Segoe UI',Tahoma,sans-serif;font-size:60px;line-height:1.45;font-weight:700}.arw.big{font-size:100px;line-height:1.25}.arw.sm{font-size:30px;line-height:1.3}.arr{font-size:20px;color:var(--ink2);font-weight:600}.fixsub .arr{font-size:18px}.opts.emo .opt .arw{font-size:50px;line-height:1.2}.opts.col.txt .opt small{font-size:14px;color:var(--ink2);font-weight:600;margin-left:10px}.aremo{font-size:46px;vertical-align:middle}.arrow{display:flex;align-items:baseline;justify-content:center;gap:12px}.tt[data-arg=arabe] .te{font-family:'Noto Naskh Arabic','Geeza Pro','Segoe UI',Tahoma,sans-serif;font-weight:700;color:#fff;font-size:34px;line-height:1}
+.arw{font-family:'Noto Naskh Arabic','Noto Sans Arabic','Geeza Pro','Segoe UI',Tahoma,sans-serif;font-size:60px;line-height:1.45;font-weight:700}.arw.big{font-size:100px;line-height:1.25}.arw.sm{font-size:30px;line-height:1.3}.arr{font-size:20px;color:var(--ink2);font-weight:600}.fixsub .arr{font-size:18px}.opts.emo .opt .arw{font-size:50px;line-height:1.2}.opts.col.txt .opt small{font-size:14px;color:var(--ink2);font-weight:600;margin-left:10px}.aremo{font-size:46px;vertical-align:middle}.arles{position:relative;text-align:center}.arles h2{margin:4px 0 8px}.arx{position:absolute;right:-6px;top:-6px}.arstep{font-size:12px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.4px}.arbig{font-family:'Noto Naskh Arabic','Geeza Pro','Segoe UI',Tahoma,sans-serif;font-size:96px;line-height:1.25;font-weight:700;color:#0B7A55}.arname{font-size:24px;font-weight:800;margin-top:-4px}.arspk{border:0;background:var(--soft);border-radius:50%;width:38px;height:38px;font-size:18px;vertical-align:middle;margin-left:6px}.arline{font-size:15px;text-align:left;background:var(--soft);border-radius:12px;padding:6px 10px;margin-top:6px;line-height:1.35}.arline b{display:inline-block;min-width:52px;color:#0B7A55}.arex{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px 0 2px;font-size:15px}.arex .aremo{font-size:36px}.arnav{display:flex;gap:8px;margin-top:12px}.arnav .btn{flex:1}.arnav .btn.w{flex:0 0 56px}.arrow2{display:flex;justify-content:center;gap:6px;direction:rtl;margin:6px 0 2px}.arrow2 span{font-family:'Noto Naskh Arabic','Geeza Pro','Segoe UI',Tahoma,sans-serif;font-size:22px;font-weight:700;width:38px;height:38px;line-height:38px;border-radius:10px;background:var(--soft);color:var(--ink2)}.arrow2 span.on{background:#0E9F6E;color:#fff}.arrow2 span.ok{background:#D1FAE5;color:#0B7A55}.arrow2.big span{font-size:30px;width:52px;height:52px;line-height:52px}.archk{display:grid;gap:8px;margin:8px 0;direction:rtl}.archk .opt{font-family:'Noto Naskh Arabic','Geeza Pro','Segoe UI',Tahoma,sans-serif;font-size:46px;min-height:80px;line-height:1.2}.archk .opt.good{border-color:#22C55E;background:#DCFCE7}.archk .opt.bad{border-color:#EF4444;background:#FEE2E2}.arintro{text-align:left;padding-left:0;list-style:none;font-size:15px;line-height:1.4}.arintro li{background:var(--soft);border-radius:12px;padding:7px 10px;margin:6px 0}
+.arrow{display:flex;align-items:baseline;justify-content:center;gap:12px}.tt[data-arg=arabe] .te{font-family:'Noto Naskh Arabic','Geeza Pro','Segoe UI',Tahoma,sans-serif;font-weight:700;color:#fff;font-size:34px;line-height:1}
 .seqr{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:3px;font-size:34px;line-height:1.2}
 .seqr.big{font-size:52px;gap:10px}
 .seqr.num span{font-weight:800;font-size:30px;background:#fff;border-radius:12px;padding:2px 9px;box-shadow:0 2px 0 #D6DAEA}.seqr .arr{font-size:22px;color:var(--mut)}
@@ -999,6 +1000,68 @@ const qArTr=x=>({ans:x.k,inst:'Comment dit-on en arabe ?',say:x.fr,html:`<div cl
   fixHTML:`<span class="emo">${x.v}</span><div class="fixsub">${esc(x.fr)} = ${arEq(x)}</div>`,fixChain:[{say:x.fr},{say:'se dit',rate:.9},arSay(x)]});
 const qArRead=x=>({ans:x.k,inst:'Lis le mot arabe, sans aide, et trouve',html:arW(x,false),opts:shuffle([x,...others(AR_ALL,2,[x])]).map(i=>({v:i.k,h:i.v})),optCls:'emo',fastMs:9000,afterSay:x.ar,afterLang:AR,
   fixHTML:`${x.v}<div class="fixsub">${arEq(x)} = ${esc(x.fr)}</div>`,fixChain:[arSay(x),{say:'veut dire '+x.fr}]});
+// --- Arabe pour débutants : les lettres par familles de formes, chaque groupe précédé d'une leçon obligatoire
+const AR_INFO={
+ 'ا':['a, comme dans « ami »','Un simple trait debout',['أسد','asad','🦁','le lion']],
+ 'ب':['b, comme dans « ballon »','Une barque avec 1 point dessous',['بطة','batta','🦆','le canard']],
+ 'ت':['t, comme dans « tapis »','La même barque avec 2 points dessus',['تفاحة','tuffaha','🍎','la pomme']],
+ 'ث':['th : la langue entre les dents (comme « think » en anglais)','La même barque avec 3 points dessus',['ثعلب','tha\'lab','🦊','le renard']],
+ 'ج':['dj, comme dans « jean »','Un crochet avec 1 point au milieu',['جمل','jamal','🐫','le chameau']],
+ 'ح':['h soufflé fort, du fond de la gorge','Le même crochet, sans point',['حصان','hisan','🐴','le cheval']],
+ 'خ':['kh, comme un r raclé (la « jota » espagnole)','Le même crochet avec 1 point dessus',['خروف','kharuf','🐑','le mouton']],
+ 'د':['d, comme dans « dé »','Un petit angle, sans point',['دب','dubb','🐻','l’ours']],
+ 'ذ':['dh : la langue entre les dents (comme « this » en anglais)','Le même angle avec 1 point dessus',['ذئب','dhi\'b','🐺','le loup']],
+ 'ر':['r roulé, comme en espagnol','Une petite courbe qui descend, sans point',['ريشة','risha','🪶','la plume']],
+ 'ز':['z, comme dans « zèbre »','La même courbe avec 1 point dessus',['زرافة','zarafa','🦒','la girafe']],
+ 'س':['s, comme dans « soleil »','Trois petites dents, sans point',['سمكة','samaka','🐟','le poisson']],
+ 'ش':['ch, comme dans « chat »','Les trois dents avec 3 points dessus',['شمس','shams','☀️','le soleil']],
+ 'ص':['s épais, la bouche bien ronde','Une boucle allongée, sans point',['صقر','saqr','🦅','le faucon']],
+ 'ض':['d épais, la bouche bien ronde','La même boucle avec 1 point dessus',['ضفدع','difda\'','🐸','la grenouille']],
+ 'ط':['t épais, la bouche bien ronde','Une boucle avec un grand trait debout',['طائرة','ta\'ira','✈️','l’avion']],
+ 'ظ':['dh épais, la bouche bien ronde','La même lettre avec 1 point dessus',['ظرف','zarf','✉️','l’enveloppe']],
+ 'ع':['un son serré du fond de la gorge (il n’existe pas en français)','Une petite bouche ouverte, sans point',['عين','\'ayn','👁️','l’œil']],
+ 'غ':['gh, comme le r français','La même lettre avec 1 point dessus',['غيمة','ghayma','☁️','le nuage']],
+ 'ف':['f, comme dans « fée »','Une petite tête ronde avec 1 point dessus',['فيل','fil','🐘','l’éléphant']],
+ 'ق':['q : un k prononcé au fond de la gorge','Une tête ronde avec 2 points dessus et une queue plus creuse',['قط','qitt','🐱','le chat']],
+ 'ك':['k, comme dans « kiwi »','Une grande lettre avec un petit signe dedans',['كلب','kalb','🐶','le chien']],
+ 'ل':['l, comme dans « lune »','Un grand trait avec une courbe en bas',['ليمون','laymun','🍋','le citron']],
+ 'م':['m, comme dans « maman »','Une petite boule avec une queue',['موز','mawz','🍌','la banane']],
+ 'ن':['n, comme dans « nez »','Une coupe avec 1 point dessus',['نحلة','nahla','🐝','l’abeille']],
+ 'ه':['h léger, comme un souffle','Une petite boucle ronde',['هاتف','hatif','📱','le téléphone']],
+ 'و':['w, ou « ou »','Une petite tête ronde avec une queue qui descend',['وردة','warda','🌹','la rose']],
+ 'ي':['y, ou « i »','Une courbe avec 2 points dessous',['يد','yad','✋','la main']]};
+const AR_GRP={g1:'ا ب ت ث',g2:'ج ح خ',g3:'د ذ ر ز',g4:'س ش ص ض',g5:'ط ظ ع غ',g6:'ف ق ك ل',g7:'م ن ه و ي'};
+const arGrp=g=>AR_GRP[g].split(' ').map(c=>AR_LET.find(l=>l.ar===c));
+const AR_G1=arGrp('g1'),AR_G2=arGrp('g2'),AR_G3=arGrp('g3'),AR_G4=arGrp('g4'),AR_G5=arGrp('g5'),AR_G6=arGrp('g6'),AR_G7=arGrp('g7');
+const AR_R12=AR_G1.concat(AR_G2),AR_R15=AR_R12.concat(AR_G3,AR_G4,AR_G5);
+// une fois la lettre vue dans un sens (lettre → nom), une fois dans l'autre (nom → lettre)
+const qArLetMix=(L,g)=>x=>Object.assign(Math.random()<.5?qArLet(L)(x):qArLet2(L)(x),{lesson:g});
+const ArLesson={
+  open(g,done,replay){this.g=g;this.L=arGrp(g);this.done=done;this.replay=!!replay;this.i=(!replay&&!S.arIntro)?-1:0;this.phase='learn';this.queueQ=[];
+    queueModal('<div id="arles"></div>',()=>this.draw());},
+  el(){return document.getElementById('arles');},
+  say(c){const x=AR_LET.find(l=>l.ar===c);if(x)Voice.say(x.nm,{lang:AR,rate:.75});},
+  draw(){const e=this.el();if(!e)return;const L=this.L,x=this.close=this.replay?'<button class="xbtn arx" data-act="arlesx" aria-label="Fermer">✕</button>':'';
+    if(this.i<0){e.innerHTML=`<div class="arles">${x}<div class="arbig" lang="ar">ع</div><h2>Bienvenue en arabe !</h2><ul class="arintro"><li>👉 L’arabe se lit <b>de droite à gauche</b>.</li><li>🔤 Il y a <b>28 lettres</b> : on les apprend par <b>petits groupes</b> de 3 ou 4.</li><li>🔎 Beaucoup de lettres ont <b>la même forme</b> : seuls <b>les points</b> changent. Regarde-les bien !</li><li>🔊 Touche le haut-parleur pour entendre chaque lettre.</li></ul><button class="btn g block" data-act="arlesnext">Commencer la leçon ➜</button></div>`;return;}
+    if(this.phase==='learn'){const l=L[this.i],inf=AR_INFO[l.ar],w=inf[2];
+      e.innerHTML=`<div class="arles">${x}<div class="arstep">Leçon · lettre ${this.i+1} sur ${L.length}</div><div class="arrow2">${L.map((m,j)=>`<span class="${j===this.i?'on':j<this.i?'ok':''}" lang="ar">${m.ar}</span>`).join('')}</div>
+        <div class="arbig" lang="ar">${l.ar}</div><div class="arname">${arR(l.r)} <button class="arspk" data-act="arsay" data-arg="${l.ar}" aria-label="Écouter">🔊</button></div>
+        <div class="arline"><b>Son</b> ${esc(inf[0])}</div><div class="arline"><b>Forme</b> ${esc(inf[1])}</div>
+        <div class="arex"><span class="aremo">${w[2]}</span><span class="arw sm" lang="ar" dir="rtl">${w[0]}</span><span><b>${arR(w[1])}</b> · ${esc(w[3])}</span></div>
+        <div class="arnav">${this.i>0?'<button class="btn w" data-act="arlesprev">←</button>':''}<button class="btn g" data-act="arlesnext">${this.i<L.length-1?'Lettre suivante ➜':this.replay?'Terminer ✓':'Je vérifie ➜'}</button></div></div>`;
+      if(Voice.ar)setTimeout(()=>this.say(l.ar),300);return;}
+    if(this.phase==='check'){const t=this.queueQ[0];
+      e.innerHTML=`<div class="arles"><div class="arstep">Vérification · encore ${this.queueQ.length}</div><h2>Touche la lettre <b>${arR(t.r)}</b></h2><div class="archk" style="grid-template-columns:repeat(${Math.min(L.length,4)},1fr)">${shuffle(L.slice()).map(m=>`<button class="opt" data-act="archk" data-arg="${m.ar}" lang="ar">${m.ar}</button>`).join('')}</div>${this.miss.has(t.ar)?`<p class="hint">💡 ${esc(AR_INFO[t.ar][1])}</p>`:''}</div>`;
+      if(Voice.ar)setTimeout(()=>this.say(t.ar),250);return;}
+    e.innerHTML=`<div class="arles"><div class="bigemoji">🎉</div><h2>Bravo !</h2><p>Tu connais maintenant ces lettres :</p><div class="arrow2 big">${L.map(m=>`<span class="ok" lang="ar">${m.ar}</span>`).join('')}</div><button class="btn y block" data-act="arlesend">On s’entraîne ! 🚀</button></div>`;},
+  next(){if(this.i<0){S.arIntro=1;save();this.i=0;}else if(this.i<this.L.length-1)this.i++;else if(this.replay){nextModal();return;}else{this.phase='check';this.miss=new Set();this.queueQ=shuffle(this.L.slice());}this.draw();},
+  prev(){if(this.i>0){this.i--;this.draw();}},
+  check(c){const t=this.queueQ[0],b=[...document.querySelectorAll('#arles [data-act=archk]')],ok=c===t.ar;
+    b.forEach(x=>{x.disabled=true;if(x.dataset.arg===t.ar)x.classList.add('good');else if(x.dataset.arg===c)x.classList.add('bad');});
+    Sound.play(ok?'good':'bad');if(!ok){this.miss.add(t.ar);if(Voice.ar)this.say(t.ar);}
+    setTimeout(()=>{this.queueQ.shift();if(!ok)this.queueQ.push(t);if(!this.queueQ.length){this.phase='end';S.arLesson=S.arLesson||{};S.arLesson[this.g]=Date.now();save();Sound.play('level');Confetti.burst(120);}this.draw();},ok?650:1500);},
+  end(){nextModal();const d=this.done;this.done=null;if(d)setTimeout(d,150);}
+};
 // ---------- Qui a changé ? et Chiffres éclair (jeux de mémoire) ----------
 const CHG_E=['🍎','🍌','🍓','🚗','⭐','🐱','🐶','🌸','⚽','🎈','🐟','🍪','🚀','🦋','🌙','🎲','🍇','🐸','🎸','🧸','🌳','🍕','🐢','🎩','🚲','☂️','🏀','🍩','🐧','🔔'];
 function chgItems(seed,n,count,kinds,base,per){const r=rng(seed),out=[];
@@ -1099,23 +1162,29 @@ const THEMES={
   {e:'📖',n:'Je lis le mot anglais (sans le son)',t:8,items:EN_ALL,q:qEnRead},
   {e:'💀',n:'Traduis en anglais',t:9,items:EN_ALL,q:qEnTr},
  ]},
- arabe:{n:'Arabe',e:'ع',c:'#0E9F6E',d:'#0B7A55',desc:'Lettres, nombres, couleurs, animaux, famille… à lire et à écouter',levels:[
-  {e:'🔤',n:'Les lettres : alif à ra',t:1,items:AR_L1,q:qArLet(AR_L1)},
-  {e:'🔢',n:'Les nombres de 1 à 10',t:1,items:AR_N1,q:qAr(AR_N1,vNum)},
+ arabe:{n:'Arabe',e:'ع',c:'#0E9F6E',d:'#0B7A55',desc:'Pour débutants : l’alphabet par petits groupes avec une leçon, puis les premiers mots',levels:[
+  {e:'⛵',n:'Lettres 1 : ا ب ت ث',t:1,lesson:'g1',items:AR_G1,q:qArLetMix(AR_G1,'g1')},
+  {e:'🪝',n:'Lettres 2 : ج ح خ',t:1,lesson:'g2',items:AR_G2,q:qArLetMix(AR_G2,'g2')},
   {e:'🎨',n:'Les couleurs',t:2,items:AR_COL,q:qAr(AR_COL,vCol)},
-  {e:'✏️',n:'Les lettres : zay à ghayn',t:2,items:AR_L2,q:qArLet(AR_L2)},
+  {e:'🔁',n:'Révision : lettres 1 et 2',t:2,items:AR_R12,q:qArLet2(AR_R12)},
+  {e:'📐',n:'Lettres 3 : د ذ ر ز',t:2,lesson:'g3',items:AR_G3,q:qArLetMix(AR_G3,'g3')},
+  {e:'🔢',n:'Les nombres de 1 à 10',t:3,items:AR_N1,q:qAr(AR_N1,vNum)},
+  {e:'🦷',n:'Lettres 4 : س ش ص ض',t:3,lesson:'g4',items:AR_G4,q:qArLetMix(AR_G4,'g4')},
   {e:'🐶',n:'Les animaux',t:3,items:AR_ANI,q:qAr(AR_ANI,vEmo)},
-  {e:'👨‍👩‍👧',n:'La famille',t:3,items:AR_FAM,q:qAr(AR_FAM,vEmo)},
-  {e:'🖊️',n:'Les lettres : fa à ya',t:4,items:AR_L3,q:qArLet(AR_L3)},
-  {e:'🍎',n:'Les aliments',t:4,items:AR_FOOD,q:qAr(AR_FOOD,vEmo)},
-  {e:'🧮',n:'Les chiffres écrits en arabe (١ ٢ ٣)',t:5,items:AR_DIG,q:qArDig},
-  {e:'👂',n:'Le corps',t:5,items:AR_BODY,q:qAr(AR_BODY,vEmo)},
-  {e:'🏠',n:'La maison et l’école',t:5,items:AR_HOME,q:qAr(AR_HOME,vEmo)},
-  {e:'☀️',n:'La nature',t:6,items:AR_NAT,q:qAr(AR_NAT,vEmo)},
-  {e:'👋',n:'Les mots de tous les jours',t:6,items:AR_MOTS,q:qArTxt(AR_MOTS)},
+  {e:'✨',n:'Lettres 5 : ط ظ ع غ',t:4,lesson:'g5',items:AR_G5,q:qArLetMix(AR_G5,'g5')},
+  {e:'👨‍👩‍👧',n:'La famille',t:4,items:AR_FAM,q:qAr(AR_FAM,vEmo)},
+  {e:'🔁',n:'Révision : lettres 1 à 5',t:4,items:AR_R15,q:qArLet2(AR_R15)},
+  {e:'🍋',n:'Lettres 6 : ف ق ك ل',t:5,lesson:'g6',items:AR_G6,q:qArLetMix(AR_G6,'g6')},
+  {e:'🍎',n:'Les aliments',t:5,items:AR_FOOD,q:qAr(AR_FOOD,vEmo)},
+  {e:'🌹',n:'Lettres 7 : م ن ه و ي',t:5,lesson:'g7',items:AR_G7,q:qArLetMix(AR_G7,'g7')},
+  {e:'🧮',n:'Les chiffres écrits en arabe (١ ٢ ٣)',t:6,items:AR_DIG,q:qArDig},
+  {e:'👂',n:'Le corps',t:6,items:AR_BODY,q:qAr(AR_BODY,vEmo)},
+  {e:'🏠',n:'La maison et l’école',t:6,items:AR_HOME,q:qAr(AR_HOME,vEmo)},
+  {e:'☀️',n:'La nature',t:7,items:AR_NAT,q:qAr(AR_NAT,vEmo)},
+  {e:'👋',n:'Les mots de tous les jours',t:7,items:AR_MOTS,q:qArTxt(AR_MOTS)},
   {e:'📅',n:'Les jours de la semaine',t:7,items:AR_JOURS,q:qArTxt(AR_JOURS)},
-  {e:'🔟',n:'Les nombres de 11 à 20',t:7,items:AR_N2,q:qAr(AR_N2,vNum)},
-  {e:'🔠',n:'Je trouve la lettre (tout l’alphabet)',t:8,items:AR_LET,q:qArLet2(AR_LET)},
+  {e:'🔟',n:'Les nombres de 11 à 20',t:8,items:AR_N2,q:qAr(AR_N2,vNum)},
+  {e:'🔠',n:'Tout l’alphabet',t:8,items:AR_LET,q:qArLet2(AR_LET)},
   {e:'💬',n:'Comment dit-on en arabe ?',t:8,items:AR_ALL,q:qArTr},
   {e:'💀',n:'Je lis le mot arabe, sans aide',t:9,items:AR_ALL,q:qArRead},
  ]},
@@ -1941,6 +2010,7 @@ function startGame(sub,mode){
   if(THEMES[sub]&&!thUnlocked(sub))return ACT.thlocked(sub);
   if(THEMES[sub]&&!S.settings.lv[sub]){S.settings.lv[sub]=1;}
   if(THEMES[sub]&&S.settings.lv[sub]>Plan.thMax(sub)){S.settings.lv[sub]=Plan.thMax(sub);save();toast('🔒 Les mondes suivants sont dans Malino+');}
+  if(sub==='arabe'&&mode==='theme'){const AL=THEMES.arabe.levels[(S.settings.lv.arabe||1)-1];if(AL&&AL.lesson&&!(S.arLesson||{})[AL.lesson])return ArLesson.open(AL.lesson,()=>startGame(sub,mode));}
   stopGame();const st=S.settings;
   Sons.stop(.5);
   G={sub,mode,queue:[],idx:0,n:0,mainN:0,okFirst:0,combo:0,bestCombo:0,fast:0,times:[],xp:0,coins:0,wrong:0,score:0,t0:Date.now(),reviews:{},timers:[],cur:null,input:'',ended:false};
@@ -1994,6 +2064,7 @@ function drawQ(){
     else if(q.type==='flash')h+=`<div id="flashw">${sylHTML(q.word.sy)}</div>`;
     else if(q.type==='wread')h+=sylHTML(q.word.sy)+'<button class="helpbtn" data-act="sylhelp">👂 Aide : syllabe par syllabe</button>';
     else if(q.type==='sent')h+=`<div class="sentence read">${esc(q.show)}</div>`;
+    if(q.lesson)h+=`<button class="helpbtn" data-act="arlesson" data-arg="${q.lesson}">📘 Revoir la leçon</button>`;
     const noAr=Voice.ok&&Voice.n&&!Voice.ar&&(q.chain||[]).some(c=>c&&/^ar/.test(c.lang||''));
     if(noAr)h+='<div class="nosound">🔇 Pas de voix arabe sur cet appareil : lis la prononciation.</div>';
     else if(q.say||q.chain)h+='<button class="speaker" data-act="replay" aria-label="Réécouter">🔊</button>';
@@ -2242,8 +2313,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.57';
+const VERSION='1.58';
 const VERSIONS=[
+ ['1.58','21/11/2026 12:00','Arabe pour débutants : leçon obligatoire, alphabet par petits groupes'],
  ['1.57','21/11/2026 11:20','Malino en anglais (interface, maths, 7 jeux), sélecteur de langue'],
  ['1.56','21/11/2026 10:30','Nouveau jeu : Arabe (18 mondes, lettres, mots, chiffres)'],
  ['1.55','20/11/2026 22:10','Guide parents et admin mis à jour avec les 2 nouveaux jeux'],
@@ -2251,7 +2323,6 @@ const VERSIONS=[
  ['1.53','20/11/2026 21:30','Cheveux longs visibles et gratuits : le profil fille s’affiche enfin'],
  ['1.52','20/11/2026 21:05','Choix garçon / fille à la création et sur chaque profil'],
  ['1.51','20/11/2026 20:55','Écran « Qui joue ? » en grandes cartes + bouton Changer de profil'],
- ['1.50','19/11/2026 23:35','Sons du Drive : paliers, coffres, combos, avec fondu'],
 ];
 const noFr=h=>window.MLANG==='fr'?h:h.replace(/<section class="acard"><h3>(?:📖 Lecture|🎙️ Sons des lettres)<\/h3>[\s\S]*?<\/section>/g,'').replace(/<li>Lecture \(méthode syllabique\)[^<]*<\/li>/,'');
 function renderAdmin(){
@@ -2384,7 +2455,7 @@ const ACT={
   pushtest(){Push.test();toast('🔔 Notification de test envoyée');},
   guide(){const sec=(t,l,o)=>`<details class="gd"${o?' open':''}><summary>${t}</summary><ul>${l.map(x=>`<li>${x}</li>`).join('')}</ul></details>`;
     queueModal(`<h2>📖 Comment marche Malino</h2><div class="guide">`
-    +sec('🎮 Les jeux et les mondes',['<b>Maths</b> et <b>Lecture</b> sont le cœur de l’appli. Le <b>Défi éclair</b> mesure la vitesse : le plus de calculs justes en 60 secondes.','Les <b>autres jeux</b> : Monnaie, Logique, Robot, Découverte, Anglais, Arabe, puis ceux qui se débloquent avec le niveau du joueur : Qui a changé ? (niveau 7), L’heure (5), Formes (8), Chiffres éclair (10), Problèmes (12), Drapeaux (15), Sciences (20), Orthographe (25).','<b>Arabe</b> (arabe standard) : chaque mot est écrit en arabe, avec sa prononciation en lettres latines. La voix lit le mot si l’appareil possède une voix arabe ; sinon l’enfant s’appuie sur la prononciation écrite. 18 mondes : lettres, nombres, couleurs, animaux, famille, mots de tous les jours…','<b>Qui a changé ?</b> et <b>Chiffres éclair</b> travaillent la mémoire : on regarde une scène ou un nombre quelques secondes, puis on retrouve ce qui a changé ou le bon chiffre. Le temps d’affichage raccourcit de monde en monde.','Chaque jeu avance par <b>mondes</b>. Les étoiles indiquent la difficulté ; au-dessus viennent Expert, Épique, Ultra et Impossible.','Le monde suivant s’ouvre quand le monde en cours est bien maîtrisé. Vous pouvez aussi le choisir vous-même dans Réglages et Autres jeux.'],1)
+    +sec('🎮 Les jeux et les mondes',['<b>Maths</b> et <b>Lecture</b> sont le cœur de l’appli. Le <b>Défi éclair</b> mesure la vitesse : le plus de calculs justes en 60 secondes.','Les <b>autres jeux</b> : Monnaie, Logique, Robot, Découverte, Anglais, Arabe, puis ceux qui se débloquent avec le niveau du joueur : Qui a changé ? (niveau 7), L’heure (5), Formes (8), Chiffres éclair (10), Problèmes (12), Drapeaux (15), Sciences (20), Orthographe (25).','<b>Arabe</b> (arabe standard), pensé pour partir de zéro : l’alphabet est appris par petits groupes de lettres qui se ressemblent (seuls les points changent). Avant chaque groupe, une <b>leçon obligatoire</b> présente chaque lettre (son nom, son son, un mot exemple), puis vérifie qu’elle est reconnue. Ensuite viennent les premiers mots, toujours écrits en arabe avec leur prononciation. La voix lit l’arabe si l’appareil possède une voix arabe. 24 mondes.','<b>Qui a changé ?</b> et <b>Chiffres éclair</b> travaillent la mémoire : on regarde une scène ou un nombre quelques secondes, puis on retrouve ce qui a changé ou le bon chiffre. Le temps d’affichage raccourcit de monde en monde.','Chaque jeu avance par <b>mondes</b>. Les étoiles indiquent la difficulté ; au-dessus viennent Expert, Épique, Ultra et Impossible.','Le monde suivant s’ouvre quand le monde en cours est bien maîtrisé. Vous pouvez aussi le choisir vous-même dans Réglages et Autres jeux.'],1)
     +sec('⭐ Niveau du joueur, pièces et étoiles',['Chaque bonne réponse donne de l’<b>expérience</b> : elle fait monter le <b>niveau du joueur</b> (à côté de l’avatar). Une réponse rapide rapporte plus.','Les <b>pièces 🪙</b> se gagnent avec les réponses rapides, les combos, la fin de partie et les coffres. Elles servent uniquement à acheter des objets pour le personnage.','En fin de partie : de 1 à 3 <b>étoiles</b> selon la réussite, et un bonus de pièces.','Une partie arrêtée avant la fin garde ses réponses et ses pièces, mais ne donne ni étoiles ni bonus de fin.'])
     +sec('🎯 Mission du jour, série et coffre du jour',['La <b>mission du jour</b> : une partie de maths et une partie de lecture.','Mission finie : le <b>coffre du jour 🎁</b> s’ouvre tout de suite (des pièces, parfois un objet).','La <b>série 🔥</b> compte les jours de suite où l’enfant a joué. Plus elle est longue, plus le coffre du jour est généreux.','Avec Malino+ : un <b>coffre doré</b> une fois par semaine, avec 3 fois plus de pièces et un objet.'])
     +sec('🗝️ Coffres magiques (12 heures)',['L’enfant <b>gagne</b> un coffre avec une partie à 3 étoiles (une chance sur deux), un niveau de joueur gagné, un monde gagné, la mission du jour ou un gros badge.','Il y a <b>4 emplacements</b>, et 6 coffres au maximum par jour. Chaque coffre s’ouvre <b>12 heures</b> après avoir été gagné.','5 sortes : bois, argent, or, épique, légendaire. Plus le coffre est rare, meilleur est le contenu.','À l’ouverture : une <b>farce</b> (chaussette qui pue…), un <b>bon cadeau</b> (pièces, autocollant) ou un cadeau <b>épique</b> (objet ou autocollant rare).','Les notifications « coffre prêt » s’activent dans Famille et compte, téléphone par téléphone. Les coffres se désactivent ici, dans Réglages.'])
@@ -2440,6 +2511,7 @@ const ACT={
   onbnext(){Onb.next();},onbprev(){Onb.prev();},onbskip(){Onb.skip();},onbset(a){Onb.set(a);},onbinvite(){Onb.done();setTimeout(()=>Offre.invite(),300);},onbstart(){Onb.start();},invsend(){Offre.inviteSend();},
   openlogin(){Acct.show('login');},authclose(){Acct.hide();},authsend(a){Acct.send(a==='again');},authverify(){Acct.verify();},
   who(){Famille.who(true);},
+  arlesson(g){ArLesson.open(g,null,true);},arlesnext(){ArLesson.next();},arlesprev(){ArLesson.prev();},arlesx(){nextModal();},arsay(c){ArLesson.say(c);},archk(c){ArLesson.check(c);},arlesend(){ArLesson.end();},
   setlang(l){if(l===(window.MLANG||'fr'))return;if(window.I18N)I18N.set(l);},
   newgenre(g){Acct.newG=g;const v=($('#newprof')||{}).value||'';keepScroll(render);const e=$('#newprof');if(e)e.value=v;},
   setgenre(g){S.genre=g;S.avatar=Object.assign({},S.avatar,g==='f'?{hair:'hair_long',shirt:'sh_rouge'}:{hair:'hair_court',shirt:'sh_bleu'});save();toast(g==='f'?'Profil : fille 👧':'Profil : garçon 👦');keepScroll(render);},
