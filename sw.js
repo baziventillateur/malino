@@ -11,8 +11,13 @@ self.addEventListener('fetch',e=>{
   }).catch(()=>caches.match(r).then(m=>m||caches.match('./'))));
 });
 // Notifications : coffre prêt
+// Alertes admin : son choisi par type. Si l'admin est ouverte à l'écran, elle joue le son elle-même (notification muette) ;
+// sinon le téléphone joue son propre son, sauf « silence ».
 self.addEventListener('push',e=>{let d={};try{d=e.data?e.data.json():{};}catch(x){d={body:e.data&&e.data.text()};}
-  e.waitUntil(self.registration.showNotification(d.title||'Malino',{body:d.body||'',icon:d.icon||'icon-192.png',badge:'badge-chouette.png',tag:d.tag||'malino',renotify:true,data:{url:d.url||'./'}}));});
+  const son=typeof d.son==='string'?d.son:'';
+  e.waitUntil((son&&son!=='silence'?self.clients.matchAll({type:'window',includeUncontrolled:true}):Promise.resolve([])).then(l=>{
+    const vis=l.filter(c=>c.visibilityState==='visible'&&/\/admin\.html/.test(c.url));vis.forEach(c=>c.postMessage({malinoSon:son}));
+    return self.registration.showNotification(d.title||'Malino',{body:d.body||'',icon:d.icon||'icon-192.png',badge:'badge-chouette.png',tag:d.tag||'malino',renotify:true,silent:son==='silence'||vis.length>0,data:{url:d.url||'./'}});}));});
 self.addEventListener('notificationclick',e=>{e.notification.close();const url=(e.notification.data&&e.notification.data.url)||'./';
   e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(l=>{const c=l.find(x=>'focus' in x);if(!c)return self.clients.openWindow(url);
     if(url!=='./'&&url!=='/'&&'navigate' in c)return c.navigate(url).then(w=>(w||c).focus()).catch(()=>c.focus());return c.focus();}));}); // une alerte admin ouvre directement la bonne page
