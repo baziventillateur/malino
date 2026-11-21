@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#7B5CFF">
+<title>Malino · Un coup de main</title>
+<meta property="og:title" content="Malino · Un petit coup de main ?">
+<meta property="og:description" content="Merci de prendre quelques minutes pour m’aider : tout se fait sur cette page, étape par étape.">
+<meta property="og:image" content="https://malino.paceapp.fr/og.jpg">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{--v:#7B5CFF;--vd:#5A3BE0;--vl:#EEE9FF;--ink:#24263A;--ink2:#5B5E78;--mut:#9094AE;--bg:#F4F1FF;--g:#16A34A;--gl:#DCFCE7;--r:#E03A45;--rl:#FFE4E6}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+header{display:flex;align-items:center;gap:8px;padding:10px 14px;max-width:520px;margin:0 auto}
+header img{width:30px;height:30px;border-radius:9px}header b{font-size:15px}header span{color:var(--mut);font-size:13px;margin-left:auto}
+main{max-width:520px;margin:0 auto;padding:0 12px 24px}
+.card{background:#fff;border-radius:18px;padding:16px;box-shadow:0 2px 10px rgba(60,30,160,.07);margin-bottom:10px}
+h1{font-size:21px;margin:0 0 6px;line-height:1.25}h2{font-size:17px;margin:0 0 8px}
+p{margin:0 0 10px}.mut{color:var(--mut)}.small{font-size:13px}.c{text-align:center}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:10px 14px;font-weight:700;background:var(--v);color:#fff}
+button.o{background:var(--vl);color:var(--vd)}button.ghost{background:none;color:var(--ink2);font-weight:600;padding:8px 6px}
+button:disabled{opacity:.45;cursor:default}
+.big{width:100%;padding:13px;font-size:16px}
+input,textarea{font:inherit;width:100%;border:1.5px solid #D9D3F3;border-radius:12px;padding:11px 12px;background:#fff;color:var(--ink);outline:none}
+input:focus,textarea:focus{border-color:var(--v)}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0}
+.how div{background:#FAF8FF;border-radius:12px;padding:8px 4px;text-align:center;font-size:12.5px;color:var(--ink2)}.how i{display:block;font-style:normal;font-size:22px;margin-bottom:2px}
+.msg{min-height:18px;font-size:13px;font-weight:600;color:var(--r);margin:8px 0 0}.msg.ok{color:var(--g)}
+/* progression */
+.prog{margin:2px 2px 12px}.prog .lab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink2);font-weight:600;margin-bottom:6px}
+.track{position:relative;height:8px;border-radius:99px;background:#E4DEFA}
+.track .fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,#9B7BFF,var(--v));transition:width .35s}
+.track .knob{position:absolute;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:#fff;border:3px solid var(--v);box-shadow:0 1px 4px rgba(60,30,160,.25);transition:left .35s}
+.dots{display:flex;justify-content:space-between;margin-top:6px;padding:0 1px}.dots i{width:6px;height:6px;border-radius:50%;background:#D9D2F5}.dots i.ok{background:var(--g)}.dots i.cur{background:var(--v)}
+/* étape */
+.step-n{font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--v);margin-bottom:6px}
+.word{font-size:46px;line-height:1.35;font-weight:700;text-align:center;margin:6px 0 4px;font-family:"Noto Naskh Arabic","Geeza Pro","Arabic Typesetting","Segoe UI",serif;word-break:break-word}
+.word.lat{font-size:30px;font-family:inherit}
+.meta{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.pill{background:#F4F1FF;border-radius:99px;padding:3px 10px;font-size:13px;color:var(--ink2)}.pill b{color:var(--ink)}
+.cons{background:#FFF8E1;border-radius:12px;padding:8px 10px;font-size:13px;color:#6A5300;margin-bottom:12px}
+.recz{display:flex;flex-direction:column;align-items:center;gap:8px;margin:6px 0 4px}
+.mic{width:76px;height:76px;border-radius:50%;font-size:30px;padding:0;background:var(--r);box-shadow:0 4px 14px rgba(224,58,69,.35);position:relative}
+.mic.on{animation:pulse 1.1s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(224,58,69,.5)}70%{box-shadow:0 0 0 16px rgba(224,58,69,0)}100%{box-shadow:0 0 0 0 rgba(224,58,69,0)}}
+.lvl{width:160px;height:6px;border-radius:99px;background:#F0ECFB;overflow:hidden}.lvl i{display:block;height:100%;width:0;background:var(--g);transition:width .08s}
+.hint{font-size:13px;color:var(--ink2);text-align:center;min-height:19px}
+.done{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.okb{background:var(--gl);color:var(--g);border-radius:99px;padding:4px 10px;font-size:13px;font-weight:700}
+.nav{display:flex;gap:8px;align-items:center;margin-top:12px}.nav .grow{flex:1}
+.list{margin:6px 0 12px;padding:0;list-style:none}.list li{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid #F1EEFA;font-size:14px}.list li:last-child{border-bottom:0}
+.list .w{font-size:19px;font-family:"Noto Naskh Arabic","Geeza Pro","Segoe UI",serif}.list .s{color:var(--mut);font-size:12.5px;flex:1}
+.ck{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:none}.ck.y{background:var(--gl);color:var(--g)}.ck.n{background:var(--rl);color:var(--r)}
+.hero{font-size:54px;text-align:center;margin:4px 0}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden}.confetti i{position:absolute;top:-12px;width:8px;height:12px;border-radius:2px;animation:fall 2.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:.7}}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header><img src="logo.svg" alt=""><b>Malino</b><span id="hdr"></span></header>
+<main id="app"><div class="card c mut">Chargement…</div></main>
+<script>
+'use strict';
+const SB_URL='https://fcfkfuqzgsmckkxqfwuo.supabase.co',SB_KEY='sb_publishable_a3SNrQOSCH20T5sKsJxuAA_s7H4yCSR',FN=SB_URL+'/functions/v1/malino-contrib';
+const $=s=>document.querySelector(s),app=$('#app');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const D=(new URLSearchParams(location.search).get('d')||'').toLowerCase().replace(/[^a-z0-9-]/g,'');
+const KEY='malino-contrib:'+D;
+let DEM=null,ST=null,I=0,REC={},busy=false;
+const isAr=t=>/[؀-ۿ]/.test(t);
+
+async function call(body){
+  try{const r=await fetch(FN,{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY},body:JSON.stringify(body)});return await r.json();}
+  catch(e){return {error:'reseau'};}
+}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(ST));}catch(e){}};
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){return null;}};
+
+// ---------- enregistrement : micro → PCM → WAV mono 22 kHz ----------
+const Rec={ctx:null,stream:null,src:null,proc:null,mute:null,chunks:[],rate:44100,t0:0,
+  async open(){
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('nomic');
+    const AC=window.AudioContext||window.webkitAudioContext;this.ctx=this.ctx||new AC();
+    if(this.ctx.state==='suspended')await this.ctx.resume();
+    if(!this.stream||!this.stream.getAudioTracks().some(t=>t.readyState==='live'))
+      this.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1}});
+  },
+  async start(onLvl){
+    await this.open();const c=this.ctx;this.rate=c.sampleRate;this.chunks=[];
+    this.src=c.createMediaStreamSource(this.stream);this.proc=c.createScriptProcessor(4096,1,1);this.mute=c.createGain();this.mute.gain.value=0;
+    this.proc.onaudioprocess=e=>{const d=e.inputBuffer.getChannelData(0);this.chunks.push(new Float32Array(d));let m=0;for(let i=0;i<d.length;i+=8){const a=Math.abs(d[i]);if(a>m)m=a;}onLvl&&onLvl(m);};
+    this.src.connect(this.proc);this.proc.connect(this.mute);this.mute.connect(c.destination);this.t0=performance.now();
+  },
+  stop(){
+    try{this.src.disconnect();this.proc.disconnect();this.mute.disconnect();}catch(e){}
+    this.proc&&(this.proc.onaudioprocess=null);
+    const n=this.chunks.reduce((a,b)=>a+b.length,0),out=new Float32Array(n);let o=0;for(const ch of this.chunks){out.set(ch,o);o+=ch.length;}
+    this.chunks=[];return {data:out,rate:this.rate};
+  },
+  close(){if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null;}}
+};
+async function toWav({data,rate}){
+  let peak=0;for(let i=0;i<data.length;i++){const a=Math.abs(data[i]);if(a>peak)peak=a;}
+  if(peak<0.02)return {err:'silence'};
+  const thr=Math.max(0.012,peak*0.07);let a=0,b=data.length-1;
+  while(a<data.length&&Math.abs(data[a])<thr)a++;while(b>a&&Math.abs(data[b])<thr)b--;
+  a=Math.max(0,a-Math.round(rate*.15));b=Math.min(data.length,b+Math.round(rate*.25));
+  const seg=data.subarray(a,b);if(seg.length<rate*.3)return {err:'court'};
+  const OR=22050,len=Math.max(1,Math.round(seg.length*OR/rate));
+  const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;let pcm;
+  try{
+    const oc=new OAC(1,len,OR),buf=oc.createBuffer(1,seg.length,rate);buf.getChannelData(0).set(seg);
+    const s=oc.createBufferSource();s.buffer=buf;s.connect(oc.destination);s.start(0);
+    const res=await new Promise((ok,ko)=>{oc.oncomplete=e=>ok(e.renderedBuffer);const p=oc.startRendering();if(p&&p.then)p.then(ok,ko);});
+    pcm=res.getChannelData(0);
+  }catch(e){pcm=new Float32Array(len);for(let i=0;i<len;i++)pcm[i]=seg[Math.min(seg.length-1,Math.floor(i*rate/OR))];}
+  let pk=0;for(let i=0;i<pcm.length;i++){const v=Math.abs(pcm[i]);if(v>pk)pk=v;}
+  const g=pk>0?.89/pk:1,f=Math.round(OR*.012);
+  const buf=new ArrayBuffer(44+pcm.length*2),dv=new DataView(buf),w=(o,s)=>{for(let i=0;i<s.length;i++)dv.setUint8(o+i,s.charCodeAt(i));};
+  w(0,'RIFF');dv.setUint32(4,36+pcm.length*2,true);w(8,'WAVE');w(12,'fmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
+  dv.setUint32(24,OR,true);dv.setUint32(28,OR*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);w(36,'data');dv.setUint32(40,pcm.length*2,true);
+  for(let i=0;i<pcm.length;i++){let v=pcm[i]*g;if(i<f)v*=i/f;else if(i>pcm.length-f)v*=(pcm.length-i)/f;v=Math.max(-1,Math.min(1,v));dv.setInt16(44+i*2,v<0?v*0x8000:v*0x7fff,true);}
+  const blob=new Blob([buf],{type:'audio/wav'});return {blob,url:URL.createObjectURL(blob),dur:pcm.length/OR};
+}
+const b64=blob=>new Promise(ok=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]||'');r.readAsDataURL(blob);});
+let player=null;
+function play(url,btn){try{if(player){player.pause();}player=new Audio(url);if(btn){btn.textContent='🔊 Lecture…';player.onended=player.onpause=()=>{btn.textContent='▶ Écouter';};}player.play().catch(()=>{});}catch(e){}}
+
+// ---------- écrans ----------
+function progHTML(){
+  const N=DEM.items.length,faits=new Set(ST.faits||[]),pos=N>1?I/(N-1)*100:100,fait=DEM.items.filter(x=>faits.has(x.id)).length;
+  return `<div class="prog"><div class="lab"><span>Étape ${I+1} sur ${N}</span><span>${fait}/${N} enregistré${fait>1?'s':''}</span></div>
+  <div class="track"><div class="fill" style="width:${pos}%"></div><div class="knob" style="left:${pos}%"></div></div>
+  <div class="dots">${DEM.items.map((x,k)=>`<i class="${k===I?'cur':faits.has(x.id)?'ok':''}"></i>`).join('')}</div></div>`;
+}
+function viewError(t,m){$('#hdr').textContent='';app.innerHTML=`<div class="card c"><div class="hero">🙈</div><h1>${esc(t)}</h1><p class="mut">${esc(m)}</p></div>`;}
+function viewAccueil(){
+  $('#hdr').textContent='Contribution';
+  const N=DEM.items.length,voix=DEM.items.some(x=>x.mode!=='texte');
+  app.innerHTML=`<div class="card"><div class="hero">👋</div><h1 class="c">Bonjour, et merci pour votre contribution !</h1>
+   <p class="c mut small" style="margin-bottom:12px">${esc(DEM.titre)}</p>
+   ${DEM.intro?`<p>${esc(DEM.intro)}</p>`:''}
+   <div class="how"><div><i>👀</i>Je lis</div><div><i>${voix?'🎙️':'✍️'}</i>${voix?'J’enregistre':'Je réponds'}</div><div><i>📨</i>J’envoie</div></div>
+   <p class="small mut">${N} étape${N>1?'s':''}${voix?' · un endroit calme, téléphone à 20 cm de la bouche':''}.</p>
+   <label class="small" for="pr" style="font-weight:700;display:block;margin:4px 0 6px">Votre prénom</label>
+   <input id="pr" autocomplete="given-name" maxlength="40" placeholder="Ex. Samira" value="${esc(ST&&ST.prenom||'')}">
+   <button class="big" id="go" style="margin-top:10px">Commencer</button><p class="msg" id="msg"></p>
+   <p class="small mut c" style="margin:8px 0 0">Seul votre prénom est demandé.${voix?' Vos enregistrements servent uniquement à l’appli Malino.':''}</p></div>`;
+  const go=async()=>{const p=$('#pr').value.trim();if(!p){$('#msg').textContent='Indiquez votre prénom pour commencer';$('#pr').focus();return;}
+    $('#go').disabled=true;$('#go').textContent='Un instant…';
+    const r=await call({mode:'commencer',d:D,prenom:p});
+    if(!r.id){$('#go').disabled=false;$('#go').textContent='Commencer';$('#msg').textContent=r.error==='fermee'?'Cette demande est terminée, merci !':'Connexion impossible, réessayez.';return;}
+    ST={id:r.id,jeton:r.jeton,prenom:p,faits:[],i:0};save();I=0;viewEtape();};
+  $('#go').onclick=go;$('#pr').onkeydown=e=>{if(e.key==='Enter')go();};
+}
+function viewEtape(){
+  const it=DEM.items[I],N=DEM.items.length,faits=new Set(ST.faits||[]),r=REC[it.id],txt=it.mode==='texte';
+  $('#hdr').textContent=ST.prenom;ST.i=I;save();
+  app.innerHTML=`${progHTML()}<div class="card"><div class="step-n">${txt?'Question':'Mot'} ${I+1} / ${N}</div>
+   <div class="word${isAr(it.texte)?'':' lat'}" ${isAr(it.texte)?'dir="rtl" lang="ar"':''}>${esc(it.texte)}</div>
+   <div class="meta">${it.aide?`<span class="pill">Prononciation : <b>${esc(it.aide)}</b></span>`:''}${it.sens?`<span class="pill">Sens : <b>${esc(it.sens)}</b></span>`:''}</div>
+   ${it.consigne?`<div class="cons">💡 ${esc(it.consigne)}</div>`:I===0&&!txt?`<div class="cons">💡 Appuyez sur le micro, dites le mot <b>une seule fois</b>, clairement et naturellement, puis appuyez sur Stop.</div>`:''}
+   ${txt?`<textarea id="tx" rows="4" placeholder="Votre réponse">${esc(r&&r.texte||'')}</textarea>`:
+   `<div class="recz" id="recz"></div>`}
+   <p class="msg" id="msg"></p>
+   <div class="nav">${I>0?'<button class="ghost" id="prev">← Retour</button>':''}<span class="grow"></span><button id="next">${I===N-1?'Terminer →':'Suivant →'}</button></div></div>`;
+  if(I>0)$('#prev').onclick=()=>{if(busy)return;stopIfRec();I--;viewEtape();};
+  $('#next').onclick=next;
+  if(!txt)drawRec(it);else{$('#tx').oninput=()=>{REC[it.id]={texte:$('#tx').value,sent:false};};}
+}
+let recOn=false,recTimer=null;
+function drawRec(it){
+  const z=$('#recz'),r=REC[it.id],deja=(ST.faits||[]).includes(it.id);
+  if(recOn){z.innerHTML=`<button class="mic on" id="mic" aria-label="Arrêter">⏹</button><div class="lvl"><i id="lv"></i></div><div class="hint" id="hint">J’écoute… appuyez pour arrêter</div>`;$('#mic').onclick=()=>stopRec(it);return;}
+  if(r&&r.url){z.innerHTML=`<div class="done"><span class="okb">✓ Enregistré${r.dur?' · '+r.dur.toFixed(1)+' s':''}</span></div><div class="done"><button class="o" id="pl">▶ Écouter</button><button class="o" id="redo">↺ Refaire</button></div><div class="hint">Si c’est bien, passez à la suite.</div>`;
+    $('#pl').onclick=e=>play(r.url,e.target);$('#redo').onclick=()=>startRec(it);return;}
+  z.innerHTML=`<button class="mic" id="mic" aria-label="Enregistrer">🎙️</button><div class="hint">${deja?'✓ Déjà envoyé · appuyez pour refaire':'Appuyez pour enregistrer'}</div>`;
+  $('#mic').onclick=()=>startRec(it);
+}
+async function startRec(it){
+  if(busy)return;$('#msg').textContent='';
+  try{recOn=true;drawRec(it);await Rec.start(m=>{const l=$('#lv');if(l)l.style.width=Math.min(100,Math.round(m*140))+'%';});
+    clearTimeout(recTimer);recTimer=setTimeout(()=>{if(recOn)stopRec(it);},12000);
+  }catch(e){recOn=false;drawRec(it);
+    const m=String(e&&e.message||e);
+    $('#msg').innerHTML=m==='nomic'?'Ce navigateur ne permet pas d’enregistrer. Ouvrez le lien dans <b>Safari</b> ou <b>Chrome</b>.':(/Permission|NotAllowed|denied/i.test(m)?'Le micro est bloqué : autorisez-le (icône 🔒 ou « aA » à côté de l’adresse), puis réessayez.':'Impossible d’accéder au micro. Ouvrez le lien dans Safari ou Chrome et réessayez.');}
+}
+async function stopRec(it){
+  if(!recOn)return;recOn=false;clearTimeout(recTimer);const raw=Rec.stop();
+  const z=$('#recz');if(z)z.innerHTML='<div class="hint">Préparation…</div>';
+  const w=await toWav(raw);
+  if(w.err){drawRec(it);$('#msg').textContent=w.err==='silence'?'Je n’ai rien entendu : parlez un peu plus fort, plus près du téléphone.':'C’était un peu court : réessayez en disant le mot entier.';return;}
+  if(REC[it.id]&&REC[it.id].url)URL.revokeObjectURL(REC[it.id].url);
+  REC[it.id]={...w,sent:false};drawRec(it);play(w.url,$('#pl'));
+}
+function stopIfRec(){if(recOn){recOn=false;clearTimeout(recTimer);Rec.stop();}}
+async function upload(it){
+  const r=REC[it.id];if(!r||r.sent)return true;
+  const body={mode:'envoyer',id:ST.id,jeton:ST.jeton,item:it.id};
+  if(it.mode==='texte'){if(!String(r.texte||'').trim())return false;body.texte=r.texte;}else{body.audio=await b64(r.blob);body.duree=r.dur;}
+  for(let k=0;k<2;k++){const j=await call(body);if(j&&j.ok){r.sent=true;ST.faits=j.faits||[...new Set([...(ST.faits||[]),it.id])];save();return true;}if(j&&j.error==='jeton')return 'jeton';}
+  return false;
+}
+async function next(){
+  if(busy)return;const it=DEM.items[I],N=DEM.items.length,txt=it.mode==='texte';
+  if(recOn)await stopRec(it);
+  const r=REC[it.id],deja=(ST.faits||[]).includes(it.id);
+  if(txt&&r&&String(r.texte||'').trim()===''&&!deja){$('#msg').textContent='Écrivez votre réponse pour continuer';return;}
+  if(!txt&&!(r&&r.url)&&!deja){$('#msg').textContent='Enregistrez le mot avant de continuer 🎙️';return;}
+  if(txt&&!r&&!deja){$('#msg').textContent='Écrivez votre réponse pour continuer';return;}
+  busy=true;const b=$('#next');b.disabled=true;b.textContent='Envoi…';
+  const ok=await upload(it);busy=false;
+  if(ok==='jeton'){localStorage.removeItem(KEY);ST=null;return viewAccueil();}
+  if(!ok){b.disabled=false;b.textContent='Réessayer';$('#msg').textContent='L’envoi n’a pas marché (connexion ?). Réessayez.';return;}
+  if(I<N-1){I++;viewEtape();}else viewRecap();
+}
+function viewRecap(){
+  stopIfRec();const faits=new Set(ST.faits||[]),N=DEM.items.length,manque=DEM.items.filter(x=>!faits.has(x.id));
+  app.innerHTML=`<div class="prog"><div class="lab"><span>Récapitulatif</span><span>${N-manque.length}/${N}</span></div><div class="track"><div class="fill" style="width:100%"></div><div class="knob" style="left:100%"></div></div></div>
+  <div class="card"><h2>${manque.length?'Presque fini !':'Tout est prêt ✅'}</h2>
+   <ul class="list">${DEM.items.map((x,k)=>`<li><span class="ck ${faits.has(x.id)?'y':'n'}">${faits.has(x.id)?'✓':'!'}</span><span class="w" ${isAr(x.texte)?'dir="rtl"':''}>${esc(x.texte)}</span><span class="s">${esc(x.sens||'')}</span>${faits.has(x.id)?'':`<button class="o" data-go="${k}">Faire</button>`}</li>`).join('')}</ul>
+   ${manque.length?`<p class="small mut">Il reste ${manque.length} élément${manque.length>1?'s':''} à faire.</p>`:`<p class="small mut">En envoyant, vous acceptez que ${DEM.items.some(x=>x.mode!=='texte')?'vos enregistrements soient utilisés':'vos réponses soient utilisées'} dans l’appli Malino.</p>`}
+   <button class="big" id="send" ${manque.length?'disabled':''}>📨 Envoyer</button><p class="msg" id="msg"></p>
+   <div class="nav"><button class="ghost" id="back">← Revenir aux étapes</button></div></div>`;
+  app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{I=+b.dataset.go;viewEtape();});
+  $('#back').onclick=()=>{I=N-1;viewEtape();};
+  $('#send').onclick=async()=>{const b=$('#send');b.disabled=true;b.textContent='Envoi…';
+    const r=await call({mode:'terminer',id:ST.id,jeton:ST.jeton});
+    if(r&&r.ok){ST.fini=true;save();Rec.close();return viewMerci();}
+    b.disabled=false;b.textContent='📨 Envoyer';
+    if(r&&r.error==='incomplet'){ST.faits=(ST.faits||[]).filter(x=>!r.manque.includes(x));save();return viewRecap();}
+    $('#msg').textContent='L’envoi n’a pas marché. Vérifiez votre connexion et réessayez.';};
+}
+function viewMerci(){
+  $('#hdr').textContent='';
+  app.innerHTML=`<div class="card c"><div class="hero">🎉</div><h1>Merci ${esc(ST.prenom)}, vous avez terminé !</h1>
+   <p>Merci beaucoup pour votre aide 🙏<br>Grâce à vous, les enfants vont entendre une vraie voix dans Malino.</p>
+   <p class="small mut">Vous pouvez fermer cette page.</p>
+   <button class="ghost small" id="again">Une autre personne veut aider ? Recommencer</button></div>`;
+  $('#again').onclick=()=>{localStorage.removeItem(KEY);ST=null;REC={};viewAccueil();};
+  const c=document.createElement('div');c.className='confetti';const col=['#7B5CFF','#FFB020','#16A34A','#FF5C8A','#36B5FF'];
+  for(let i=0;i<46;i++){const e=document.createElement('i');e.style.left=Math.random()*100+'%';e.style.background=col[i%col.length];e.style.animationDelay=Math.random()*.7+'s';c.appendChild(e);}
+  document.body.appendChild(c);setTimeout(()=>c.remove(),3800);
+}
+async function boot(){
+  if(!D)return viewError('Lien incomplet','Ce lien de contribution n’est pas complet. Demandez à nouveau le lien à la personne qui vous l’a envoyé.');
+  const d=await call({mode:'voir',d:D});
+  if(d.error==='fermee')return viewError('Merci, c’est complet !','Cette demande est terminée. Merci beaucoup d’avoir voulu aider 🙏');
+  if(!d.items)return viewError(d.error==='reseau'?'Pas de connexion':'Lien introuvable',d.error==='reseau'?'Vérifiez votre connexion internet puis rechargez la page.':'Ce lien n’existe pas ou n’est plus actif.');
+  DEM=d;ST=load();
+  if(ST&&ST.fini)return viewMerci();
+  if(ST&&ST.id){const r=await call({mode:'reprendre',id:ST.id,jeton:ST.jeton});
+    if(r&&r.faits){ST.faits=r.faits;save();if(r.statut==='complet'){ST.fini=true;save();return viewMerci();}I=Math.min(DEM.items.length-1,Math.max(0,ST.i|0));return viewEtape();}
+    if(r&&r.error==='jeton'){localStorage.removeItem(KEY);ST=null;}}
+  viewAccueil();
+}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&recOn){const it=DEM&&DEM.items[I];if(it)stopRec(it);}});
+boot();
+</script>
+</body>
+</html>

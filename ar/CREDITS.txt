@@ -4,8 +4,13 @@ Lettres (28 noms de lettres) : enregistrements d'un arabophone,
 dépôt GitHub razunatmohammed88-cyber/arabic-alphabet-audio, licence MIT
 (Copyright (c) 2025 razunatmohammed88-cyber). Fichiers recoupés (silences retirés, volume égalisé).
 
-Mots : en cours de remplacement par des enregistrements d'arabophones de Wikimedia Commons /
-Lingua Libre (licences libres CC BY-SA / CC0, auteurs listés dans ar/sources-mots.txt).
-Mots restants : voix de synthèse libre Piper « ar_JO-kareem-medium », texte vocalisé à la main.
+Mots (136) : enregistrements d'arabophones de Wikimedia Commons / Lingua Libre
+(licences libres CC BY, CC BY-SA, CC0, domaine public). Auteur et licence de chaque mot : ar/sources-mots.txt.
+Ils sont servis depuis le stockage Malino (cris/ar2/<empreinte>.mp3), avec repli sur le fichier local.
+
+Mots restants (10 : وردي, بني, أذن, قدم, جد, عفوا, آسف, تصبح على خير, كيف حالك, أنا بخير) :
+voix de synthèse libre Piper « ar_JO-kareem-medium », texte vocalisé à la main, en attendant
+les enregistrements de la page de contribution (contribuer.html?d=voix-arabe). Une voix choisie dans
+l'admin (« Utiliser dans l'appli ») est ajoutée à cris/ar2/rec.json et remplace la synthèse sans nouvelle version.
 
 Nom de chaque fichier : empreinte FNV-1a 32 bits du mot arabe tel qu'écrit dans l'appli.

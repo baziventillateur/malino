@@ -2044,12 +2044,14 @@ const Sound={ctx:null,buf:{},loaded:false,last:{},
 // Beaucoup de téléphones n'ont pas de voix arabe : chaque lettre et chaque mot a son fichier (ar/<empreinte>.mp3).
 // Si un fichier manque, on se rabat sur la voix du téléphone quand elle existe.
 // AR_REC : mots enregistrés par des arabophones (Wikimedia Commons / Lingua Libre), servis depuis le stockage
-const AR_REC=new Set([]);
+const AR_REC=new Set(["04e54136","0568039f","05b1a551","05ce863c","0ba2627b","116ce146","14d64fdc","14f7ac4c","187c6e7a","19f28484","1ad6f24e","1cd6f574","1cff3ab6","1e1471b0","1f7b665f","207f6c0e","20b948a8","22512339","22e9b9ab","28842220","28a30847","2b9da5dd","2baedf19","2ca4a29e","2f4ae011","2fff34e3","313b98ad","361d1bb1","3774788c","3774b676","37d71ff5","3ac70f27","3bb67d44","3f38703a","42a68adf","42e3eacc","43aca75c","4470ddfc","46e17c9e","486ebf33","498b594f","4d148521","4d684d70","4de79b09","4fe18476","50b9f85e","50e77750","548a7a94","54c27850","564bdf0b","5a4fe390","5c369889","5ef14ec8","67241eca","6a6f7a0d","6b56ded7","6c001258","6cae172c","6cb22eec","6f99ef11","70998deb","72d10f87","76105ff2","7c49884a","81258d39","81913eeb","8215f21b","847fcf27","852e7501","85eafe45","8769820a","890117f6","8973c8d3","8a601964","8d286537","8d6ccf93","8f9391cc","925b579b","94eee6e4","9986ddd3","9b21afa7","9d21b2cd","9d808981","9daae4f5","a2e70ec2","a3296915","a5d21eed","a6a29478","a9628481","aba36bc7","ad20db4d","aee9f31b","b0fe720a","b15074bf","b53f8757","b6434b64","bafd26ed","bd3d5aab","be020bf3","c04cc791","c0cf45f9","c1247e54","c1ad0192","c4611cfa","c50173e9","c5d5f2de","c75ada03","c7961eac","ca4c4cc7","cac79d3e","d6244b1f","db38a487","dd2b0762","e16147b3","e17323cf","e40dcc70","e51c17dd","e6dde582","e774b465","e7a49475","e7b95b32","e813e622","ea51f9fe","ec541439","ef6f38a5","f037e58b","f1251c8e","f2e45482","f7842ebf","f8df5358","f96373dd","fa200b6d","fa8dffdf","fe336eb7","ffa3956d","ffe54143"]),AR_V={};
 const ArAudio={buf:{},cur:null,
   key(t){let h=0x811c9dc5;t=String(t);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return ('0000000'+h.toString(16)).slice(-8);},
+  // voix ajoutées depuis l'admin (contributions) : liste lue une fois, sans bloquer plus de 2,5 s
+  man(){const u=SB_URL+'/storage/v1/object/public/cris/ar2/rec.json';return this._m||(this._m=Promise.race([fetch(u,{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.h)for(const k in j.h){AR_REC.add(k);AR_V[k]=j.h[k];}}).catch(()=>{}),new Promise(r=>setTimeout(r,2500))]));},
   load(t){if(this.buf[t])return this.buf[t];Sound.unlock();const c=Sound.ctx;if(!c)return Promise.resolve(null);
     const k=this.key(t),get=u=>fetch(u).then(r=>r.ok?r.arrayBuffer():null);
-    const p=(AR_REC.has(k)?get(SB_URL+'/storage/v1/object/public/cris/ar2/'+k+'.mp3').catch(()=>null).then(a=>a||get('ar/'+k+'.mp3')):get('ar/'+k+'.mp3'))
+    const p=this.man().then(()=>AR_REC.has(k)?get(SB_URL+'/storage/v1/object/public/cris/ar2/'+k+'.mp3'+(AR_V[k]?'?v='+AR_V[k]:'')).catch(()=>null).then(a=>a||get('ar/'+k+'.mp3')):get('ar/'+k+'.mp3'))
       .then(a=>a?new Promise((ok,ko)=>c.decodeAudioData(a,ok,ko)):null).then(b=>{if(b)this.prep(b);p.b=b;return b;}).catch(()=>{delete this.buf[t];return null;});
     return this.buf[t]=p;},
   // volume égalisé et silence de début retiré (les enregistrements viennent de sources différentes)
@@ -2456,8 +2458,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.61';
+const VERSION='1.62';
 const VERSIONS=[
+ ['1.62','21/11/2026 13:30','Arabe : 136 mots avec la voix d’un arabophone'],
  ['1.61','21/11/2026 13:20','Arabe : les 28 lettres enregistrées par un arabophone'],
  ['1.60','21/11/2026 12:15','Arabe : sons enregistrés pour toutes les lettres et tous les mots'],
  ['1.59','21/11/2026 12:45','Lecture : 9 mondes « lire et comprendre » après Petites phrases'],
@@ -2465,7 +2468,6 @@ const VERSIONS=[
  ['1.57','21/11/2026 11:20','Malino en anglais (interface, maths, 7 jeux), sélecteur de langue'],
  ['1.56','21/11/2026 10:30','Nouveau jeu : Arabe (18 mondes, lettres, mots, chiffres)'],
  ['1.55','20/11/2026 22:10','Guide parents et admin mis à jour avec les 2 nouveaux jeux'],
- ['1.54','20/11/2026 22:00','Nouveaux jeux : Qui a changé ? et Chiffres éclair'],
 ];
 const noFr=h=>window.MLANG==='fr'?h:h.replace(/<section class="acard"><h3>(?:📖 Lecture|🎙️ Sons des lettres)<\/h3>[\s\S]*?<\/section>/g,'').replace(/<li>Lecture \(méthode syllabique\)[^<]*<\/li>/,'');
 function renderAdmin(){
@@ -2574,7 +2576,7 @@ function paneGifts(){
 function paneData(){
   return `<section class="acard"><h3>🪙 Bonus des parents</h3><p class="hint">Pour récompenser un effort de la vraie vie.</p><div class="seg"><button data-act="bonus" data-arg="10">+10 🪙</button><button data-act="bonus" data-arg="25">+25 🪙</button><button data-act="bonus" data-arg="50">+50 🪙</button><button data-act="bonus" data-arg="100">+100 🪙</button></div></section>
   <section class="acard"><h3>💾 Sauvegarde</h3><p class="hint">La progression est enregistrée dans ce navigateur, sur cet appareil. Exportez-la pour la garder ou la transférer sur une autre tablette.</p><div class="seg"><button data-act="export">⬇️ Exporter</button><button data-act="import">⬆️ Importer</button></div><input type="file" id="importFile" accept="application/json,.json" class="hidden"></section>
-  <section class="acard"><h3>ℹ️ Crédits</h3><p class="hint">Bruitages : pack « uisfx », thème arcade, domaine public (CC0).</p></section>
+  <section class="acard"><h3>ℹ️ Crédits</h3><p class="hint">Bruitages : pack « uisfx », thème arcade, domaine public (CC0). Cris d’animaux et voix arabes des mots : arabophones de Wikimedia Commons et Lingua Libre (CC BY, CC BY-SA, CC0), <a href="ar/sources-mots.txt" target="_blank" rel="noopener">auteurs et licences</a>. Noms des lettres arabes : dépôt « arabic-alphabet-audio » (MIT). Autres mots arabes : voix de synthèse libre Piper.</p></section>
   <section class="acard"><h3>♻️ Remise à zéro</h3><p class="hint">Efface pièces, niveaux, badges et statistiques. Les réglages, le code et les cadeaux sont conservés.</p><button class="btn r sm" data-act="reset">Tout remettre à zéro</button></section>`;
 }
 function importFile(file){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||typeof d!=='object'||!('xp' in d))throw 0;S=deepMerge(defaultState(),d);save();toast('Sauvegarde importée ✅');render();}catch(e){toast('Fichier non reconnu');}};r.readAsText(file);}
