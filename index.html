@@ -582,6 +582,26 @@ h1,h2,h3,h4{font-weight:700}
 @keyframes praise{0%{opacity:0;transform:translateY(10px) scale(.7)}25%{opacity:1;transform:translateY(-4px) scale(1.15)}70%{opacity:1}100%{opacity:0;transform:translateY(-20px)}}
 @keyframes goodflash{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6),0 6px 0 rgba(36,38,58,.1)}100%{box-shadow:0 0 0 22px rgba(34,197,94,0),0 6px 0 rgba(36,38,58,.1)}}
 @keyframes starIn{0%{transform:scale(0) rotate(-90deg)}70%{transform:scale(1.3) rotate(10deg)}100%{transform:scale(1) rotate(0)}}
+/* ---------- Tablette : l'appli occupe tout l'écran ---------- */
+@media (min-width:700px) and (min-height:600px){
+  html{background:#E3DAFF}body{min-height:100vh}
+  #app{zoom:1.22}
+  .modal>.mbox,#ask>.mbox{zoom:1.2;max-height:76vh}.auth>.abox{zoom:1.2}
+  .tbub{max-width:400px}.tbub p{font-size:16px}.tbh b{font-size:19px}.tbh span{font-size:30px}
+}
+@media (min-width:800px) and (min-height:600px){#app{zoom:1.36}}
+@media (min-width:960px) and (min-height:600px){#app{zoom:1.55}}
+@media (min-width:1000px) and (min-height:600px) and (orientation:landscape){
+  #app{zoom:1.15;max-width:760px}
+  #app.scr-home{zoom:1;max-width:1200px;padding:18px 28px 28px}
+  .home{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 26px;align-items:start}
+  .home .hcol>.tgrid{grid-template-columns:1fr 1fr}
+  #app.scr-game{zoom:1.12;max-width:620px}
+  #app.scr-admin{zoom:1;max-width:1200px;padding:18px 28px 28px}
+  .apane{columns:2;column-gap:14px}.apane>*{break-inside:avoid}
+}
+@media (min-width:1300px) and (min-height:600px) and (orientation:landscape){#app.scr-home,#app.scr-admin{zoom:1.15}}
+@media (min-height:950px) and (orientation:landscape){#app.scr-game{zoom:1.45}}
 @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}.stars .st{transform:none}}
 .rarsec{margin:16px 0 4px}.rarh{font-size:15px;margin:0 0 8px;display:flex;align-items:baseline;gap:8px}.rarh small{color:var(--ink2);font-weight:600;font-size:12px}
 .badge{border:2px solid var(--rc,#e5e7eb)}
@@ -2154,7 +2174,7 @@ const Coffre={plein:false,
     if(g&&g.serie)setTimeout(()=>Sons.exc(),700);checkBadges(null).forEach(badgeModal);if(SCR==='home')render();},
   slotsHTML(){if(!this.on())return '';const l=this.list();let h='';
     for(let i=0;i<CFG.cofSlots;i++){const c=l[i];h+=c?`<button class="cslot t-${c.t} ${this.ready(c)?'ready':''}" data-act="cofopen" data-arg="${c.id}" aria-label="${COFT[c.t].n}">${chestSVG(c.t)}<small data-cof="${c.ready}">${this.ready(c)?'Ouvrir !':'⏳ '+this.left(c)}</small></button>`:'<div class="cslot empty"><span>＋</span><small>Libre</small></div>';}
-    return `<div class="cofs card"><div class="cofh"><b>🗝️ Mes coffres</b><button class="cofalb" data-act="album">📒 Album ${this.nb()}/${ALBUM.length}</button></div><div class="cslots">${h}</div>${l.length?'':'<p class="cofhint">Gagne des coffres en jouant : 3 étoiles, nouveau niveau, mission du jour… Ils s’ouvrent au bout de ${CFG.cofH} h.</p>'}</div>`;},
+    return `<div class="cofs card"><div class="cofh"><b>🗝️ Mes coffres</b><button class="cofalb" data-act="album">📒 Album ${this.nb()}/${ALBUM.length}</button></div><div class="cslots">${h}</div>${l.length?'':`<p class="cofhint">Gagne des coffres en jouant : mission du jour, nouveau niveau, belles parties… Ils s’ouvrent au bout de ${CFG.cofH} h.</p>`}</div>`;},
   // met à jour les comptes à rebours ; prévient quand un coffre devient prêt
   tick(){if(!S||SCR!=='home')return;let flip=false;$$('[data-cof]').forEach(el=>{const t=+el.dataset.cof,b=el.closest('.cslot');if(Date.now()>=t){if(b&&!b.classList.contains('ready'))flip=true;}else el.textContent='⏳ '+this.left({ready:t});});
     if(flip&&!modalOpen){render();if(Sons.ok())Sons.play('warzone_notif',{max:3});else Sound.play('badge');toast('🎁 Un coffre est prêt : viens l’ouvrir !');}}
@@ -2657,7 +2677,7 @@ function go(s){SCR=s;render();window.scrollTo(0,0);}
 function keepScroll(fn){const y=window.scrollY;fn();window.scrollTo(0,y);}
 function render(){
   const R={home:renderHome,game:renderGame,result:renderResult,shop:renderShop,badges:renderBadges,album:renderAlbum,gifts:renderGifts,pin:renderPin,admin:()=>adminOk?renderAdmin():renderPin()};
-  $('#app').innerHTML=(R[SCR]||renderHome)();
+  const ap=$('#app');ap.className='scr-'+SCR;ap.innerHTML=(R[SCR]||renderHome)();
   try{Install.maj();}catch(e){}
   if(SCR==='home'&&!modalOpen&&!(typeof Onb!=='undefined'&&Onb.should()))setTimeout(()=>{try{if(SCR==='home'&&!modalOpen)unlockCheck();}catch(e){}},350);
 }
@@ -2665,7 +2685,7 @@ function weekHTML(){const now=new Date(),dow=(now.getDay()+6)%7,mon=addDays(now,
 function renderHome(){Dem.sync();
   const li=levelInfo(S.xp),st=S.settings,t=today(),ml=MATH_LEVELS[st.mathLevel-1],mm=levelMastery('math',st.mathLevel),mf=mathFacts(st.mathLevel).length,fl=FR_LEVELS[st.frLevel-1];
   const sprintLocked=!t.math,frLocked=st.frAfterMath&&!t.math,best=S.stats.sprintBest[st.mathLevel]||0,reached=S.gifts.filter(g=>g.reached&&!g.given),nb=Object.keys(S.badges).length,ready=chestAvailable();
-  return `<div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills">${Acct.user?'':'<button class="loginbtn" data-act="openlogin"><b>Se connecter</b><small>💾 Garder mes progrès</small></button>'}<span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">🔄 Changer</button>':''}</div></div>
+  return `<div class="home"><div class="hcol"><div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills">${Acct.user?'':'<button class="loginbtn" data-act="openlogin"><b>Se connecter</b><small>💾 Garder mes progrès</small></button>'}<span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">🔄 Changer</button>':''}</div></div>
   <div class="week card">${weekHTML()}</div>${Plan.banner()}
   
   <div class="mission card"><div class="mtx"><h3>Mission du jour</h3><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${frOnNow()?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'🎉':'🎁'}</button></div>
@@ -2673,9 +2693,9 @@ function renderHome(){Dem.sync();
   <button class="play ${!t.math?'pulse':''}" style="--c:var(--b);--d:var(--bd)" data-act="startmath"><span class="ico">🔢</span><span class="tx"><span class="t1">Maths</span><span class="t2">Monde ${st.mathLevel} · ${ml.n}</span><span class="mbar"><i style="width:${Math.round(mm*100)}%"></i></span><span class="t3">${Math.round(mm*mf)} / ${mf} calculs maîtrisés${mm>=1?' · 🏆 Monde terminé !':mm>=.8?' · Le monde suivant arrive à la fin de la partie !':''}</span></span></button>
   <button class="play ${sprintLocked?'locked':''}" style="--c:var(--o);--d:var(--od)" data-act="startsprint"><span class="ico">⚡</span><span class="tx"><span class="t1">Défi éclair</span><span class="t2">${sprintLocked?'Après ton entraînement de maths':best?`Record : ${best} calculs en ${st.sprintSec} s`:`Le plus de calculs en ${st.sprintSec} s !`}</span></span>${sprintLocked?'<span class="lock">🔒</span>':''}</button>
   ${frOnNow()?`<button class="play ${frLocked?'locked':''} ${!frLocked&&!t.fr?'pulse':''}" style="--c:var(--p);--d:var(--pd)" data-act="startfr"><span class="ico">📖</span><span class="tx"><span class="t1">Lecture</span><span class="t2">${frLocked?'Après ton entraînement de maths':`Monde ${st.frLevel} · ${fl.n}`}</span></span>${frLocked?'<span class="lock">🔒</span>':''}</button>`:''}
-  ${themesHTML()}
+  </div><div class="hcol">${themesHTML()}
   <div class="minis"><button class="mini" data-act="shop"><span>🎨</span>Mon perso</button><button class="mini" data-act="badges"><span>🏆</span>Badges ${nb}/${BADGES.length}</button><button class="mini ${S.gifts.some(g=>g.reached&&!g.given)||(Dem.dispo()&&!Dem.attente())?'blink':''}" data-act="gifts"><span>🎁</span>Cadeaux${S.gifts.some(g=>g.reached&&!g.given)?`<i class="dot">${S.gifts.filter(g=>g.reached&&!g.given).length}</i>`:Dem.dispo()&&!Dem.attente()?'<i class="dot">🔑</i>':''}</button></div>
-  <div class="parentrow"><button class="parentbtn" data-act="parent">🔒 Espace parents</button><a class="parentbtn" href="aide.html" target="_blank" rel="noopener">💬 Aide</a>${Plan.pill()}<button class="parentbtn" data-act="offrir">🎁 Offrir</button></div>`;
+  <div class="parentrow"><button class="parentbtn" data-act="parent">🔒 Espace parents</button><a class="parentbtn" href="aide.html" target="_blank" rel="noopener">💬 Aide</a>${Plan.pill()}<button class="parentbtn" data-act="offrir">🎁 Offrir</button></div></div></div>`;
 }
 function renderGame(){
   return `<div class="game"><div class="gtop"><button class="xbtn" data-act="quit" aria-label="Arrêter">✕</button>${G.mode==='sprint'?`<div class="clock" id="clock">⏱ ${S.settings.sprintSec}</div>`:'<div class="gprog"><i id="gprog"></i></div>'}<div class="combo" id="combo"></div></div>
@@ -2737,7 +2757,7 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.79';
+const VERSION='1.80';
 const VERSIONS=[
  ['1.65','21/11/2026 15:20','Espace parents : bouton Admin et cloche en haut'],
  ['1.64','21/11/2026 15:00','Voix des contributions : plusieurs voix par son, sons des lettres, cris, anglais'],
@@ -2762,7 +2782,7 @@ function renderAdmin(){
   ${sw}
   <div class="tgrp"><span class="tlab">Pour ${esc(S.name||'l’enfant')}</span><div class="tabs">${tb(enf)}</div></div>
   <div class="tgrp"><span class="tlab">Commun à la famille</span><div class="tabs">${tb(com)}</div></div>
-  ${noFr((P[adminTab]||P.compte)())}<button class="vtag" data-act="versions">Malino v${VERSION} · ${VERSIONS[0][1]}</button>`;
+  <div class="apane">${noFr((P[adminTab]||P.compte)())}</div><button class="vtag" data-act="versions">Malino v${VERSION} · ${VERSIONS[0][1]}</button>`;
 }
 
 function paneCompare(){
