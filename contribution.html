@@ -40,7 +40,7 @@ input:focus,textarea:focus{border-color:var(--v)}
 /* étape */
 .step-n{font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--v);margin-bottom:6px}
 .word{font-size:46px;line-height:1.35;font-weight:700;text-align:center;margin:6px 0 4px;font-family:"Noto Naskh Arabic","Geeza Pro","Arabic Typesetting","Segoe UI",serif;word-break:break-word}
-.word.lat{font-size:30px;font-family:inherit}
+.word.lat{font-size:30px;font-family:inherit}.word.one{font-size:60px;line-height:1.1}
 .meta{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .pill{background:#F4F1FF;border-radius:99px;padding:3px 10px;font-size:13px;color:var(--ink2)}.pill b{color:var(--ink)}
 .cons{background:#FFF8E1;border-radius:12px;padding:8px 10px;font-size:13px;color:#6A5300;margin-bottom:12px}
@@ -176,8 +176,8 @@ function viewEtape(){
   const it=DEM.items[I],N=DEM.items.length,faits=new Set(ST.faits||[]),r=REC[it.id],txt=it.mode==='texte';
   $('#hdr').textContent=ST.prenom;ST.i=I;save();
   app.innerHTML=`${progHTML()}<div class="card"><div class="step-n">${txt?'Question':'Mot'} ${I+1} / ${N}</div>
-   <div class="word${isAr(it.texte)?'':' lat'}" ${isAr(it.texte)?'dir="rtl" lang="ar"':''}>${esc(it.texte)}</div>
-   <div class="meta">${it.aide?`<span class="pill">Prononciation : <b>${esc(it.aide)}</b></span>`:''}${it.sens?`<span class="pill">Sens : <b>${esc(it.sens)}</b></span>`:''}</div>
+   <div class="word${isAr(it.texte)?'':it.texte.length<=3?' lat one':' lat'}" ${isAr(it.texte)?'dir="rtl" lang="ar"':''}>${esc(it.texte)}</div>
+   <div class="meta">${it.aide?`<span class="pill">Prononciation : <b>${esc(it.aide)}</b></span>`:''}${it.sens?`<span class="pill"><b>${esc(it.sens)}</b></span>`:''}</div>
    ${it.consigne?`<div class="cons">💡 ${esc(it.consigne)}</div>`:I===0&&!txt?`<div class="cons">💡 Appuyez sur le micro, dites le mot <b>une seule fois</b>, clairement et naturellement, puis appuyez sur Stop.</div>`:''}
    ${txt?`<textarea id="tx" rows="4" placeholder="Votre réponse">${esc(r&&r.texte||'')}</textarea>`:
    `<div class="recz" id="recz"></div>`}

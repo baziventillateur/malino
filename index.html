@@ -878,7 +878,7 @@ const FR_LEVELS=[
 const LOC=window.MLANG==='en'?'en-GB':'fr-FR';
 const itemKey=x=>typeof x==='string'?x:(x.k||x.w||x.s);
 // Son d'une lettre : enregistrement des parents s'il existe, sinon voix (voyelles seulement)
-const snd=k=>Rec.has(k)?{rec:k}:(PHON[k]&&PHON[k].tts?{say:PHON[k].tts,rate:.8}:null);
+const snd=k=>Rec.ok(k)?{rec:k}:(PHON[k]&&PHON[k].tts?{say:PHON[k].tts,rate:.8}:null);
 const others=(pool,n,avoid)=>shuffle(pool.filter(p=>!avoid.includes(p))).slice(0,n);
 function similarWords(w,list,n){return list.filter(x=>x!==w).map(x=>({x,s:(x[0]===w[0]?2:0)+(x.length===w.length?1:0)+(x.slice(-1)===w.slice(-1)?1:0)+Math.random()*1.5})).sort((a,b)=>b.s-a.s).slice(0,n).map(o=>o.x);}
 function sylChain(x){const st=[];x.sy.forEach((s,i)=>st.push({fn:()=>syOn(i)},{say:sylSay(s),rate:.8}));st.push({fn:()=>syOn(-1)},{say:x.w});return st;}
@@ -893,22 +893,22 @@ function frQ(lv,x){
     case 'first':{const p=PHON[x];
       return {...base,ans:x,show:p.e,chain:[{say:p.ex}],inst:'Par quel son commence ce mot ?',opts:shuffle([x,...others(L.items,2,[x])]).map(v=>({v,l:v})),optCls:'read',
         fixHTML:`<span class="emo">${p.e}</span> <span class="read"><b class="hl1">${esc(p.ex.slice(0,x.length))}</b>${esc(p.ex.slice(x.length))}</span>`,
-        fixChain:[{say:p.ex},Rec.has(x)?{rec:x}:{say:VOW.includes(x)?'commence par '+PHON[x].tts:'commence par la lettre '+(LETTER_NAME[x]||x)}]};}
+        fixChain:[{say:p.ex},Rec.ok(x)?{rec:x}:{say:VOW.includes(x)?'commence par '+PHON[x].tts:'commence par la lettre '+(LETTER_NAME[x]||x)}]};}
     case 'fuse':{const [c,v]=x.split('|'),syl=c+v,set=new Set([syl]);
       if(v!=='é'&&c!=='ch')set.add(v+c);
       set.add(c+pick(FV.filter(w=>w!==v)));
       while(set.size<3)set.add(pick(CONSALL.filter(k=>k!==c))+v);
       return {...base,ans:syl,c,v,inst:'Assemble les deux lettres',
-        chain:[{fn:()=>tileOn(0)},Rec.has(c)?{rec:c}:{wait:500},{fn:()=>tileOn(1)},snd(v)||{wait:500},{fn:()=>tileOn(-1)}],
+        chain:[{fn:()=>tileOn(0)},Rec.ok(c)?{rec:c}:{wait:500},{fn:()=>tileOn(1)},snd(v)||{wait:500},{fn:()=>tileOn(-1)}],
         opts:shuffle([...set].slice(0,3)).map(s=>({v:s,l:s})),optCls:'read',afterSay:sylSay(syl),afterDelay:1300,
         fixHTML:`<span class="read"><span class="tc">${c}</span> + <span class="tv">${v}</span> = ${syl}</span>`,
-        fixChain:[Rec.has(c)?{rec:c}:{wait:80},snd(v)||{wait:80},{say:sylSay(syl)}]};}
+        fixChain:[Rec.ok(c)?{rec:c}:{wait:80},snd(v)||{wait:80},{say:sylSay(syl)}]};}
     case 'syll':{const c=x.startsWith('ch')?'ch':x[0],v=x.slice(c.length),d=new Set();
       d.add(c+pick(FV.filter(w=>w!==v)));
       const cc=(CONF2[c]||'').split('').filter(k=>CONSALL.includes(k));d.add((cc.length?pick(cc):pick(CONSALL.filter(k=>k!==c)))+v);
       while(d.size<2)d.add(pick(L.items.filter(s=>s!==x)));
       return {...base,ans:x,say:sylSay(x),inst:'Écoute et trouve la syllabe',opts:shuffle([x,...[...d].slice(0,2)]).map(s=>({v:s,l:s})),optCls:'read',
-        fixHTML:`<span class="read">${x}</span><div class="fixsub read"><span class="tc">${c}</span> + <span class="tv">${v}</span> = ${x}</div>`,fixChain:[Rec.has(c)?{rec:c}:{wait:80},snd(v)||{wait:80},{say:sylSay(x)}]};}
+        fixHTML:`<span class="read">${x}</span><div class="fixsub read"><span class="tc">${c}</span> + <span class="tv">${v}</span> = ${x}</div>`,fixChain:[Rec.ok(c)?{rec:c}:{wait:80},snd(v)||{wait:80},{say:sylSay(x)}]};}
     case 'wread':case 'flash':{const o=shuffle(L.items.filter(i=>i.e!==x.e&&i.w!==x.w)).slice(0,2);
       return {...base,ans:x.w,word:x,inst:L.type==='flash'?'Regarde bien le mot… ⚡':'Lis le mot et trouve l’image',opts:shuffle([x,...o]).map(i=>({v:i.w,l:i.e})),optCls:'emo',afterSay:x.w,afterAnim:true,
         fixHTML:`<span class="emo">${x.e}</span><div>${sylHTML(x.sy)}</div>`,fixChain:sylChain(x)};}
@@ -1254,7 +1254,7 @@ const THEMES={
   {e:'🌋',n:'5 pas, un mur, grande grille',t:9,items:pathItems(40,5,5,true,20),q:qPath},
  ]},
  monde:{n:'Découverte',e:'🌍',c:'#0EA5E9',d:'#0B7FB5',desc:'Animaux, métiers, sens, saisons, jours et mois',levels:[
-  {e:'🐄',n:'Le cri des animaux',items:CRIS,q:x=>({ans:x.e,inst:'Qui fait ce cri ?',...(CRY_REAL[x.c]?{chain:[{say:'Écoute bien. Qui fait ce bruit ?'},{wait:250},{fn:()=>Sound.real(CRY_REAL[x.c][0],x.c,CRY_REAL[x.c][1])},{wait:CRY_REAL[x.c][1]*1000+200}]}:CRY_SFX[x.c]?{chain:[{say:'Qui fait ce bruit ?'},{wait:250},{fn:()=>Sound.cry(x.c)},{wait:1400}]}:{say:`Qui fait ${x.c} ?`}),html:CRY_REAL[x.c]?'<div class="bigemo">🔊</div>':`<div class="bigtxt read">« ${x.c} »</div>`,opts:shuffle([x,...others(CRIS,2,[x])]).map(i=>({v:i.e,l:i.e})),optCls:'emo',fixHTML:`<span class="emo">${x.e}</span><div class="fixsub">${cap(x.n)} fait « ${x.c} »</div>`,fixSay:`${x.n} fait ${x.c}`})},
+  {e:'🐄',n:'Le cri des animaux',items:CRIS,q:x=>{const vk='cri:'+x.c,nv=VoixC.list(vk).length,useV=nv>0&&(!CRY_REAL[x.c]||Math.random()<nv/(nv+1));VoixC.preload([vk]);return {ans:x.e,inst:'Qui fait ce cri ?',...(useV?{chain:[{say:'Écoute bien. Qui fait ce bruit ?'},{wait:250},{fn:()=>VoixC.play(vk)},{wait:Math.round((VoixC.dur(vk)||1.8)*1000)+250}]}:CRY_REAL[x.c]?{chain:[{say:'Écoute bien. Qui fait ce bruit ?'},{wait:250},{fn:()=>Sound.real(CRY_REAL[x.c][0],x.c,CRY_REAL[x.c][1])},{wait:CRY_REAL[x.c][1]*1000+200}]}:CRY_SFX[x.c]?{chain:[{say:'Qui fait ce bruit ?'},{wait:250},{fn:()=>Sound.cry(x.c)},{wait:1400}]}:{say:`Qui fait ${x.c} ?`}),html:useV||CRY_REAL[x.c]?'<div class="bigemo">🔊</div>':`<div class="bigtxt read">« ${x.c} »</div>`,opts:shuffle([x,...others(CRIS,2,[x])]).map(i=>({v:i.e,l:i.e})),optCls:'emo',fixHTML:`<span class="emo">${x.e}</span><div class="fixsub">${cap(x.n)} fait « ${x.c} »</div>`,fixSay:`${x.n} fait ${x.c}`};}},
   {e:'🏡',n:'Où vivent les animaux ?',items:VIT,q:x=>({ans:x.h,inst:'Où vit cet animal ?',say:`Où vit ${x.n} ?`,html:`<div class="bigemo">${x.e}</div>`,opts:shuffle([x.h,...others(Object.keys(HAB),2,[x.h])]).map(h=>({v:h,h:`${HAB[h][0]}<small>${HAB[h][1]}</small>`})),optCls:'emo',fixHTML:`<span class="emo">${x.e} ${HAB[x.h][0]}</span><div class="fixsub">${cap(x.n)} vit ${HAB[x.h][2]}</div>`,fixSay:`${x.n} vit ${HAB[x.h][2]}`})},
   {e:'↔️',n:'Les contraires',items:OPP,q:x=>({ans:x.w2,inst:'Trouve le contraire',say:`Quel est le contraire de ${x.w1} ?`,html:`<div class="bigemo">${x.e1}</div><div class="fixsub read">${x.w1}</div>`,opts:shuffle([x,...others(OPP,2,[x,OPP.find(o=>o.k===x.w2)])]).map(i=>i===x?{v:x.w2,h:`${x.e2}<small>${x.w2}</small>`}:{v:i.w1,h:`${i.e1}<small>${i.w1}</small>`}),optCls:'emo',fixHTML:`<span class="emo">${x.e1} ↔ ${x.e2}</span><div class="fixsub">${x.w1} ↔ ${x.w2}</div>`,fixSay:`Le contraire de ${x.w1}, c’est ${x.w2}`})},
   {e:'🍂',n:'Les quatre saisons',items:CLUES,q:x=>({ans:x.s,inst:'C’est quelle saison ?',html:`<div class="bigemo">${x.e}</div>`,opts:shuffle([x.s,...others(Object.keys(SEAS),2,[x.s])]).map(s=>({v:s,h:`${SEAS[s][0]}<small>${SEAS[s][1]}</small>`})),optCls:'emo',fixHTML:`<span class="emo">${x.e} ${SEAS[x.s][0]}</span><div class="fixsub">C’est ${SEAS[x.s][1]}</div>`,fixSay:`C’est ${SEAS[x.s][1]}`})},
@@ -2044,14 +2044,19 @@ const Sound={ctx:null,buf:{},loaded:false,last:{},
 // Beaucoup de téléphones n'ont pas de voix arabe : chaque lettre et chaque mot a son fichier (ar/<empreinte>.mp3).
 // Si un fichier manque, on se rabat sur la voix du téléphone quand elle existe.
 // AR_REC : mots enregistrés par des arabophones (Wikimedia Commons / Lingua Libre), servis depuis le stockage
+// AR_SYN : mots encore en voix de synthèse (une voix de contribution les remplace entièrement)
+const AR_SYN=new Set(['0fff0797','24fea76b','38212c40','f7cf0ec1','7dd1b1ec','8a3c3fa6','d9d7bfd9','1ab9526c','a83c1d9c','f0b495ec']);
 const AR_REC=new Set(["04e54136","0568039f","05b1a551","05ce863c","0ba2627b","116ce146","14d64fdc","14f7ac4c","187c6e7a","19f28484","1ad6f24e","1cd6f574","1cff3ab6","1e1471b0","1f7b665f","207f6c0e","20b948a8","22512339","22e9b9ab","28842220","28a30847","2b9da5dd","2baedf19","2ca4a29e","2f4ae011","2fff34e3","313b98ad","361d1bb1","3774788c","3774b676","37d71ff5","3ac70f27","3bb67d44","3f38703a","42a68adf","42e3eacc","43aca75c","4470ddfc","46e17c9e","486ebf33","498b594f","4d148521","4d684d70","4de79b09","4fe18476","50b9f85e","50e77750","548a7a94","54c27850","564bdf0b","5a4fe390","5c369889","5ef14ec8","67241eca","6a6f7a0d","6b56ded7","6c001258","6cae172c","6cb22eec","6f99ef11","70998deb","72d10f87","76105ff2","7c49884a","81258d39","81913eeb","8215f21b","847fcf27","852e7501","85eafe45","8769820a","890117f6","8973c8d3","8a601964","8d286537","8d6ccf93","8f9391cc","925b579b","94eee6e4","9986ddd3","9b21afa7","9d21b2cd","9d808981","9daae4f5","a2e70ec2","a3296915","a5d21eed","a6a29478","a9628481","aba36bc7","ad20db4d","aee9f31b","b0fe720a","b15074bf","b53f8757","b6434b64","bafd26ed","bd3d5aab","be020bf3","c04cc791","c0cf45f9","c1247e54","c1ad0192","c4611cfa","c50173e9","c5d5f2de","c75ada03","c7961eac","ca4c4cc7","cac79d3e","d6244b1f","db38a487","dd2b0762","e16147b3","e17323cf","e40dcc70","e51c17dd","e6dde582","e774b465","e7a49475","e7b95b32","e813e622","ea51f9fe","ec541439","ef6f38a5","f037e58b","f1251c8e","f2e45482","f7842ebf","f8df5358","f96373dd","fa200b6d","fa8dffdf","fe336eb7","ffa3956d","ffe54143"]),AR_V={};
 const ArAudio={buf:{},cur:null,
   key(t){let h=0x811c9dc5;t=String(t);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return ('0000000'+h.toString(16)).slice(-8);},
-  // voix ajoutées depuis l'admin (contributions) : liste lue une fois, sans bloquer plus de 2,5 s
-  man(){const u=SB_URL+'/storage/v1/object/public/cris/ar2/rec.json';return this._m||(this._m=Promise.race([fetch(u,{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.h)for(const k in j.h){AR_REC.add(k);AR_V[k]=j.h[k];}}).catch(()=>{}),new Promise(r=>setTimeout(r,2500))]));},
+  // voix choisies dans l'admin (contributions) : liste lue une fois, sans bloquer plus de 2,5 s
+  man(){return this._m||(this._m=Promise.race([VoixC.init(),new Promise(r=>setTimeout(r,2500))]));},
   load(t){if(this.buf[t])return this.buf[t];Sound.unlock();const c=Sound.ctx;if(!c)return Promise.resolve(null);
     const k=this.key(t),get=u=>fetch(u).then(r=>r.ok?r.arrayBuffer():null);
-    const p=this.man().then(()=>AR_REC.has(k)?get(SB_URL+'/storage/v1/object/public/cris/ar2/'+k+'.mp3'+(AR_V[k]?'?v='+AR_V[k]:'')).catch(()=>null).then(a=>a||get('ar/'+k+'.mp3')):get('ar/'+k+'.mp3'))
+    const std=()=>AR_REC.has(k)?get(SB_URL+'/storage/v1/object/public/cris/ar2/'+k+'.mp3').catch(()=>null).then(a=>a||get('ar/'+k+'.mp3')):get('ar/'+k+'.mp3');
+    // voix de contribution : elle remplace la voix de synthèse ; à côté d'une vraie voix, elle est tirée au sort avec elle
+    const p=this.man().then(()=>{const L=VoixC.list('ar:'+t),n=L.length,r=Math.floor(Math.random()*(AR_SYN.has(k)?n:n+1));
+        return r<n?get(VoixC.url(L[r])).catch(()=>null).then(a=>a||std()):std();})
       .then(a=>a?new Promise((ok,ko)=>c.decodeAudioData(a,ok,ko)):null).then(b=>{if(b)this.prep(b);p.b=b;return b;}).catch(()=>{delete this.buf[t];return null;});
     return this.buf[t]=p;},
   // volume égalisé et silence de début retiré (les enregistrements viennent de sources différentes)
@@ -2065,13 +2070,32 @@ const ArAudio={buf:{},cur:null,
   preload(list){(list||[]).forEach(t=>{if(t)this.load(t);});}
 };
 // ---------- Voix (synthèse vocale du navigateur) ----------
+// Voix des contributions choisies dans l'admin (« Utiliser ») : cris/voix/index.json donne, pour chaque son
+// (ar:mot, fr:phrase, en:word, cri:meuh, son:s), la liste des enregistrements ; l'appli en tire un au hasard.
+const VoixC={m:null,p:null,buf:{},nx:{},last:{},cur:null,tok:0,
+  url:f=>SB_URL+'/storage/v1/object/public/cris/voix/'+f,
+  init(){return this.p||(this.p=fetch(this.url('index.json'),{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{this.m=(j&&j.k)||{};this.preload(PRAISE.map(x=>'fr:'+x));}).catch(()=>{this.m={};}));},
+  key(t,lang){t=String(t||'').trim();if(!t)return '';const l=String(lang||'');return (/^ar/i.test(l)?'ar:':/^en/i.test(l)?'en:':'fr:')+t;},
+  list(k){return (this.m&&k&&this.m[k])||[];},
+  has(k){return this.list(k).length>0;},
+  pick(k){const L=this.list(k);if(!L.length)return null;if(!this.nx[k]||!L.includes(this.nx[k])){let i=Math.floor(Math.random()*L.length);if(L.length>1&&L[i]===this.last[k])i=(i+1)%L.length;this.nx[k]=L[i];}return this.nx[k];},
+  load(f){if(!f)return Promise.resolve(null);if(this.buf[f])return this.buf[f];Sound.unlock();const c=Sound.ctx;if(!c)return Promise.resolve(null);
+    const p=fetch(this.url(f)).then(r=>r.ok?r.arrayBuffer():null).then(a=>a?new Promise((ok,ko)=>c.decodeAudioData(a,ok,ko)):null).then(b=>{if(b)ArAudio.prep(b);p.b=b;return b;}).catch(()=>{delete this.buf[f];return null;});
+    return this.buf[f]=p;},
+  preload(keys){(keys||[]).forEach(k=>{if(this.has(k))this.load(this.pick(k));});},
+  dur(k){const f=this.has(k)&&this.pick(k),p=f&&this.buf[f];return p&&p.b?p.b.duration-(p.b.off||0):0;},
+  stop(){const s=this.cur;this.cur=null;this.tok++;if(s)try{s.stop();}catch(e){}},
+  async play(k){const f=this.pick(k);if(!f)return false;delete this.nx[k];this.last[k]=f;const my=++this.tok;const b=await this.load(f);if(my!==this.tok||!b)return !!b;
+    const c=Sound.ctx;if(c.state==='suspended')try{c.resume();}catch(e){}
+    ArAudio.stop();const o=this.cur;if(o)try{o.stop();}catch(e){}const s=c.createBufferSource(),g=c.createGain();s.buffer=b;g.gain.value=b.g||1;s.connect(g);g.connect(c.destination);s.start(0,b.off||0);this.cur=s;s.onended=()=>{if(this.cur===s)this.cur=null;};return true;}
+};
 const Voice={v:null,ok:'speechSynthesis' in window,warm:false,t:0,cur:null,
   init(){if(!this.ok)return;const pv=()=>{const all=speechSynthesis.getVoices();this.n=all.length;this.ar=all.find(v=>/^ar[-_]SA/i.test(v.lang))||all.find(v=>/^ar/i.test(v.lang))||null;const es=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));this.en=es.find(v=>/en[-_]GB/i.test(v.lang))||es.find(v=>/en[-_]US/i.test(v.lang))||es[0]||null;const vs=speechSynthesis.getVoices().filter(v=>/^fr/i.test(v.lang));this.v=vs.find(v=>/fr[-_]FR/i.test(v.lang)&&/google|amélie|amelie|audrey|thomas|marie|hortense|denise|julie/i.test(v.name))||vs.find(v=>/fr[-_]FR/i.test(v.lang))||vs[0]||null;};pv();try{speechSynthesis.addEventListener?speechSynthesis.addEventListener('voiceschanged',pv):(speechSynthesis.onvoiceschanged=pv);}catch(e){}},
   unlock(){Rec.unlock();if(!this.ok||this.warm)return;this.warm=true;try{const u=new SpeechSynthesisUtterance(' ');u.lang='fr-FR';u.volume=0;speechSynthesis.speak(u);}catch(e){}},
   busy(){try{return this.ok&&(speechSynthesis.speaking||speechSynthesis.pending);}catch(e){return false;}},
-  speak(text,o){o=o||{};if(text&&/^ar/i.test(o.lang||'')){ArAudio.play(text);return;}this.native(text,o);},
+  speak(text,o){o=o||{};if(text&&/^ar/i.test(o.lang||'')){ArAudio.play(text);return;}const vk=VoixC.key(text,o.lang);if(VoixC.has(vk)){VoixC.play(vk);return;}this.native(text,o);},
   native(text,o){if(!this.ok||!text)return;o=o||{};try{const u=new SpeechSynthesisUtterance(text);const isAr=/^ar/i.test(o.lang||'');if(isAr&&!this.ar&&this.n)return;u.lang=o.lang||'fr-FR';const vv=isAr?this.ar:o.lang?this.en:this.v;if(vv)u.voice=vv;u.rate=o.rate||.9;u.pitch=1.05;u.volume=1;this.cur=u;if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(u);}catch(e){}},
-  hush(){clearTimeout(this.t);ArAudio.stop();try{if(this.busy())speechSynthesis.cancel();}catch(e){}},
+  hush(){clearTimeout(this.t);ArAudio.stop();VoixC.stop();try{if(this.busy())speechSynthesis.cancel();}catch(e){}},
   // Annuler puis parler immédiatement fait taire certains navigateurs : on laisse 90 ms entre les deux
   say(text,o){Chain.stop();Rec.stopPlay();if(text&&o&&/^ar/i.test(o.lang||'')){this.hush();ArAudio.play(text);return;}if(!this.ok||!text)return;const b=this.busy();this.hush();if(b)this.t=setTimeout(()=>this.speak(text,o),90);else this.speak(text,o);},
   stop(){Chain.stop();this.hush();Rec.stopPlay();},
@@ -2081,7 +2105,7 @@ const estMs=(t,r)=>Math.round((320+String(t).length*72)/(r||.9));
 // Enchaîne voix, sons enregistrés et effets visuels (ex. « s… e… se »)
 const Chain={t:[],
   run(steps,done){Voice.stop();let at=Voice.busy()?120:30;const add=(fn,d)=>this.t.push(setTimeout(fn,d));
-    (steps||[]).forEach(st=>{if(!st)return;if(st.fn)add(st.fn,at);else if(st.say){const tx=st.say,r=st.rate,lg=st.lang;add(()=>Voice.speak(tx,{rate:r,lang:lg}),at);const ad=/^ar/i.test(lg||'')?ArAudio.dur(tx):0;at+=ad?Math.round(ad*1000)+250:estMs(tx,r);}else if(st.rec){const k=st.rec;add(()=>Rec.play(k),at);at+=1050;}else if(st.wait)at+=st.wait;});
+    (steps||[]).forEach(st=>{if(!st)return;if(st.fn)add(st.fn,at);else if(st.say){const tx=st.say,r=st.rate,lg=st.lang;add(()=>Voice.speak(tx,{rate:r,lang:lg}),at);const ad=/^ar/i.test(lg||'')?ArAudio.dur(tx):VoixC.dur(VoixC.key(tx,lg));at+=ad?Math.round(ad*1000)+250:estMs(tx,r);}else if(st.rec){const k=st.rec;add(()=>Rec.play(k),at);at+=1050;}else if(st.wait)at+=st.wait;});
     if(done)add(done,at);return at;},
   stop(){this.t.forEach(clearTimeout);this.t=[];}
 };
@@ -2090,8 +2114,9 @@ const Rec={key:'supercerveau_sons',map:{},el:null,unlocked:false,rec:null,
   load(){try{this.map=JSON.parse(localStorage.getItem(this.key)||'{}')||{};}catch(e){this.map={};}},
   save(){try{localStorage.setItem(this.key,JSON.stringify(this.map));return true;}catch(e){toast('Mémoire pleine : son non enregistré');return false;}},
   has(k){return !!(this.map[k]&&this.map[k].d);},
+  ok(k){return this.has(k)||VoixC.has('son:'+k);},
   unlock(){if(this.unlocked)return;this.unlocked=true;try{this.el=new Audio();this.el.setAttribute('playsinline','');this.el.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';const p=this.el.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}},
-  play(k){const r=this.map[k];if(!r)return;try{if(!this.el)this.el=new Audio();this.el.src=r.d;const p=this.el.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}},
+  play(k){const r=this.map[k];if(!r){VoixC.play('son:'+k);return;}try{if(!this.el)this.el=new Audio();this.el.src=r.d;const p=this.el.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}},
   stopPlay(){try{if(this.el&&!this.el.paused)this.el.pause();}catch(e){}},
   async record(k,cb){
     if(this.rec)return;
@@ -2200,6 +2225,7 @@ function nextQ(){
 const keypadHTML=(act)=>`<div class="keypad">${[1,2,3,4,5,6,7,8,9].map(d=>`<button class="key" data-act="${act}" data-arg="${d}">${d}</button>`).join('')}<button class="key del" data-act="${act}" data-arg="del" aria-label="Effacer">⌫</button><button class="key" data-act="${act}" data-arg="0">0</button>${act==='key'?`<button class="key ok" data-act="${act}" data-arg="ok" aria-label="Valider">✓</button>`:'<span></span>'}</div>`;
 function drawQ(){
   const {q,qi}=G.cur,card=$('#qcard'),ans=$('#answers');if(!card)return;
+  VoixC.preload([q.afterSay?VoixC.key(q.afterSay,q.afterLang):'',...(q.chain||[]).concat(q.fixChain||[]).filter(c=>c&&c.say).map(c=>VoixC.key(c.say,c.lang)),...(q.chain||[]).concat(q.fixChain||[]).filter(c=>c&&c.rec).map(c=>'son:'+c.rec)]);
   if(G.sub==='arabe')ArAudio.preload([q.afterLang?q.afterSay:'',...(q.chain||[]).concat(q.fixChain||[]).filter(c=>c&&/^ar/.test(c.lang||'')).map(c=>c.say)]);
   let h=qi.kind==='retry'?'<div class="retry">À toi ! 💪</div>':qi.kind==='review'?'<div class="retry rev">On revoit 🔁</div>':'';
   if(q.type==='math'){h+=`<div class="q">${fQ(q.f,'<span class="slot" id="slot">?</span>')}</div>`;if(G.mode!=='sprint')h+='<div class="tbar"><i id="tbar"></i></div>';}
@@ -2258,12 +2284,13 @@ function submit(val){
     S.stats.ok++;S.stats.ms+=ms;G.times.push(ms);G.combo++;G.bestCombo=Math.max(G.bestCombo,G.combo);Sons.combo(G.combo);
     let xp=10,coins=0;if(fast){xp+=5;coins+=cc(1);if(kind==='main')G.fast++;}
     G.xp+=xp;G.coins+=coins;
-    Sound.play(fast?'fast':'good');praise(fast?'⚡ Rapide !':pick(PRAISE));
+    const ph=fast?'⚡ Rapide !':pick(PRAISE);Sound.play(fast?'fast':'good');praise(ph);
+    const pv=!c.q.afterSay&&!c.q.onOk&&S.settings.voice&&(window.MLANG||'fr')==='fr'&&VoixC.has('fr:'+ph)&&Math.random()<.6?(VoixC.dur('fr:'+ph)||1):0;if(pv)later(()=>VoixC.play('fr:'+ph),120);
     floatText(`+${fmtP(coins)} 🪙`,$('#sscore'));bounceAv();
     if(G.combo%5===0){G.xp+=10;G.coins+=cc(2);later(()=>{Sound.play(G.combo>=15?'combo3':G.combo>=10?'combo2':'combo');praise(`🔥 Combo x${G.combo} !`,'combo');},380);}
     updateHud();
     reinforce(c.q);
-    G.idx++;later(nextQ,c.q.afterDelay||(c.q.afterSay?1000:fast?600:800));
+    G.idx++;later(nextQ,c.q.afterDelay||(c.q.afterSay?1000:Math.max(pv?Math.round(pv*1000)+400:0,fast?600:800)));
   }else{
     G.combo=0;G.wrong++;Sound.play('bad');updateHud();
     G.queue.splice(G.idx+1,0,{kind:'retry',it:c.qi.it,tries:1});
@@ -2458,16 +2485,16 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.63';
+const VERSION='1.64';
 const VERSIONS=[
+ ['1.64','21/11/2026 15:00','Voix des contributions : plusieurs voix par son, sons des lettres, cris, anglais'],
  ['1.63','21/11/2026 14:10','Page « Contributions » pour aider Malino (voix, idées)'],
  ['1.62','21/11/2026 13:30','Arabe : 136 mots avec la voix d’un arabophone'],
  ['1.61','21/11/2026 13:20','Arabe : les 28 lettres enregistrées par un arabophone'],
  ['1.60','21/11/2026 12:15','Arabe : sons enregistrés pour toutes les lettres et tous les mots'],
  ['1.59','21/11/2026 12:45','Lecture : 9 mondes « lire et comprendre » après Petites phrases'],
  ['1.58','21/11/2026 12:00','Arabe pour débutants : leçon obligatoire, alphabet par petits groupes'],
- ['1.57','21/11/2026 11:20','Malino en anglais (interface, maths, 7 jeux), sélecteur de langue'],
- ['1.56','21/11/2026 10:30','Nouveau jeu : Arabe (18 mondes, lettres, mots, chiffres)']
+ ['1.57','21/11/2026 11:20','Malino en anglais (interface, maths, 7 jeux), sélecteur de langue']
 ];
 const noFr=h=>window.MLANG==='fr'?h:h.replace(/<section class="acard"><h3>(?:📖 Lecture|🎙️ Sons des lettres)<\/h3>[\s\S]*?<\/section>/g,'').replace(/<li>Lecture \(méthode syllabique\)[^<]*<\/li>/,'');
 function renderAdmin(){
@@ -2629,7 +2656,7 @@ const ACT={
   replay(){if(!G||!G.cur)return;const q=G.cur.q;if(q.chain)Chain.run(q.chain);else if(q.say)Voice.say(q.say,{rate:.8});},
   sylhelp(){if(!G||!G.cur||G.cur.done||!G.cur.q.word)return;G.cur.helped=true;Chain.run(sylChain(G.cur.q.word));},
   recsnd(k){Rec.record(k,()=>keepScroll(render));},
-  playsnd(k){if(Rec.has(k)){Voice.stop();Rec.play(k);}else{const p=PHON[k];Voice.say(p&&p.tts?p.tts:'la lettre '+(LETTER_NAME[k]||k));}},
+  playsnd(k){if(Rec.ok(k)){Voice.stop();Rec.play(k);}else{const p=PHON[k];Voice.say(p&&p.tts?p.tts:'la lettre '+(LETTER_NAME[k]||k));}},
   delsnd(k){Rec.del(k);keepScroll(render);},
   async packshare(){if(!Acct.sb||!(Plan.info&&Plan.info.admin))return;const L=Pack.list.filter(p=>p.cat&&p.cat!=='off');let ok=0;toast('Envoi des sons…');
     for(const p of L){try{const blob=await (await fetch(p.d)).blob(),f=p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'.mp3';
@@ -3195,7 +3222,7 @@ setTimeout(()=>{if(localStorage.getItem('malino_invite')&&!Acct.user&&typeof ACT
 try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
 setInterval(()=>{try{Coffre.tick();}catch(e){}},20000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(()=>{try{Coffre.tick();}catch(e){}},400);});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')try{ckpt();}catch(e){}});addEventListener('pagehide',()=>{try{ckpt();}catch(e){}});
-Rec.load();Pack.load();load();recoverPartial();Voice.init();Plan.load();Confetti.init();TimeT.init();render();autoUpModal(autoUp());Acct.init().then(()=>Offre.fromUrl());
+Rec.load();Pack.load();load();recoverPartial();Voice.init();VoixC.init();Plan.load();Confetti.init();TimeT.init();render();autoUpModal(autoUp());Acct.init().then(()=>Offre.fromUrl());
 if(S.refund){const r=S.refund;S.refund=0;save();queueModal(`<div class="bigemoji sm">🛍️</div><h2>Nouvelle boutique !</h2><p>Des objets en bois, cuivre, argent, or… jusqu’au <b>Plasma</b> !</p><p>Certains anciens objets sont partis : tu récupères <b>${fmtP(r)} 🪙</b>.</p><button class="btn y block" data-act="mclose">Super !</button>`);}
 if(!S.welcomed){S.welcomed=true;save();queueModal(`<div class="mav">${avatarSVG(S.avatar)}</div><h2>Salut ${nm()} ! 👋</h2>${S.name?'':'<label class="fld" style="text-align:left">Comment tu t’appelles ?<input id="wname" maxlength="20" autocomplete="off" placeholder="Ton prénom"></label>'}<p>Chaque jour :<br><b>1.</b> Entraîne-toi en maths 🔢<br><b>2.</b> Fais ta lecture 📖<br><b>3.</b> Ouvre ton coffre 🎁</p><p>Gagne des pièces 🪙 pour habiller ton personnage et débloquer des surprises !</p><button class="btn g block" data-act="wstart">C’est parti ! 🚀</button>`);}
 else checkGifts().forEach(giftModal);

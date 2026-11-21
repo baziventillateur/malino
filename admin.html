@@ -49,7 +49,7 @@ details summary{cursor:pointer;font-weight:700;font-size:15px}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#FF5C5C;margin-right:4px;vertical-align:1px}.lnk{display:flex;gap:5px;margin:6px 0}.lnk input{flex:1;font-size:12.5px;color:var(--ink2)}.dem{border:1px solid #EEE9FF;border-radius:12px;padding:8px 10px;margin:0 0 8px}.dem.off{opacity:.7}
 .dem .lnk{display:flex;gap:5px;margin:6px 0}.dem .lnk input{flex:1;font-size:12.5px;color:var(--ink2)}
 .pers{border-top:1px solid #F3F1FA;padding:6px 0}.pers>.row{cursor:pointer}.pers .its{margin:6px 0 2px;padding-left:4px}
-.it{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:13px;flex-wrap:wrap}.it .ar{font-size:18px;min-width:70px;text-align:right;font-family:"Noto Naskh Arabic","Geeza Pro","Segoe UI",serif}.it .s{color:var(--mut);flex:1;min-width:80px}.it audio{height:28px;width:150px}.it button{padding:4px 8px}
+.it{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:13px;flex-wrap:wrap}.it .ar{font-size:18px;min-width:70px;text-align:right;font-family:"Noto Naskh Arabic","Geeza Pro","Segoe UI",serif}.it .s{color:var(--mut);flex:1;min-width:80px}.it audio{height:28px;width:150px}.dl{text-decoration:none;font-size:15px;padding:0 2px}.it button{padding:4px 8px}
 textarea{font:inherit;border:1px solid #D9D3F3;border-radius:9px;padding:6px 8px;width:100%}
 </style>
 </head>
@@ -100,6 +100,9 @@ const FNC=SB_URL+'/functions/v1/malino-contrib',HUBURL=location.origin+'/contrib
 const CST={brouillon:['✏️ Brouillon','t-gratuit'],en_ligne:['🟢 En ligne','t-paye'],suspendue:['⏸️ Suspendue','t-essai'],cloturee:['🔒 Clôturée','t-echec']};
 let DV=null,DVERR='',DVOPEN={},CFLT='nouv';
 const isNew=r=>r.statut==='complet'&&!r.vu;
+const cleOf=x=>x.cle||(x.cible?'ar:'+x.cible:'');
+const CLEL={ar:'arabe',fr:'français',en:'anglais',cri:'cri',son:'son de lettre'};
+const adoptBtn=(rid,x,e)=>cleOf(x)?(e.adopte?`<button class="small" style="background:#DCFCE7;color:#16A34A" data-adopt="${rid}|${esc(x.id)}|1" title="Retirer de l’appli">✓ Utilisée</button>`:`<button class="o small" data-adopt="${rid}|${esc(x.id)}|0">Utiliser</button>`):'';
 async function loadDev(){const {data,error}=await sb.rpc('admin_contrib');DV=error?null:data;DVERR=error?(/admin_contrib|column|statut/.test(error.message||'')?'base':'err'):'';
   const n=DV?DV.reduce((a,d)=>a+(d.reponses||[]).filter(isNew).length,0):0,t=$('#tabN');if(t)t.textContent=n?n:'';
   if(VIEW==='contrib')drawContrib();else devLink();}
@@ -110,7 +113,7 @@ function devLink(){const el=$('#devlink');if(!el)return;if(!DV){el.innerHTML='';
 function setView(v){VIEW=v;try{history.replaceState(null,'',v==='contrib'?'#contrib':location.pathname);}catch(e){}
   document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('on',b.dataset.view===v));window.scrollTo(0,0);render();}
 function render(){if(!D)return;if(VIEW==='contrib')drawContrib();else draw();}
-function persItems(dm,r){const f=r.fichiers||{};return `<div class="its">${dm.items.map(x=>{const e=f[x.id];return `<div class="it"><span class="ar" ${/[؀-ۿ]/.test(x.texte)?'dir="rtl"':''}>${esc(x.texte)}</span><span class="s">${esc(x.sens||'')}</span>${!e?'<span class="small mut">pas encore</span>':e.texte?`<span>${esc(e.texte)}</span>`:`<audio controls preload="none" data-path="${esc(e.path)}"></audio>${x.cible?(e.adopte?'<span class="tag t-paye">✓ dans l’appli</span>':`<button class="o small" data-adopt="${r.id}|${esc(x.id)}">Utiliser dans l’appli</button>`):''}`}</div>`;}).join('')}</div>`;}
+function persItems(dm,r){const f=r.fichiers||{};return `<div class="its">${dm.items.map(x=>{const e=f[x.id];return `<div class="it"><span class="ar" ${/[؀-ۿ]/.test(x.texte)?'dir="rtl"':''}>${esc(x.texte)}</span><span class="s">${esc(x.sens||'')}</span>${!e?'<span class="small mut">pas encore</span>':e.texte?`<span>${esc(e.texte)}</span>`:`<audio controls preload="none" data-path="${esc(e.path)}"></audio>${adoptBtn(r.id,x,e)}<a class="dl" data-dl="${esc(e.path)}" title="Télécharger">⬇️</a>`}</div>`;}).join('')}</div>`;}
 function drawContrib(){
   if(!DV){app.innerHTML=`<div class="card"><h2>🤝 Contributions</h2><p class="small mut">${DVERR==='base'?'La base des contributions doit être mise à jour sur Supabase.':DVERR?'Chargement impossible.':'Chargement…'}</p></div>`;return;}
   const R=[];DV.forEach(dm=>(dm.reponses||[]).forEach(r=>R.push({r,dm})));R.sort((a,b)=>Date.parse(b.r.maj_le)-Date.parse(a.r.maj_le));
@@ -132,9 +135,11 @@ function drawContrib(){
     return `<div class="dem"><div class="row" style="justify-content:space-between"><b>${esc(dm.emoji||'🤝')} ${esc(dm.titre)}</b><span class="tag ${cls}">${lab}</span></div>
      <div class="small mut" style="margin:2px 0 4px">${N} étape${N>1?'s':''} · ${R2.length} personne${R2.length>1?'s':''} · ${fin} terminé${fin>1?'s':''}${dm.resume?' · '+esc(dm.resume):''}</div>
      ${s==='brouillon'?'':`<div class="lnk"><input readonly value="${esc(CURL(dm.id))}"><button class="o small" data-cpy="${esc(CURL(dm.id))}">Copier</button>${navigator.share?`<button class="o small" data-shr="${esc(CURL(dm.id))}">Partager</button>`:''}</div>`}
-     <div class="row">${act.map(([v,l,c])=>`<button class="${c} small" data-cst="${esc(dm.id)}|${v}">${l}</button>`).join('')}<button class="o small" data-cedit="${esc(dm.id)}">✏️ Modifier</button></div></div>`;}).join('')||'<p class="small mut">Aucune contribution pour le moment.</p>'}
+     <div class="row">${act.map(([v,l,c])=>`<button class="${c} small" data-cst="${esc(dm.id)}|${v}">${l}</button>`).join('')}<button class="o small" data-cedit="${esc(dm.id)}">✏️ Modifier</button><button class="o small" data-csons="${esc(dm.id)}">🎧 Sons${nRec(dm)?' ('+nRec(dm)+')':''}</button>${s==='en_ligne'?`<button class="o small" data-cinv="${esc(dm.id)}">✉️ Inviter</button>`:''}</div></div>`;}).join('')||'<p class="small mut">Aucune contribution pour le moment.</p>'}
    <p class="small mut" style="margin:4px 0 0"><b>Brouillon</b> : invisible · <b>En ligne</b> : visible sur la page publique · <b>Suspendue</b> : en pause, ceux qui ont commencé peuvent finir · <b>Clôturée</b> : terminée. À la fin, chaque personne laisse son e-mail si elle veut et reçoit un merci ; toi, tu reçois un e-mail dès qu’une contribution est terminée.</p></div>`;
   $('#cNew').onclick=()=>editDem();
+  app.querySelectorAll('[data-csons]').forEach(b=>b.onclick=()=>sonsDem(b.dataset.csons));
+  app.querySelectorAll('[data-cinv]').forEach(b=>b.onclick=()=>inviterDem(DV.find(x=>x.id===b.dataset.cinv)));
   app.querySelectorAll('[data-cf]').forEach(b=>b.onclick=()=>{CFLT=b.dataset.cf;drawContrib();});
   app.querySelectorAll('[data-cpy]').forEach(b=>b.onclick=async()=>{const u=b.dataset.cpy;try{await navigator.clipboard.writeText(u);b.textContent='Copié ✅';}catch(e){prompt('Copie ce lien :',u);}});
   app.querySelectorAll('[data-shr]').forEach(b=>b.onclick=()=>navigator.share({title:'Malino · Contributions',text:'Bonjour ! Tu peux m’aider pour Malino ? Ça prend quelques minutes :',url:b.dataset.shr}).catch(()=>{}));
@@ -146,15 +151,53 @@ function drawContrib(){
     const x=R.find(y=>y.r.id===id);if(DVOPEN[id]&&x&&isNew(x.r)){x.r.vu=true;sb.rpc('admin_contrib_vu',{p_ids:[id]});const t=$('#tabN'),k=R.filter(y=>isNew(y.r)).length;if(t)t.textContent=k||'';}
     drawContrib();});
   app.querySelectorAll('[data-cdel]').forEach(b=>b.onclick=async()=>{if(!confirm('Supprimer cette contribution reçue ? (ex. un essai ou un spam)'))return;await sb.rpc('admin_contrib_suppr',{p_id:b.dataset.cdel});loadDev();});
-  const au=[...app.querySelectorAll('audio[data-path]')];
-  if(au.length)sb.storage.from('contrib').createSignedUrls(au.map(a=>a.dataset.path),3600).then(({data})=>{(data||[]).forEach((s,i)=>{if(s&&s.signedUrl&&au[i])au[i].src=s.signedUrl;});});
-  app.querySelectorAll('[data-adopt]').forEach(b=>b.onclick=async()=>{const [id,item]=b.dataset.adopt.split('|');if(!confirm('Utiliser cet enregistrement comme voix officielle de ce mot dans Malino ?'))return;
-    b.disabled=true;b.textContent='…';const {data:{session}}=await sb.auth.getSession();
-    const j=await fetch(FNC,{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+session.access_token},body:JSON.stringify({mode:'adopter',id,item})}).then(r=>r.json()).catch(()=>({}));
-    if(j.ok)loadDev();else{b.disabled=false;b.textContent='Échec, réessayer';}});
+  bindVoix(app,()=>loadDev());
 }
+// appels réservés à l'admin vers la fonction des contributions
+async function fnc(body){const {data:{session}}=await sb.auth.getSession();return fetch(FNC,{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+session.access_token},body:JSON.stringify(body)}).then(r=>r.json()).catch(()=>({error:'reseau'}));}
+// lecteurs audio (liens signés), téléchargement et bouton « Utiliser » / « ✓ Utilisée »
+function bindVoix(root,after){
+  const au=[...root.querySelectorAll('audio[data-path]')],dl=[...root.querySelectorAll('a[data-dl]')],paths=[...new Set(au.map(a=>a.dataset.path).concat(dl.map(a=>a.dataset.dl)))];
+  if(paths.length)sb.storage.from('contrib').createSignedUrls(paths,3600).then(({data})=>{const m={};(data||[]).forEach((x,i)=>{if(x&&x.signedUrl)m[paths[i]]=x.signedUrl;});
+    au.forEach(a=>{if(m[a.dataset.path])a.src=m[a.dataset.path];});dl.forEach(a=>{const u=m[a.dataset.dl];if(u){a.href=u+'&download='+encodeURIComponent(a.dataset.dl.split('/').slice(-2).join('-'));}});});
+  root.querySelectorAll('[data-adopt]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const [id,item,on]=b.dataset.adopt.split('|');
+    if(on==='1'&&!confirm('Retirer cette voix de l’appli ?'))return;
+    b.disabled=true;b.textContent='…';const j=await fnc({mode:'adopter',id,item,retirer:on==='1'});
+    if(j.ok)after();else{b.disabled=false;b.textContent='Échec';}});
+}
+const nRec=dm=>(dm.reponses||[]).reduce((a,r)=>a+Object.values(r.fichiers||{}).filter(e=>e&&e.path).length,0);
+// Écoute par son : pour chaque élément, toutes les voix reçues ; on peut en utiliser plusieurs pour le même son
+function sonsDem(id){const ov=document.createElement('div');ov.id='fiche';document.body.appendChild(ov);document.body.style.overflow='hidden';
+  const close=()=>{ov.remove();document.body.style.overflow='';};
+  const draw=()=>{const dm=DV.find(x=>x.id===id);if(!dm)return close();const R=(dm.reponses||[]);
+    ov.innerHTML=`<div class="fbar row"><button class="o" id="sBack">← Retour</button><b style="flex:1">${esc(dm.emoji||'🤝')} ${esc(dm.titre)}</b></div><main>
+     <p class="small mut" style="margin:0 0 8px">Toutes les voix reçues, son par son. « Utiliser » met la voix dans l’appli ; tu peux en utiliser plusieurs pour le même son : l’appli en choisit une au hasard.</p>
+     ${dm.items.map(x=>{const V=R.filter(r=>(r.fichiers||{})[x.id]&&(r.fichiers||{})[x.id].path),nU=V.filter(r=>r.fichiers[x.id].adopte).length,k=cleOf(x),t=k.split(':')[0];
+      return `<div class="card" style="margin-bottom:8px"><div class="row" style="justify-content:space-between"><b class="ar" style="font-size:20px" ${/[؀-ۿ]/.test(x.texte)?'dir="rtl"':''}>${esc(x.texte)}</b><span class="row">${x.sens?`<span class="small mut">${esc(x.sens)}</span>`:''}<span class="tag ${nU?'t-paye':'t-gratuit'}">${nU?`✓ ${nU} voix dans l’appli`:'pas encore dans l’appli'}</span></span></div>
+       ${k?`<div class="small mut" style="margin:2px 0 4px">Son de l’appli : ${esc(CLEL[t]||t)} « ${esc(k.slice(t.length+1))} »</div>`:'<div class="small mut">Pas relié à un son de l’appli (ajoute-le dans « Modifier »).</div>'}
+       ${V.map(r=>`<div class="it"><b style="min-width:70px">${esc(r.prenom)}</b><audio controls preload="none" data-path="${esc(r.fichiers[x.id].path)}"></audio>${adoptBtn(r.id,x,r.fichiers[x.id])}<a class="dl" data-dl="${esc(r.fichiers[x.id].path)}" title="Télécharger">⬇️</a></div>`).join('')||'<p class="small mut" style="margin:4px 0 0">Aucune voix reçue pour l’instant.</p>'}</div>`;}).join('')}</main>`;
+    $('#sBack').onclick=close;bindVoix(ov,async()=>{await loadDev();draw();});};
+  draw();}
+// Invitation par e-mail à participer à une contribution en ligne
+async function inviterDem(dm){const ov=document.createElement('div');ov.id='fiche';document.body.appendChild(ov);document.body.style.overflow='hidden';
+  const close=()=>{ov.remove();document.body.style.overflow='';};
+  ov.innerHTML=`<div class="fbar row"><button class="o" id="iBack">← Retour</button><b style="flex:1">✉️ Inviter à contribuer</b></div><main><div class="card">
+   <p style="margin:0 0 8px"><b>${esc(dm.emoji||'🤝')} ${esc(dm.titre)}</b><br><span class="small mut">La personne reçoit un e-mail de ta part avec un bouton « Je participe ».</span></p>
+   <label class="small mut">E-mail de la personne</label><input id="iMail" type="email" placeholder="prenom@exemple.fr" style="width:100%;margin:3px 0 8px">
+   <label class="small mut">Son prénom (facultatif, pour « Bonjour Samira »)</label><input id="iPre" maxlength="40" style="width:100%;margin:3px 0 8px">
+   <label class="small mut">Un petit mot (facultatif)</label><textarea id="iMot" rows="3" maxlength="600" placeholder="ex. Salut ! Tu as une super voix, ça m’aiderait beaucoup 🙏" style="margin:3px 0 8px"></textarea>
+   <button id="iGo" style="width:100%">Envoyer l’invitation</button><p class="msg" id="iRes"></p></div>
+   <div class="card"><h2>Déjà invités</h2><div id="iList" class="small mut">Chargement…</div></div></main>`;
+  $('#iBack').onclick=close;
+  const liste=async()=>{const j=await fnc({mode:'invitations'}),L=((j&&j.liste)||[]).filter(x=>String(x.detail||'').split(' · ')[0]===dm.id),el=$('#iList');if(!el)return;
+    el.innerHTML=L.length?L.map(x=>`<div class="alert"><span class="mut small" style="min-width:76px">${dh(x.cree_le)}</span><span>${esc(x.email)}${String(x.detail).includes(' · ')?' · '+esc(String(x.detail).split(' · ').slice(1).join(' · ')):''}</span></div>`).join(''):'Personne pour le moment.';};
+  liste();
+  $('#iGo').onclick=async()=>{const r=$('#iRes'),m=$('#iMail').value.trim();r.className='msg';if(!/^\S+@\S+\.\S{2,}$/.test(m)){r.textContent='Vérifie l’e-mail';return;}
+    const b=$('#iGo');b.disabled=true;b.textContent='Envoi…';const j=await fnc({mode:'inviter',d:dm.id,email:m,prenom:$('#iPre').value,message:$('#iMot').value});b.disabled=false;b.textContent='Envoyer l’invitation';
+    if(j.ok){r.className='msg ok';r.textContent='✅ Invitation envoyée à '+m;$('#iMail').value='';$('#iPre').value='';liste();return;}
+    r.textContent={stop:'Cette personne a demandé à ne plus recevoir d’e-mails (STOP).',hors_ligne:'Mets d’abord la contribution en ligne.',email:'Vérifie l’e-mail',interdit:'Accès refusé'}[j.error]||'Envoi impossible, réessaie.';};}
 function editDem(dm){const ov=document.createElement('div');ov.id='fiche';const items=dm?dm.items:[],mode=items[0]&&items[0].mode==='texte'?'texte':'voix';
-  const lignes=items.map(x=>[x.texte,x.sens||'',x.aide||'',x.cible||'',x.consigne||''].join(' | ').replace(/( \| )+$/,'')).join('\n');
+  const lignes=items.map(x=>[x.texte,x.sens||'',x.aide||'',cleOf(x),x.consigne||''].join(' | ').replace(/( \| )+$/,'')).join('\n');
   ov.innerHTML=`<div class="fbar row"><button class="o" id="eBack">← Retour</button><b style="flex:1">${dm?'Modifier la contribution':'Nouvelle contribution'}</b></div><main><div class="card">
    <div class="row" style="flex-wrap:nowrap"><div style="width:64px"><label class="small mut">Icône</label><input id="eEm" value="${esc(dm?dm.emoji:'🤝')}" maxlength="4" style="width:100%;text-align:center;font-size:18px;margin:3px 0 8px"></div>
    <div style="flex:1"><label class="small mut">Titre affiché</label><input id="eTi" value="${esc(dm?dm.titre:'')}" placeholder="ex. Votre voix pour l’arabe de Malino" style="width:100%;margin:3px 0 8px"></div></div>
@@ -162,14 +205,14 @@ function editDem(dm){const ov=document.createElement('div');ov.id='fiche';const 
    <label class="small mut">Résumé sur la page publique (une phrase)</label><input id="eRe" value="${esc(dm?dm.resume||'':'')}" maxlength="160" placeholder="ex. Lire 10 mots à voix haute" style="width:100%;margin:3px 0 8px">
    <label class="small mut">Message d’accueil (après « Bonjour, merci pour votre contribution »)</label><textarea id="eIn" rows="3" style="margin:3px 0 8px">${esc(dm?dm.intro:'')}</textarea>
    <label class="small mut">Ce que la personne fait à chaque étape</label><select id="eMo" style="width:100%;margin:3px 0 8px"><option value="voix" ${mode==='voix'?'selected':''}>🎙️ Elle enregistre sa voix</option><option value="texte" ${mode==='texte'?'selected':''}>✍️ Elle écrit une réponse</option></select>
-   <label class="small mut">Une étape par ligne : <b>texte | sens | prononciation | mot de l’appli | consigne</b> (seul le texte est obligatoire)</label>
+   <label class="small mut">Une étape par ligne : <b>texte | sens | prononciation | son de l’appli | consigne</b> (seul le texte est obligatoire)</label>
    <textarea id="eIt" rows="10" dir="auto" style="margin:3px 0 4px;font-size:15px">${esc(lignes)}</textarea>
-   <p class="small mut" style="margin:0 0 8px">« Mot de l’appli » = le mot tel qu’il est écrit dans Malino (sans voyelles) : il permet de remplacer sa voix en un clic.${dm?'':' Une nouvelle contribution est créée en <b>brouillon</b> : tu la mets en ligne quand tu veux.'}</p>
+   <p class="small mut" style="margin:0 0 8px">« Son de l’appli » relie l’étape au son à remplacer dans Malino : <b>ar:</b>mot arabe sans voyelles, <b>en:</b>mot anglais, <b>fr:</b>phrase française, <b>cri:</b>cri d’animal, <b>son:</b>son de lettre.${dm?'':' Une nouvelle contribution est créée en <b>brouillon</b> : tu la mets en ligne quand tu veux.'}</p>
    <button id="eGo" style="width:100%">Enregistrer</button><p class="msg" id="eRes"></p></div></main>`;
   document.body.appendChild(ov);document.body.style.overflow='hidden';const close=()=>{ov.remove();document.body.style.overflow='';};$('#eBack').onclick=close;
   $('#eGo').onclick=async()=>{const old={};items.forEach(x=>old[x.texte]=x.id);const used=new Set(),md=$('#eMo').value;let n=0;
     const its=$('#eIt').value.split('\n').map(l=>l.split('|').map(s=>s.trim())).filter(c=>c[0]).map(c=>{let id=old[c[0]];if(!id||used.has(id)){do{id='i'+String(++n).padStart(2,'0');}while(used.has(id)||Object.values(old).includes(id));}used.add(id);
-      const o={id,texte:c[0]};if(c[1])o.sens=c[1];if(c[2])o.aide=c[2];if(c[3])o.cible=c[3];if(c[4])o.consigne=c[4];if(md==='texte')o.mode='texte';return o;});
+      const o={id,texte:c[0]};if(c[1])o.sens=c[1];if(c[2])o.aide=c[2];if(c[3])o.cle=/^(ar|fr|en|cri|son):/.test(c[3])?c[3]:'ar:'+c[3];if(c[4])o.consigne=c[4];if(md==='texte')o.mode='texte';return o;});
     const {data,error}=await sb.rpc('admin_contrib_enregistrer',{p:{id:dm?dm.id:$('#eId').value,titre:$('#eTi').value,intro:$('#eIn').value,resume:$('#eRe').value,emoji:$('#eEm').value,items:its}}),r=$('#eRes');
     if(error||!data||!data.ok){r.textContent={id:'Identifiant : 3 à 40 lettres minuscules, chiffres ou tirets',titre:'Indique un titre',items:'Ajoute au moins une ligne'}[data&&data.error]||'Échec, réessaie';return;}
     close();loadDev();};}
