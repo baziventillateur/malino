@@ -2043,17 +2043,23 @@ const Sound={ctx:null,buf:{},loaded:false,last:{},
 // ---------- Sons arabes enregistrés ----------
 // Beaucoup de téléphones n'ont pas de voix arabe : chaque lettre et chaque mot a son fichier (ar/<empreinte>.mp3).
 // Si un fichier manque, on se rabat sur la voix du téléphone quand elle existe.
+// AR_REC : mots enregistrés par des arabophones (Wikimedia Commons / Lingua Libre), servis depuis le stockage
+const AR_REC=new Set([]);
 const ArAudio={buf:{},cur:null,
   key(t){let h=0x811c9dc5;t=String(t);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return ('0000000'+h.toString(16)).slice(-8);},
   load(t){if(this.buf[t])return this.buf[t];Sound.unlock();const c=Sound.ctx;if(!c)return Promise.resolve(null);
-    const p=fetch('ar/'+this.key(t)+'.mp3').then(r=>r.ok?r.arrayBuffer():null).then(a=>a?new Promise((ok,ko)=>c.decodeAudioData(a,ok,ko)):null).then(b=>{p.b=b;return b;}).catch(()=>{delete this.buf[t];return null;});
+    const k=this.key(t),get=u=>fetch(u).then(r=>r.ok?r.arrayBuffer():null);
+    const p=(AR_REC.has(k)?get(SB_URL+'/storage/v1/object/public/cris/ar2/'+k+'.mp3').catch(()=>null).then(a=>a||get('ar/'+k+'.mp3')):get('ar/'+k+'.mp3'))
+      .then(a=>a?new Promise((ok,ko)=>c.decodeAudioData(a,ok,ko)):null).then(b=>{if(b)this.prep(b);p.b=b;return b;}).catch(()=>{delete this.buf[t];return null;});
     return this.buf[t]=p;},
-  dur(t){const p=this.buf[t];return p&&p.b?p.b.duration:0;},
+  // volume égalisé et silence de début retiré (les enregistrements viennent de sources différentes)
+  prep(b){const d=b.getChannelData(0);let m=0;for(let i=0;i<d.length;i++){const v=Math.abs(d[i]);if(v>m)m=v;}b.g=m?Math.min(4,.9/m):1;let i=0;const th=m*.04;while(i<d.length&&Math.abs(d[i])<th)i++;b.off=Math.max(0,i/b.sampleRate-.03);},
+  dur(t){const p=this.buf[t];return p&&p.b?p.b.duration-(p.b.off||0):0;},
   stop(){const k=this.cur;this.cur=null;if(k)try{k.stop();}catch(e){}},
   async play(t){const my=this.tok=(this.tok||0)+1;const b=await this.load(t);if(my!==this.tok)return;
     if(!b){if(Voice.ar)Voice.native(t,{lang:'ar-SA',rate:.75});return;}
     const c=Sound.ctx;if(c.state==='suspended')try{c.resume();}catch(e){}
-    this.stop();const s=c.createBufferSource(),g=c.createGain();s.buffer=b;g.gain.value=1;s.connect(g);g.connect(c.destination);s.start();this.cur=s;s.onended=()=>{if(this.cur===s)this.cur=null;};},
+    this.stop();const s=c.createBufferSource(),g=c.createGain();s.buffer=b;g.gain.value=b.g||1;s.connect(g);g.connect(c.destination);s.start(0,b.off||0);this.cur=s;s.onended=()=>{if(this.cur===s)this.cur=null;};},
   preload(list){(list||[]).forEach(t=>{if(t)this.load(t);});}
 };
 // ---------- Voix (synthèse vocale du navigateur) ----------
@@ -2450,8 +2456,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.60';
+const VERSION='1.61';
 const VERSIONS=[
+ ['1.61','21/11/2026 13:20','Arabe : les 28 lettres enregistrées par un arabophone'],
  ['1.60','21/11/2026 12:15','Arabe : sons enregistrés pour toutes les lettres et tous les mots'],
  ['1.59','21/11/2026 12:45','Lecture : 9 mondes « lire et comprendre » après Petites phrases'],
  ['1.58','21/11/2026 12:00','Arabe pour débutants : leçon obligatoire, alphabet par petits groupes'],
@@ -2459,7 +2466,6 @@ const VERSIONS=[
  ['1.56','21/11/2026 10:30','Nouveau jeu : Arabe (18 mondes, lettres, mots, chiffres)'],
  ['1.55','20/11/2026 22:10','Guide parents et admin mis à jour avec les 2 nouveaux jeux'],
  ['1.54','20/11/2026 22:00','Nouveaux jeux : Qui a changé ? et Chiffres éclair'],
- ['1.53','20/11/2026 21:30','Cheveux longs visibles et gratuits : le profil fille s’affiche enfin'],
 ];
 const noFr=h=>window.MLANG==='fr'?h:h.replace(/<section class="acard"><h3>(?:📖 Lecture|🎙️ Sons des lettres)<\/h3>[\s\S]*?<\/section>/g,'').replace(/<li>Lecture \(méthode syllabique\)[^<]*<\/li>/,'');
 function renderAdmin(){

@@ -1,4 +1,11 @@
-Sons arabes (lettres et mots) générés hors ligne avec Piper (synthèse vocale libre)
-et la voix « ar_JO-kareem-medium » (piper-voices, jeu de données arabicttstrain).
-Texte vocalisé à la main (voyelles écrites) pour une prononciation correcte.
+Sons arabes de Malino
+
+Lettres (28 noms de lettres) : enregistrements d'un arabophone,
+dépôt GitHub razunatmohammed88-cyber/arabic-alphabet-audio, licence MIT
+(Copyright (c) 2025 razunatmohammed88-cyber). Fichiers recoupés (silences retirés, volume égalisé).
+
+Mots : en cours de remplacement par des enregistrements d'arabophones de Wikimedia Commons /
+Lingua Libre (licences libres CC BY-SA / CC0, auteurs listés dans ar/sources-mots.txt).
+Mots restants : voix de synthèse libre Piper « ar_JO-kareem-medium », texte vocalisé à la main.
+
 Nom de chaque fichier : empreinte FNV-1a 32 bits du mot arabe tel qu'écrit dans l'appli.
