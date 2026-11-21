@@ -22,6 +22,7 @@
 <link rel="icon" type="image/svg+xml" href="logo.svg">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
+<script>window.__bip=null;addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__bip=e;try{window.Install&&Install.maj();}catch(x){}});addEventListener('appinstalled',function(){window.__bip=null;try{localStorage.setItem('malino-installe','1');window.Install&&Install.maj();}catch(x){}});</script>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Malino">
 <meta property="og:locale" content="fr_FR">
@@ -343,6 +344,11 @@ h1,h2,h3,h4{font-weight:700}
 .gbar i{display:block;height:100%;background:var(--p);border-radius:99px}
 .gcard.won{box-shadow:0 4px 0 var(--pd);border:3px solid var(--p)}
 .gcard.given{opacity:.6}
+#instb{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:45;display:flex;align-items:center;gap:9px;background:#fff;border-radius:18px;padding:8px 6px 8px 9px;box-shadow:0 10px 30px rgba(40,20,120,.28);max-width:500px;margin:0 auto;animation:instup .45s ease-out}
+#instb img{width:40px;height:40px;border-radius:11px;flex:none}#instb div{flex:1;min-width:0;line-height:1.15}#instb b{display:block;font-size:15px;color:var(--ink)}#instb small{font-size:12px;color:var(--ink2)}
+#instb .btn{flex:none}.instx{background:none;border:0;font-size:15px;color:var(--ink2);padding:6px;cursor:pointer;flex:none}
+.insto{text-align:left;margin:8px 0 8px 22px;line-height:1.45}.insto li{margin:5px 0}.ishare svg{width:19px;height:19px;vertical-align:-4px}
+@keyframes instup{from{transform:translateY(130%)}to{transform:none}}
 .gcard.dem{width:100%;text-align:left;font:inherit;color:inherit;border:0;cursor:pointer}.gcard.dem.key{border:3px solid #F5C33B;background:linear-gradient(135deg,#FFF6D6,#fff 70%);box-shadow:0 4px 0 #E5B52C;animation:pulse 1.6s infinite}
 .gcard.dem.lock{cursor:default}.gcard.dem.lock .ge{filter:grayscale(.3)}.gcard.dem.wait{border:2px dashed var(--p);cursor:default}.demnx{color:#9A7A10!important;font-size:12.5px}
 .demx{background:none;border:0;color:var(--ink2);font:inherit;font-size:12.5px;text-decoration:underline;padding:4px;cursor:pointer}.demnote{font-size:13px;color:var(--ink2);margin:-4px 4px 10px}
@@ -1956,6 +1962,36 @@ const Dem={
     else{const {error}=await Acct.sb.from('cadeaux_demandes').update(maj).eq('id',id).eq('statut','attente');if(error)return toast('Non enregistré : réessayez');}
     delete this.P[id];this.L=this.L.filter(x=>x!==r);this.parentDessiner();toast(oui?`✅ Défi envoyé : ${r.prenom||nm()} le verra à sa prochaine partie`:'Réponse envoyée');}
 };
+// ---------- Installer l'appli : un clic quand le navigateur le permet (Android, ordinateur), sinon la marche à suivre (iPhone) ----------
+const SHARE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="#1E73E8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
+const Install={
+  ua:navigator.userAgent||'',
+  autonome(){try{return matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: minimal-ui)').matches||navigator.standalone===true;}catch(e){return false;}},
+  ios(){return /iphone|ipad|ipod/i.test(this.ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);},
+  android(){return /android/i.test(this.ua);},
+  integre(){return /FBAN|FBAV|FB_IAB|FBIOS|Instagram|TikTok|musical_ly|Snapchat|LinkedInApp|Pinterest/i.test(this.ua);},
+  appli(){const u=this.ua;return /Instagram/i.test(u)?'Instagram':/TikTok|musical_ly/i.test(u)?'TikTok':/Snapchat/i.test(u)?'Snapchat':/LinkedIn/i.test(u)?'LinkedIn':/Pinterest/i.test(u)?'Pinterest':'Facebook';},
+  safari(){return this.ios()&&!/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//i.test(this.ua);},
+  masque(){try{return localStorage.getItem('malino-installe')==='1'||Date.now()<(+localStorage.getItem('malino-inst-x')||0);}catch(e){return false;}},
+  possible(){return !this.autonome()&&!!(window.__bip||this.ios()||this.android()||this.integre());},
+  maj(){let b=document.getElementById('instb');
+    const ok=typeof SCR!=='undefined'&&SCR==='home'&&!modalOpen&&this.possible()&&!this.masque()&&!(typeof Onb!=='undefined'&&Onb.should());
+    if(!ok){if(b)b.remove();return;}
+    if(!b){b=document.createElement('div');b.id='instb';document.body.appendChild(b);}
+    b.innerHTML=`<img src="icon-192.png" alt=""><div><b>Installer Malino</b><small>${window.__bip?'En un clic, comme une vraie appli':'Sur l’écran d’accueil, comme une vraie appli'}</small></div><button class="btn sm g" data-act="installer">Installer</button><button class="instx" data-act="instx" aria-label="Plus tard">✕</button>`;},
+  async installer(){const e=window.__bip;
+    if(e){window.__bip=null;try{e.prompt();const r=await e.userChoice;if(r&&r.outcome==='accepted'){try{localStorage.setItem('malino-installe','1');}catch(x){}toast('✅ Malino s’installe sur ton écran d’accueil');}}catch(x){this.aide();}this.maj();return;}
+    this.aide();},
+  aide(){const ios=this.ios();let h;
+    if(this.integre())h=`<div class="bigemoji sm">🌐</div><h2>Ouvre Malino dans ${ios?'Safari':'ton navigateur'}</h2><p>Tu es dans ${this.appli()}, qui ne permet pas d’installer une appli.</p><ol class="insto"><li>Touche <b>⋯</b> (en haut ou en bas à droite)</li><li>Choisis <b>« Ouvrir dans ${ios?'Safari':'le navigateur'} »</b></li><li>Touche à nouveau <b>Installer</b> sur Malino</li></ol><button class="btn sm o block" data-act="instcopie">📋 Copier le lien</button>`;
+    else if(ios&&this.safari())h=`<div class="bigemoji sm">📲</div><h2>Installer Malino sur ${/ipad/i.test(this.ua)||navigator.maxTouchPoints>1&&navigator.platform==='MacIntel'?'l’iPad':'l’iPhone'}</h2><ol class="insto"><li>Touche le bouton <b>Partager</b> <span class="ishare">${SHARE_SVG}</span> en bas de Safari</li><li>Fais défiler et choisis <b>« Sur l’écran d’accueil »</b> ➕</li><li>Touche <b>Ajouter</b> en haut à droite</li></ol><p class="small">Malino apparaît sur ton écran d’accueil, comme une vraie appli.</p>`;
+    else if(ios)h=`<div class="bigemoji sm">📲</div><h2>Installer Malino</h2><ol class="insto"><li>Touche le bouton <b>Partager</b> <span class="ishare">${SHARE_SVG}</span> dans la barre d’adresse</li><li>Choisis <b>« Sur l’écran d’accueil »</b> ➕</li><li>Touche <b>Ajouter</b></li></ol><p class="small">Tu ne le vois pas ? Ouvre malino.paceapp.fr dans <b>Safari</b> et recommence.</p>`;
+    else if(this.android())h=`<div class="bigemoji sm">📲</div><h2>Installer Malino</h2><ol class="insto"><li>Touche le menu <b>⋮</b> en haut à droite du navigateur</li><li>Choisis <b>« Installer l’application »</b> ou <b>« Ajouter à l’écran d’accueil »</b></li><li>Confirme avec <b>Installer</b></li></ol>`;
+    else h=`<div class="bigemoji sm">💻</div><h2>Installer Malino sur l’ordinateur</h2><ol class="insto"><li>Dans <b>Chrome</b> ou <b>Edge</b>, clique sur l’icône <b>Installer</b> ⊕ à droite de la barre d’adresse</li><li>Puis sur <b>Installer</b></li></ol><p class="small">Sur Safari (Mac) : menu <b>Fichier › Ajouter au Dock</b>.</p>`;
+    queueModal(h+`<button class="btn p block" data-act="mclose" style="margin-top:8px">J’ai compris</button>`);},
+  plusTard(){try{localStorage.setItem('malino-inst-x',String(Date.now()+5*864e5));}catch(e){}this.maj();},
+  card(){return this.autonome()?'':`<section class="acard"><h3>📲 Installer l’appli</h3><p class="hint">Malino sur l’écran d’accueil, en plein écran, comme une vraie appli.</p><button class="btn p sm" data-act="installer">Installer sur cet appareil</button></section>`;}
+};
 function checkGifts(){const out=[];S.gifts.forEach(g=>{if(!g.reached&&!g.given&&giftVal(g)>=g.target){g.reached=Date.now();out.push(g);}});if(out.length)save();return out;}
 // ---------- Coffres magiques : gagnés en jouant, ils s'ouvrent au bout de 12 h ----------
 const COF_MS=12*3600e3,COF_SLOTS=4,COF_DAY=6;
@@ -2232,7 +2268,7 @@ function showTip(el){const t=$('#tip');t.textContent=el.dataset?el.dataset.tip:e
 // ---------- Modales (en file d’attente) ----------
 const MQ=[];let modalOpen=false;
 function queueModal(html,onShow){MQ.push({html,onShow});if(!modalOpen)nextModal();}
-function nextModal(){const m=MQ.shift(),el=$('#modal');if(!m){modalOpen=false;el.className='modal hidden';el.innerHTML='';return;}modalOpen=true;el.innerHTML=`<div class="mbox">${m.html}</div>`;el.className='modal';if(m.onShow)m.onShow();}
+function nextModal(){const m=MQ.shift(),el=$('#modal');if(!m){modalOpen=false;el.className='modal hidden';el.innerHTML='';setTimeout(()=>{try{Install.maj();}catch(e){}},400);return;}modalOpen=true;el.innerHTML=`<div class="mbox">${m.html}</div>`;el.className='modal';if(m.onShow)m.onShow();}
 function closeAllModals(){MQ.length=0;nextModal();}
 function levelUpModal(from,to){
   const un=CATALOG.filter(i=>i.lvl>from&&i.lvl<=to);let dr=null;if(Math.floor(to/5)>Math.floor(from/5))dr=dropItem(300,Math.min(1500*Math.floor(to/5),20000),true);
@@ -2494,6 +2530,7 @@ function keepScroll(fn){const y=window.scrollY;fn();window.scrollTo(0,y);}
 function render(){
   const R={home:renderHome,game:renderGame,result:renderResult,shop:renderShop,badges:renderBadges,album:renderAlbum,gifts:renderGifts,pin:renderPin,admin:()=>adminOk?renderAdmin():renderPin()};
   $('#app').innerHTML=(R[SCR]||renderHome)();
+  try{Install.maj();}catch(e){}
   if(SCR==='home'&&!modalOpen&&!(typeof Onb!=='undefined'&&Onb.should()))setTimeout(()=>{try{if(SCR==='home'&&!modalOpen)unlockCheck();}catch(e){}},350);
 }
 function weekHTML(){const now=new Date(),dow=(now.getDay()+6)%7,mon=addDays(now,-dow),t=dayKey();return (window.MLANG==='en'?['M','T','W','T','F','S','S']:['L','M','M','J','V','S','D']).map((n,i)=>{const d=dayKey(addDays(mon,i)),st=S.days[d],done=dayDone(st);const cls=(done?'done ':d<t?'miss ':'')+(d===t?'today':'');return `<div class="day ${cls}">${n}<b>${done?'🔥':d===t?'⭐':''}</b></div>`;}).join('');}
@@ -2572,7 +2609,7 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.68';
+const VERSION='1.69';
 const VERSIONS=[
  ['1.65','21/11/2026 15:20','Espace parents : bouton Admin et cloche en haut'],
  ['1.64','21/11/2026 15:00','Voix des contributions : plusieurs voix par son, sons des lettres, cris, anglais'],
@@ -2700,6 +2737,7 @@ function importFile(file){const r=new FileReader();r.onload=()=>{try{const d=JSO
 // ---------- Actions ----------
 const lockedMsg=()=>{toast('Fais d’abord ton entraînement de maths ! 🔢');if(S.settings.voice)Voice.say('Fais d’abord ton entraînement de maths !');};
 const ACT={
+  installer(){Install.installer();},instx(){Install.plusTard();},instcopie(){const u=location.origin+location.pathname+location.search;try{navigator.clipboard.writeText(u).then(()=>toast('Lien copié : colle-le dans ton navigateur'),()=>toast(u));}catch(e){toast(u);}},
   demcat(){Dem.catalogue();},demvoir(){nextModal();if(SCR!=='gifts')go('gifts');},demidee(a){Dem.confirmer(a);},demenv(a){Dem.envoyer(a);},demann(){Dem.annuler();},
   dpick(a){const [id,i]=a.split('|'),st=Dem.P[id],r=Dem.L.find(x=>String(x.id)===id);if(!st||!r)return;Dem.lireTextes(id);st.i=+i;st.n=(DEM_DEFIS[r.taille]||DEM_DEFIS.petit)[+i][1];Dem.parentDessiner();},
   dplus(a){const [id,k]=a.split('|'),st=Dem.P[id],r=Dem.L.find(x=>String(x.id)===id);if(!st||!r)return;Dem.lireTextes(id);const t=(DEM_DEFIS[r.taille]||DEM_DEFIS.petit)[st.i][0];st.n=Math.max(DEM_MIN[t],Math.min(t==='ok'?2000:t==='ttot'?900:30,st.n+(+k)*DEM_PAS[t]));Dem.parentDessiner();},
@@ -3003,7 +3041,8 @@ function famCard(){
   if(pi.invitation)return `<p class="hint">Invitation envoyée à <b>${esc(pi.invitation.email)}</b>, valable jusqu’au ${fmtDate(pi.invitation.expire_le)}.</p><button class="btn sm o" data-act="famAnnuler">Annuler l’invitation</button>`;
   return `<p class="hint">Ajoutez l’autre parent : il reçoit un mail et crée son propre compte pour suivre les mêmes enfants.</p><label class="fld">E-mail de l’autre parent<input id="famMail" type="email" inputmode="email" placeholder="parent@exemple.fr"></label><button class="btn p sm" style="margin-top:8px" data-act="famInviter">Envoyer l’invitation</button>`;
 }
-function paneAccount(){
+function paneAccount(){return paneAccount0()+Install.card();}
+function paneAccount0(){
   if(!Acct.user)return `<section class="acard"><h3>👤 Compte parent</h3><p class="hint">Sans compte, la progression reste sur cet appareil. Avec un compte (gratuit), elle est sauvegardée et on la retrouve sur toutes les tablettes. Après ${WALL_AFTER} séances, la connexion est demandée pour continuer.</p><button class="btn p sm" data-act="openlogin">Se connecter / créer un compte</button></section>`;
   const k=Plan.kind(),pi=Plan.info||{};
   return `<section class="acard"><h3>👤 Compte parent</h3><p class="hint">Connecté : <b>${esc(Acct.user.email||'')}</b>. La progression est sauvegardée automatiquement.</p></section>${Push.card()}
