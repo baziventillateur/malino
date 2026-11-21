@@ -82,7 +82,7 @@ const ago=x=>{if(!x)return '—';const m=(Date.now()-Date.parse(x))/6e4;return m
 const xpTot=L=>Math.round(JEU.xpK*Math.pow(Math.max(0,L-1),JEU.xpE)/10)*10,lvl=xp=>{let L=1;while((xp||0)>=xpTot(L+1))L++;return L;};
 const jours=x=>Math.max(0,Math.ceil((Date.parse(x)-Date.now())/864e5));
 // ---- Réglages du jeu : mêmes valeurs de base que l'appli (index.html, CFG0) ----
-const JEU0={xpK:425,xpE:2.15,coinLv:5,coinMul:100,cofDay:3,cofSlots:4,cofH:12,cof3:25,cof2:8,cofGame:1,cofWorld:40,keyEvery:2,wall:2,
+const JEU0={xpK:425,xpE:2.15,coinLv:5,coinMul:100,cofDay:3,cofSlots:4,cofH:12,cof3:25,cof2:8,cofGame:1,cofWorld:40,keyDays:5,keyMin:180,keyChest:6,wall:2,
   u_heure:3,u_quoi:4,u_formes:5,u_chiffres:6,u_probl:7,u_drapeaux:8,u_espace:10,u_ortho:12};
 let JEU=Object.assign({},JEU0);
 let D=null,email='',q='',VIEW=/^#(contrib|dev)$/.test(location.hash)?'contrib':location.hash==='#reglages'?'reglages':'tableau';
@@ -254,14 +254,16 @@ function bindVoix(root,after){
 // Voix de base de l'appli (synthèse, voix trouvée sur internet, ou voix robot du téléphone), lue dans index.html
 let BASE=null,MAN={k:{},b:{}};
 const fnv1=t=>{let h=0x811c9dc5;t=String(t);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return ('0000000'+h.toString(16)).slice(-8);};
-async function baseInfo(){if(BASE)return BASE;BASE={rec:new Set(),syn:new Set(),cry:{}};
+async function baseInfo(){if(BASE)return BASE;BASE={rec:new Set(),syn:new Set(),cry:{},fr:new Set(),frs:{}};
   try{const h=await fetch('index.html',{cache:'no-cache'}).then(r=>r.text());
     const m1=/const AR_REC=new Set\((\[[^\]]*\])\)/.exec(h),m2=/const AR_SYN=new Set\((\[[^\]]*\])\)/.exec(h),m3=/const CRY_REAL=(\{[\s\S]*?\});/.exec(h);
+    const m4=/const FR_SND=new Set\((\[[^\]]*\])\)/.exec(h),m5=/const FR_SAYK=(\{[^}]*\});/.exec(h);if(m4)BASE.fr=new Set(JSON.parse(m4[1]));if(m5)BASE.frs=JSON.parse(m5[1]);
     if(m1)BASE.rec=new Set(JSON.parse(m1[1]));if(m2)BASE.syn=new Set(Function('return '+m2[1])());if(m3)BASE.cry=Function('return '+m3[1])();}catch(e){}
   return BASE;}
 async function loadMan(){try{const j=await fetch(SB_URL+'/storage/v1/object/public/cris/voix/index.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null);MAN={k:(j&&j.k)||{},b:(j&&j.b)||{}};}catch(e){}}
 // ce que l'appli joue quand aucune voix n'est choisie ; def = gardée par défaut à côté des voix choisies
-function baseOf(cle,x){const t=cle.split(':')[0],v=cle.slice(t.length+1),B=BASE||{rec:new Set(),syn:new Set(),cry:{}};
+function baseOf(cle,x){const t=cle.split(':')[0],v=cle.slice(t.length+1),B=BASE||{rec:new Set(),syn:new Set(),cry:{},fr:new Set(),frs:{}};
+  const fk=t==='son'?'son:'+v:t==='fr'?B.frs[v.toLowerCase()]:null;if(fk&&B.fr.has(fk))return {url:'fr/'+fnv1(fk)+'.mp3',lang:'fr-FR',txt:v,lab:'de synthèse',def:false};
   if(t==='ar'){const k=fnv1(v),syn=B.syn.has(k)||/^[\u0621-\u064A][\u064B-\u0652]$/.test(v),rec=B.rec.has(k);
     return {url:rec?SB_URL+'/storage/v1/object/public/cris/ar2/'+k+'.mp3':'ar/'+k+'.mp3',lang:'ar-SA',txt:v,lab:rec?'trouvée sur internet':syn?'de synthèse':'de l’appli',def:!syn};}
   if(t==='cri'){const r=B.cry[v];if(r)return {url:r[0][0]==='@'?SB_URL+'/storage/v1/object/public/cris/'+r[0].slice(1)+'.mp3':'cris/'+r[0]+'.mp3',lang:'fr-FR',txt:v,lab:r[0][0]==='@'?'trouvé sur internet':'de l’appli',def:true};
@@ -545,7 +547,10 @@ const JEUF=[
    ['cofWorld','Chance quand un monde est terminé (%)','',0,100,1],
    ['cofH','Heures avant de pouvoir ouvrir','',1,48,1],
    ['cofSlots','Emplacements de coffres','',1,8,1]]],
- ['🎁 Demandes de cadeaux','',[['keyEvery','Une clé 🔑 tous les … niveaux','',1,10,1]]],
+ ['🎁 Demandes de cadeaux','Une clé 🔑 permet à l’enfant de demander un cadeau.',[
+   ['keyDays','Jours de jeu pour gagner une clé','Comptés depuis la dernière clé gagnée en jouant.',1,30,1],
+   ['keyMin','Minutes de jeu pour gagner une clé','180 = 3 h, sur ces jours.',10,1200,10],
+   ['keyChest','Chance de trouver une clé dans un coffre (%)','Coffre « bon cadeau » ; deux fois plus dans un coffre épique. Jamais dans une farce.',0,50,1]]],
  ['🔓 Jeux débloqués au niveau','Un jeu déjà ouvert pour un enfant le reste.',[['u_heure','🕐 L’heure'],['u_quoi','🔦 Qui a changé ?'],['u_formes','📐 Formes'],['u_chiffres','💡 Chiffres éclair'],['u_probl','🧮 Problèmes'],['u_drapeaux','🚩 Drapeaux'],['u_espace','🪐 Sciences'],['u_ortho','✍️ Orthographe']].map(([k,l])=>[k,l,'',1,60,1])],
  ['👋 Sans compte','',[['wall','Parties avant la connexion obligatoire','',1,10,1]]]];
 let JEUD=null;

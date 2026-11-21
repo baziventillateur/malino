@@ -367,6 +367,7 @@ h1,h2,h3,h4{font-weight:700}
 .dqlab{margin:8px 0 4px;font-size:13px;font-weight:700}.dchips{display:flex;flex-wrap:wrap;gap:6px}.dchip{border:2px solid #E3DEF8;background:#fff;border-radius:99px;padding:6px 10px;font:inherit;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer}.dchip.on{border-color:var(--p);background:var(--p);color:#fff}
 .dadj{display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0}.dadj .btn{min-width:34px;padding:3px 12px}.dno{color:var(--ink2);text-decoration:underline;font-weight:600}.dlink{background:none;border:0;color:var(--p);font:inherit;font-size:13px;font-weight:700;padding:4px 0;cursor:pointer}
 .dreq .ginput{margin-top:6px}
+.cofkey{background:#FFF6D6;border-radius:12px;padding:8px 10px;margin:8px 0 0;font-size:15px}
 .modal.ask{z-index:75}.modal.ask.hidden{display:none}.bigemoji.sm{font-size:44px;line-height:1.1}
 .dht{display:block;margin:6px 0 0;font-size:13px;color:var(--ink2);font-weight:600}.dreqs.mini .hint{margin:0}
 .dhl{margin-top:4px;border-top:1px solid #EEE9FF}.dhr{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #F3F0FF;font-size:13px;text-align:left}
@@ -689,7 +690,7 @@ h1,h2,h3,h4{font-weight:700}
    ========================================================= */
 
 // ---------- Réglages du jeu (modifiables dans l'admin › Réglages du jeu) ----------
-const CFG0={xpK:425,xpE:2.15,coinLv:5,coinMul:100,cofDay:3,cofSlots:4,cofH:12,cof3:25,cof2:8,cofGame:1,cofWorld:40,keyEvery:2,wall:2,
+const CFG0={xpK:425,xpE:2.15,coinLv:5,coinMul:100,cofDay:3,cofSlots:4,cofH:12,cof3:25,cof2:8,cofGame:1,cofWorld:40,keyDays:5,keyMin:180,keyChest:6,wall:2,
   u_heure:3,u_quoi:4,u_formes:5,u_chiffres:6,u_probl:7,u_drapeaux:8,u_espace:10,u_ortho:12};
 const CFG=Object.assign({},CFG0);try{Object.assign(CFG,JSON.parse(localStorage.getItem('malino_cfg')||'{}'));}catch(e){}
 // ---------- Outils ----------
@@ -1840,10 +1841,11 @@ function ecoMigrate(){if(!S||S.ecoV>=2)return;const xp=S.xp||0;let Lo=1,r=xp;whi
   [['heure',5],['formes',8],['probl',12],['drapeaux',15],['espace',20],['ortho',25],['quoi',7],['chiffres',10]].forEach(([k,u])=>{if(Lo>=u&&!S.thUnl[k])S.thUnl[k]=Date.now();});
   if(Lo>=15&&S.coins>0){const c0=S.coins;S.coins=Math.round(c0*(1+0.05*(Ln-1))/Math.pow(1.1,Lo-1));S.ecoMsg={from:Lo,to:Ln,c0,c1:S.coins};}
   else if(Lo>Ln+2)S.ecoMsg={from:Lo,to:Ln};
-  S.clesUsees=Math.min(S.clesUsees||0,Dem.gagnees(Ln));S.ecoV=2;}
+  S.clesUsees=Math.min(S.clesUsees||0,Math.floor(Ln/2));S.ecoV=2;}
 function ecoNotice(){const m=S&&S.ecoMsg;if(!m)return;delete S.ecoMsg;save();
   queueModal(`<div class="bigemoji">🏔️</div><h2>Nouveaux niveaux !</h2><p>Les niveaux sont maintenant plus longs à gagner : chaque niveau compte vraiment.</p><p>${esc(nm())} est <b>niveau ${m.to}</b>${m.c1!=null?`, avec <b>${fmtP(m.c1)} 🪙</b>`:''}.</p><p class="hint">Les jeux déjà ouverts restent ouverts, et tous les objets gagnés sont gardés.</p><button class="btn p block" data-act="mclose">C’est parti !</button>`);}
-function load(){load0();try{arMigrate();}catch(e){}try{ecoMigrate();if(S.ecoMsg)setTimeout(ecoNotice,1200);}catch(e){}}
+function cleMigrate(){if(!S||S.cleV>=2)return;const L=levelInfo(S.xp||0).level;S.cleN=Math.max(0,Math.floor(L/2)-(S.clesUsees||0));S.cleRef=dayKey();S.cleV=2;}
+function load(){load0();try{ecoMigrate();cleMigrate();}catch(e){}try{arMigrate();}catch(e){}try{ecoMigrate();if(S.ecoMsg)setTimeout(ecoNotice,1200);}catch(e){}}
 function load0(){try{const raw=localStorage.getItem(STORE_KEY);if(raw){const d=JSON.parse(raw);S=deepMerge(defaultState(),d);if(!d.frV){S.frV=2;S.fr={};S.settings.frLevel=1;S.frFlashMs=2000;}S.settings.frLevel=Math.min(Math.max(1,S.settings.frLevel),FR_LEVELS.length);S.settings.mathLevel=Math.min(Math.max(1,S.settings.mathLevel),MATH_LEVELS.length);Object.keys(THEMES).forEach(k=>{S.settings.lv[k]=Math.min(Math.max(1,S.settings.lv[k]||1),THEMES[k].levels.length);});migrateShop();return;}}catch(e){}S=defaultState();}
 function save(){try{S.ts=Date.now();localStorage.setItem(STORE_KEY,JSON.stringify(S));}catch(e){}if(window.__dirty)window.__dirty();}
 const nm=()=>esc(S.name||'Champion');
@@ -1968,41 +1970,43 @@ const fmtMinG=m=>m>=60&&m%60===0?`${m/60} h`:m>=60?`${Math.floor(m/60)} h ${pad2
 function giftCond(g){if(g.base!=null){if(g.type==='ttot')return `${fmtMinG(g.target)} de jeu`;if(g.type==='tfr')return `${fmtMinG(g.target)} de lecture`;if(g.type==='ok')return `${g.target} bonnes réponses`;if(g.type==='days')return `${g.target} jours de jeu`;}if(g.type==='tdays')return `10 min par jour, ${g.target} jour${g.target>1?'s':''} dans la semaine`;if(g.type==='tweek')return `${g.target} min de jeu dans la semaine`;if(g.type==='tfr')return `${g.target} min de lecture au total`;if(g.type==='ttot')return `${g.target} min de jeu au total`;return g.type==='level'?`Atteindre le niveau ${g.target}`:g.type==='streak'?`${g.target} jours d’affilée`:g.type==='days'?`${g.target} jours d’entraînement`:`${g.target} bonnes réponses`;}
 function giftVal(g){let v=giftRaw(g.type);if(g.type==='streak'&&g.since)v=Math.min(v,Math.round((Date.parse(dayKey())-Date.parse(g.since))/864e5)+1);else if(g.base!=null)v=Math.max(0,v-g.base);return v;}
 function giftRaw(type){const g={type};switch(g.type){case 'streak':return curStreak();case 'level':return levelInfo(S.xp).level;case 'days':return Object.values(S.days).filter(dayDone).length;case 'ok':return S.stats.ok;case 'tdays':return TimeT.weekDays(600);case 'tweek':return Math.floor(TimeT.weekSec()/60);case 'tfr':return Math.floor(TimeT.all('f')/60);case 'ttot':return Math.floor(TimeT.all()/60);}return 0;}
-// ---------- Demandes de cadeaux : en montant de niveau, l'enfant gagne des clés pour demander un cadeau ----------
+// ---------- Demandes de cadeaux : l'enfant gagne des clés en jouant (jours et temps de jeu) ou en trouve dans les coffres ----------
 const DEM_IDEES=[['glace','🍦','Une glace','petit'],['gateau','🍰','Un gâteau','petit'],['console','🎮','30 min de console','petit'],['tard','🌙','Se coucher plus tard','petit'],['pizza','🍕','Une pizza','moyen'],['parc','🎡','Une sortie au parc','moyen'],['livre','📚','Un livre','moyen'],['foot','⚽','Un match de foot','moyen'],['activite','🎨','Une activité créative','moyen'],['cine','🎬','Une séance de ciné','gros'],['piscine','🏊','Une sortie piscine','gros'],['jouet','🧸','Un petit jouet','gros']];
 const DEM_DEFIS={petit:[['streak',3],['ttot',30],['ok',100]],moyen:[['streak',5],['ttot',60],['days',7]],gros:[['streak',7],['ttot',180],['level',3]]};
 const DEM_PAS={streak:1,ttot:15,ok:50,days:1,level:1},DEM_MIN={streak:1,ttot:15,ok:50,days:1,level:1};
 const demDefi=(t,n)=>t==='streak'?`🔥 ${n} jour${n>1?'s':''} d’affilée`:t==='ttot'?`⏱️ ${fmtMinG(n)} de jeu`:t==='ok'?`✅ ${n} bonnes réponses`:t==='days'?`📅 ${n} jours de jeu`:`⭐ Monter de ${n} niveau${n>1?'x':''}`;
 const Dem={
-  seuils(L){const e=Math.max(1,CFG.keyEvery|0),o=[];for(let k=e;k<=L;k+=e)o.push(k);return o;},
-  prochain(L){const e=Math.max(1,CFG.keyEvery|0);return (Math.floor(Math.max(1,L)/e)+1)*e;},
-  gagnees(L){return this.seuils(L==null?levelInfo(S.xp).level:L).length;},
-  dispo(){return Math.max(0,this.gagnees()-(S.clesUsees||0));},
+  // une clé = jouer CFG.keyDays jours et CFG.keyMin minutes depuis la dernière clé gagnée en jouant ; ou une clé trouvée dans un coffre
+  dispo(){return Math.max(0,S.cleN||0);},
+  prog(){const ref=S.cleRef||'',td=dayKey(),ks=new Set(Object.keys(S.time||{}));ks.add(td);let j=0,sec=0;
+    ks.forEach(k=>{if(k>ref){const t=TimeT.sec(k);sec+=t;if(t>=60)j++;}});return {j:Math.min(j,CFG.keyDays),min:Math.round(sec/60)};},
+  verifier(){const p=this.prog();if(p.j<CFG.keyDays||p.min<CFG.keyMin)return false;S.cleN=(S.cleN||0)+1;S.cleRef=dayKey();save();this.fete('jouant');return true;},
+  fete(how){queueModal(`<div class="bigemoji">🔑</div><h2>Tu as gagné une clé !</h2><p>${how==='coffre'?'Elle était cachée dans le coffre !':`Bravo : tu as joué ${CFG.keyDays} jours !`} Avec une clé, tu peux <b>demander un cadeau</b> à papa et maman.</p><button class="btn y block" data-act="demcat">Choisir mon cadeau 🎁</button><button class="btn sm o block" data-act="mclose" style="margin-top:8px">Plus tard</button>`,()=>{Sound.play('badge');Confetti.burst(120);});},
   attente(){return S.demande&&S.demande.statut==='attente'?S.demande:null;},
   enLigne(){return !!(Acct.user&&Acct.sb&&Acct.pid);},
   idee(k){return DEM_IDEES.find(x=>x[0]===k);},
   // fête quand une clé est gagnée en fin de partie
-  apresNiveau(from,to){if(this.gagnees(to)>this.gagnees(from))queueModal(`<div class="bigemoji">🔑</div><h2>Tu as gagné une clé !</h2><p>Avec une clé, tu peux <b>demander un cadeau</b> à papa et maman.</p><button class="btn y block" data-act="demcat">Choisir mon cadeau 🎁</button><button class="btn sm o block" data-act="mclose" style="margin-top:8px">Plus tard</button>`,()=>{Sound.play('badge');Confetti.burst(80);if(S.settings.voice)Voice.say('Tu as gagné une clé ! Tu peux demander un cadeau.');});},
+  apresNiveau(){this.verifier();},
   async envoyer(k){const x=this.idee(k);if(!x||this.attente()||!this.dispo())return;closeAllModals();
     const d={idee:x[0],emoji:x[1],titre:x[2],taille:x[3],statut:'attente',at:Date.now()};
     if(this.enLigne()){const {data,error}=await Acct.sb.from('cadeaux_demandes').insert({profil_id:Acct.pid,prenom:S.name||'',idee:d.idee,emoji:d.emoji,titre:d.titre,taille:d.taille}).select('id').single();
       if(error)return toast(/duplicate|unique/i.test(error.message||'')?'Une demande est déjà en attente':'Pas de connexion : réessaie dans un moment');
       d.id=data.id;this.notifier(d.id);}else{d.id='l'+Date.now().toString(36);d.local=true;}
-    S.demande=d;S.clesUsees=(S.clesUsees||0)+1;save();if(SCR==='gifts')keepScroll(render);
+    S.demande=d;S.cleN=Math.max(0,(S.cleN||0)-1);save();if(SCR==='gifts')keepScroll(render);
     queueModal(`<div class="bigemoji">📨</div><h2>C’est envoyé !</h2><p><b>${esc(d.emoji)} ${esc(d.titre)}</b></p><p>Papa ou maman va choisir ton défi. Tu verras la réponse ici ⏳</p><button class="btn p block" data-act="mclose">D’accord !</button>`,()=>{Sound.play('coin');if(S.settings.voice)Voice.say('C’est envoyé ! Papa ou maman va choisir ton défi.');});},
   async notifier(id){try{const {data}=await Acct.sb.auth.getSession(),tk=data&&data.session&&data.session.access_token;if(tk)fetch(SB_URL+'/functions/v1/malino-cadeau',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+tk},body:JSON.stringify({mode:'notifier',id})}).catch(()=>{});}catch(e){}},
   async annuler(){const d=this.attente();if(!d)return;
     if(!(await Ask.open({e:'↩️',t:'Annuler ta demande ?',p:`<b>${esc(d.emoji)} ${esc(d.titre)}</b><br>Ta clé 🔑 te sera rendue.`,ok:'Oui, annuler',cls:'r',no:'Non, je la garde'})))return;
     if(!d.local&&this.enLigne()){const {error}=await Acct.sb.from('cadeaux_demandes').update({statut:'annule',applique_le:new Date().toISOString()}).eq('id',d.id).eq('statut','attente');if(error)return toast('Pas de connexion : réessaie');}
     else this.histo({emoji:d.emoji,titre:d.titre,prenom:S.name||'',statut:'annule',applique_le:new Date().toISOString()});
-    S.demande=null;S.clesUsees=Math.max(0,(S.clesUsees||0)-1);save();keepScroll(render);},
+    S.demande=null;S.cleN=(S.cleN||0)+1;save();keepScroll(render);},
   // réponse des parents : transformée en cadeau à gagner (le défi compte à partir de maintenant)
   appliquer(r){const L=levelInfo(S.xp).level,t=r.r_type,n=Math.max(1,r.r_cible|0);
     if(r.statut==='accepte'&&t){const g={id:'d'+String(r.id).slice(0,10),emoji:r.r_emoji||r.emoji,title:r.r_titre||r.titre,type:t,target:n,reached:null,given:false,dem:1,mot:r.mot||''};
       if(t==='level')g.target=L+n;else if(t==='streak')g.since=dayKey();else g.base=giftRaw(t);
       if(!S.gifts.some(x=>x.id===g.id))S.gifts.push(g);const autre=r.r_titre&&r.r_titre!==r.titre;
       queueModal(`<div class="bigemoji">${esc(g.emoji)}</div><h2>${autre?'Tes parents ont une idée !':'Tes parents ont dit OUI !'} 🎉</h2>${autre?`<p>À la place de ${esc(r.titre)}, ils te proposent : <b>${esc(g.title)}</b></p>`:`<p><b>${esc(g.title)}</b></p>`}<p class="demdefi">Ton défi : <b>${esc(giftCond(g))}</b></p>${g.mot?`<p class="pmot">💬 « ${esc(g.mot)} »</p>`:''}<button class="btn p block" data-act="demvoir">C’est parti ! 💪</button>`,()=>{Sound.play('level');Confetti.burst(150);if(S.settings.voice)Voice.say(`Tes parents ont dit oui ! Ton défi : ${giftCond(g)}`);});}
-    else if(r.statut==='refuse'){S.clesUsees=Math.max(0,(S.clesUsees||0)-1);
+    else if(r.statut==='refuse'){S.cleN=(S.cleN||0)+1;
       queueModal(`<div class="bigemoji">🤗</div><h2>Pas cette fois</h2><p>Tes parents préfèrent attendre pour <b>${esc(r.titre)}</b>.</p>${r.mot?`<p class="pmot">💬 « ${esc(r.mot)} »</p>`:''}<p>Ta clé 🔑 t’est rendue : tu pourras demander autre chose !</p><button class="btn p block" data-act="mclose">D’accord</button>`);}
     if(S.demande&&S.demande.id===r.id)S.demande=null;save();},
   _t:0,
@@ -2012,12 +2016,13 @@ const Dem={
       if(error||!data||!data.length)return;for(const r of data){this.appliquer(r);await Acct.sb.from('cadeaux_demandes').update({applique_le:new Date().toISOString()}).eq('id',r.id);}
       if(SCR==='gifts'||SCR==='home')keepScroll(render);}catch(e){}},
   // écran enfant : la carte en haut de « Mes cadeaux »
-  carte(){const L=levelInfo(S.xp).level,n=this.dispo(),d=this.attente(),nx=this.prochain(L),pv=[1].concat(this.seuils(L)).pop()||1,pc=Math.max(0,Math.min(100,Math.round((L-pv+levelInfo(S.xp).pct)/(nx-pv)*100)));
-    const suite=`<small class="demnx">Prochaine clé 🔑 au niveau ${nx}</small>`;
+  carte(){const n=this.dispo(),d=this.attente(),p=this.prog(),fh=m=>m<60?`${m} min`:`${Math.floor(m/60)} h${m%60?' '+String(m%60).padStart(2,'0'):''}`,
+      pc=Math.round(Math.min(p.j/CFG.keyDays,p.min/CFG.keyMin,1)*100);
+    const suite=`<small class="demnx">Prochaine clé : ${p.j}/${CFG.keyDays} jours · ${fh(Math.min(p.min,CFG.keyMin))} / ${fh(CFG.keyMin)}</small>`;
     if(d)return `<div class="gcard dem wait"><span class="ge">${esc(d.emoji)}</span><div class="gt"><b>${esc(d.titre)}</b><small>⏳ Chez papa ou maman</small><small>Ils vont choisir ton défi</small></div><button class="demx" data-act="demann">Annuler</button></div>`+(n?`<p class="demnote">🔑 Encore ${n} clé${n>1?'s':''} pour plus tard</p>`:'');
     if(n)return `<button class="gcard dem key" data-act="demcat"><span class="ge">🔑</span><div class="gt"><b>Demander un cadeau</b><small>Tu as ${n} clé${n>1?'s':''} : choisis ton cadeau !</small>${suite}</div></button>`;
-    return `<div class="gcard dem lock"><span class="ge">🔒</span><div class="gt"><b>Demander un cadeau</b><small>${S.clesUsees?'Prochaine':'Ta 1re'} clé 🔑 au niveau ${nx}</small><span class="gbar"><i style="width:${pc}%"></i></span><small>Niveau ${L} / ${nx}</small></div></div>`;},
-  catalogue(){closeAllModals();if(this.attente())return toast('Ta demande est déjà chez papa ou maman ⏳');if(!this.dispo())return toast('Gagne une clé 🔑 en montant de niveau');
+    return `<div class="gcard dem lock"><span class="ge">🔒</span><div class="gt"><b>Demander un cadeau</b><small>Joue ${CFG.keyDays} jours et ${fh(CFG.keyMin)} pour gagner une clé 🔑</small><span class="gbar"><i style="width:${pc}%"></i></span><small>📅 ${p.j}/${CFG.keyDays} jours · ⏱️ ${fh(Math.min(p.min,CFG.keyMin))} / ${fh(CFG.keyMin)} · ou trouve-la dans un coffre 🗝️</small></div></div>`;},
+  catalogue(){closeAllModals();if(this.attente())return toast('Ta demande est déjà chez papa ou maman ⏳');if(!this.dispo())return toast(`Gagne une clé 🔑 : joue ${CFG.keyDays} jours, ou trouve-la dans un coffre`);
     queueModal(`<h2>Quel cadeau veux-tu ?</h2><div class="demgrid">${DEM_IDEES.map(x=>`<button data-act="demidee" data-arg="${x[0]}"><span>${x[1]}</span>${esc(x[2])}</button>`).join('')}</div><button class="btn sm o block" data-act="mclose" style="margin-top:10px">Plus tard</button>`);},
   confirmer(k){const x=this.idee(k);if(!x)return;closeAllModals();
     queueModal(`<div class="bigemoji">${x[1]}</div><h2>${esc(x[2])}</h2><p>On envoie ta demande à papa et maman ?</p><button class="btn p block" data-act="demenv" data-arg="${x[0]}">📨 Envoyer</button><button class="btn sm o block" data-act="demcat" style="margin-top:8px">← Choisir autre chose</button>`,()=>{if(S.settings.voice)Voice.say(x[2]);});},
@@ -2139,8 +2144,9 @@ const Coffre={plein:false,
       if(c.t==='legende'||Math.random()<.45)item=dropItem(rng2[0],rng2[1],true);
       if(!item){g=this.colle(pick(ALBUM.filter(a=>a.r===(Math.random()<(c.t==='legende'?.6:.3)?'l':'e'))).id);coins+=g.bonus;}
       html=`<div class="cofres epiq"><div class="cofopen">${chestSVG(c.t,true)}</div><span class="rtag rainbow">Épique !</span><h2>+${fmtP(coins)} 🪙</h2>${item?`<p>Et un objet rare : <b>${esc(item.name)}</b> !</p><div class="mav">${thumb(item)}</div>`:this.stk(g)}</div>`;}
+    let cle=false;if(kind!=='farce'&&Math.random()<CFG.keyChest/100*(kind==='bon'?1:2)){S.cleN=(S.cleN||0)+1;cle=true;html+='<p class="cofkey">🔑 <b>Une clé !</b> Tu peux demander un cadeau à papa ou maman.</p>';}
     S.coins+=coins;save();
-    const btn=item?`<div class="stack"><button class="btn p block" data-act="equipgift" data-arg="${item.id}">Le mettre tout de suite</button><button class="btn y block" data-act="mclose">Super !</button></div>`:`<button class="btn ${kind==='farce'?'w':'y'} block" data-act="mclose">${kind==='farce'?'Tant pis 😅':'Super !'}</button>`;
+    const btn=cle?'<div class="stack"><button class="btn y block" data-act="demcat">Demander un cadeau 🎁</button><button class="btn sm o block" data-act="mclose">Plus tard</button></div>':item?`<div class="stack"><button class="btn p block" data-act="equipgift" data-arg="${item.id}">Le mettre tout de suite</button><button class="btn y block" data-act="mclose">Super !</button></div>`:`<button class="btn ${kind==='farce'?'w':'y'} block" data-act="mclose">${kind==='farce'?'Tant pis 😅':'Super !'}</button>`;
     $('#modal .mbox').innerHTML=html+btn;
     if(kind==='farce'){Sound.play(Sound.custom('fail').length?'fail':'bad');Sons.farce();if(S.settings.voice)Voice.say('Oh non ! '+g.a.n+' !');}
     else if(kind==='bon'){Sound.play('level');Sons.bon();Confetti.burst(110);if(S.settings.voice)Voice.say(`Bravo ! Tu gagnes ${coins} pièces${g&&!g.dup?' et un nouvel autocollant':''} !`);}
@@ -2311,9 +2317,9 @@ const Voice={v:null,ok:'speechSynthesis' in window,warm:false,t:0,cur:null,
   init(){if(!this.ok)return;const pv=()=>{const all=speechSynthesis.getVoices();this.n=all.length;this.ar=all.find(v=>/^ar[-_]SA/i.test(v.lang))||all.find(v=>/^ar/i.test(v.lang))||null;const es=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));this.en=es.find(v=>/en[-_]GB/i.test(v.lang))||es.find(v=>/en[-_]US/i.test(v.lang))||es[0]||null;const vs=speechSynthesis.getVoices().filter(v=>/^fr/i.test(v.lang));this.v=vs.find(v=>/fr[-_]FR/i.test(v.lang)&&/google|amélie|amelie|audrey|thomas|marie|hortense|denise|julie/i.test(v.name))||vs.find(v=>/fr[-_]FR/i.test(v.lang))||vs[0]||null;};pv();try{speechSynthesis.addEventListener?speechSynthesis.addEventListener('voiceschanged',pv):(speechSynthesis.onvoiceschanged=pv);}catch(e){}},
   unlock(){Rec.unlock();if(!this.ok||this.warm)return;this.warm=true;try{const u=new SpeechSynthesisUtterance(' ');u.lang='fr-FR';u.volume=0;speechSynthesis.speak(u);}catch(e){}},
   busy(){try{return this.ok&&(speechSynthesis.speaking||speechSynthesis.pending);}catch(e){return false;}},
-  speak(text,o){o=o||{};if(text&&/^ar/i.test(o.lang||'')){ArAudio.play(text);return;}const vk=VoixC.key(text,o.lang);if(VoixC.useV(vk,false)){VoixC.play(vk);return;}this.native(text,o);},
+  speak(text,o){o=o||{};if(text&&/^ar/i.test(o.lang||'')){ArAudio.play(text);return;}const vk=VoixC.key(text,o.lang);if(VoixC.useV(vk,false)){VoixC.play(vk);return;}const fk=frKey(text,o.lang);if(fk){FrAudio.play(fk).then(ok=>{if(!ok)this.native(text,o);});return;}this.native(text,o);},
   native(text,o){if(!this.ok||!text)return;o=o||{};try{const u=new SpeechSynthesisUtterance(text);const isAr=/^ar/i.test(o.lang||'');if(isAr&&!this.ar&&this.n)return;u.lang=o.lang||'fr-FR';const vv=isAr?this.ar:o.lang?this.en:this.v;if(vv)u.voice=vv;u.rate=o.rate||.9;u.pitch=1.05;u.volume=1;this.cur=u;if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(u);}catch(e){}},
-  hush(){clearTimeout(this.t);ArAudio.stop();VoixC.stop();try{if(this.busy())speechSynthesis.cancel();}catch(e){}},
+  hush(){clearTimeout(this.t);ArAudio.stop();VoixC.stop();try{FrAudio.stop();}catch(e){}try{if(this.busy())speechSynthesis.cancel();}catch(e){}},
   // Annuler puis parler immédiatement fait taire certains navigateurs : on laisse 90 ms entre les deux
   say(text,o){Chain.stop();Rec.stopPlay();if(text&&o&&/^ar/i.test(o.lang||'')){this.hush();ArAudio.play(text);return;}if(!this.ok||!text)return;const b=this.busy();this.hush();if(b)this.t=setTimeout(()=>this.speak(text,o),90);else this.speak(text,o);},
   stop(){Chain.stop();this.hush();Rec.stopPlay();},
@@ -2323,18 +2329,32 @@ const estMs=(t,r)=>Math.round((320+String(t).length*72)/(r||.9));
 // Enchaîne voix, sons enregistrés et effets visuels (ex. « s… e… se »)
 const Chain={t:[],
   run(steps,done){Voice.stop();let at=Voice.busy()?120:30;const add=(fn,d)=>this.t.push(setTimeout(fn,d));
-    (steps||[]).forEach(st=>{if(!st)return;if(st.fn)add(st.fn,at);else if(st.say){const tx=st.say,r=st.rate,lg=st.lang;add(()=>Voice.speak(tx,{rate:r,lang:lg}),at);const ad=/^ar/i.test(lg||'')?ArAudio.dur(tx):VoixC.dur(VoixC.key(tx,lg));at+=ad?Math.round(ad*1000)+250:estMs(tx,r);}else if(st.rec){const k=st.rec;add(()=>Rec.play(k),at);at+=1050;}else if(st.wait)at+=st.wait;});
+    (steps||[]).forEach(st=>{if(!st)return;if(st.fn)add(st.fn,at);else if(st.say){const tx=st.say,r=st.rate,lg=st.lang;add(()=>Voice.speak(tx,{rate:r,lang:lg}),at);const fk=frKey(tx,lg),ad=/^ar/i.test(lg||'')?ArAudio.dur(tx):VoixC.dur(VoixC.key(tx,lg))||(fk?FrAudio.dur(fk):0);at+=ad?Math.round(ad*1000)+250:estMs(tx,r);}else if(st.rec){const k=st.rec;add(()=>Rec.play(k),at);at+=1050;}else if(st.wait)at+=st.wait;});
     if(done)add(done,at);return at;},
   stop(){this.t.forEach(clearTimeout);this.t=[];}
 };
+// Sons de lecture pré-enregistrés (voix libre Piper « siwis », générée phonème par phonème) : les sons des lettres et les syllabes.
+// Une voix de contribution choisie dans l'admin passe devant ; la voix du navigateur reste en secours.
+const FR_SND=new Set(["son:a", "son:b", "son:ch", "son:d", "son:e", "son:f", "son:g", "son:i", "son:j", "son:k", "son:l", "son:m", "son:n", "son:o", "son:p", "son:r", "son:s", "son:t", "son:u", "son:v", "son:z", "son:é", "syl:ba", "syl:be", "syl:bi", "syl:bo", "syl:bu", "syl:bé", "syl:cha", "syl:che", "syl:chi", "syl:cho", "syl:chu", "syl:ché", "syl:da", "syl:de", "syl:di", "syl:do", "syl:du", "syl:dé", "syl:fa", "syl:fe", "syl:fi", "syl:fo", "syl:fu", "syl:fé", "syl:la", "syl:le", "syl:li", "syl:lo", "syl:lu", "syl:lé", "syl:ma", "syl:me", "syl:mi", "syl:mo", "syl:mu", "syl:mé", "syl:na", "syl:ne", "syl:ni", "syl:no", "syl:nu", "syl:né", "syl:pa", "syl:pe", "syl:pi", "syl:po", "syl:pu", "syl:pé", "syl:ra", "syl:re", "syl:ri", "syl:ro", "syl:ru", "syl:ré", "syl:sa", "syl:se", "syl:si", "syl:so", "syl:su", "syl:sé", "syl:ta", "syl:te", "syl:ti", "syl:to", "syl:tu", "syl:té", "syl:va", "syl:ve", "syl:vi", "syl:vo", "syl:vu", "syl:vé"]);
+const FR_SAYK={"ba": "syl:ba", "beu": "syl:be", "bi": "syl:bi", "bo": "syl:bo", "bu": "syl:bu", "bé": "syl:bé", "cha": "syl:cha", "cheu": "syl:che", "chi": "syl:chi", "cho": "syl:cho", "chu": "syl:chu", "ché": "syl:ché", "da": "syl:da", "de": "syl:de", "di": "syl:di", "do": "syl:do", "du": "syl:du", "dé": "syl:dé", "fa": "syl:fa", "feu": "syl:fe", "fi": "syl:fi", "fo": "syl:fo", "fu": "syl:fu", "fé": "syl:fé", "la": "syl:la", "le": "syl:le", "li": "syl:li", "lo": "syl:lo", "lu": "syl:lu", "lé": "syl:lé", "ma": "syl:ma", "me": "syl:me", "mi": "syl:mi", "mo": "syl:mo", "mu": "syl:mu", "mé": "syl:mé", "na": "syl:na", "ne": "syl:ne", "ni": "syl:ni", "no": "syl:no", "nu": "syl:nu", "né": "syl:né", "pa": "syl:pa", "peu": "syl:pe", "pi": "syl:pi", "po": "syl:po", "pu": "syl:pu", "pé": "syl:pé", "ra": "syl:ra", "reu": "syl:re", "ri": "syl:ri", "ro": "syl:ro", "ru": "syl:ru", "ré": "syl:ré", "sa": "syl:sa", "se": "syl:se", "si": "syl:si", "so": "syl:so", "su": "syl:su", "sé": "syl:sé", "ta": "syl:ta", "te": "syl:te", "ti": "syl:ti", "to": "syl:to", "tu": "syl:tu", "té": "syl:té", "va": "syl:va", "veu": "syl:ve", "vi": "syl:vi", "vo": "syl:vo", "vu": "syl:vu", "vé": "syl:vé"};   // texte prononcé → son de syllabe
+const frKey=(t,lang)=>{if(lang&&!/^fr/i.test(lang))return null;const k=FR_SAYK[String(t||'').trim().toLowerCase()];return k&&FR_SND.has(k)?k:null;};
+const FrAudio={buf:{},cur:null,tok:0,
+  load(k){if(this.buf[k])return this.buf[k];Sound.unlock();const c=Sound.ctx;if(!c)return Promise.resolve(null);
+    const p=fetch('fr/'+ArAudio.key(k)+'.mp3').then(r=>r.ok?r.arrayBuffer():null).then(a=>a?new Promise((ok,ko)=>c.decodeAudioData(a,ok,ko)):null).then(b=>{if(b)ArAudio.prep(b);p.b=b;return b;}).catch(()=>{delete this.buf[k];return null;});
+    return this.buf[k]=p;},
+  preload(ks){(ks||[]).forEach(k=>{if(FR_SND.has(k))this.load(k);});},
+  dur(k){const p=this.buf[k];return p&&p.b?p.b.duration-(p.b.off||0):0;},
+  stop(){const s=this.cur;this.cur=null;if(s)try{s.stop();}catch(e){}},
+  async play(k){const my=++this.tok,b=await this.load(k);if(my!==this.tok)return true;if(!b)return false;const c=Sound.ctx;if(c.state==='suspended')try{c.resume();}catch(e){}
+    this.stop();const s=c.createBufferSource(),g=c.createGain();s.buffer=b;g.gain.value=b.g||1;s.connect(g);g.connect(c.destination);s.start(0,b.off||0);this.cur=s;s.onended=()=>{if(this.cur===s)this.cur=null;};return true;}};
 // Sons enregistrés par les parents (stockés sur l'appareil)
 const Rec={key:'supercerveau_sons',map:{},el:null,unlocked:false,rec:null,
   load(){try{this.map=JSON.parse(localStorage.getItem(this.key)||'{}')||{};}catch(e){this.map={};}},
   save(){try{localStorage.setItem(this.key,JSON.stringify(this.map));return true;}catch(e){toast('Mémoire pleine : son non enregistré');return false;}},
   has(k){return !!(this.map[k]&&this.map[k].d);},
-  ok(k){return this.has(k)||VoixC.has('son:'+k);},
+  ok(k){return this.has(k)||VoixC.has('son:'+k)||FR_SND.has('son:'+k);},
   unlock(){if(this.unlocked)return;this.unlocked=true;try{this.el=new Audio();this.el.setAttribute('playsinline','');this.el.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';const p=this.el.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}},
-  play(k){const r=this.map[k];if(!r){VoixC.play('son:'+k);return;}try{if(!this.el)this.el=new Audio();this.el.src=r.d;const p=this.el.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}},
+  play(k){const r=this.map[k];if(!r){if(!FR_SND.has('son:'+k)||VoixC.useV('son:'+k,false))VoixC.play('son:'+k);else FrAudio.play('son:'+k);return;}try{if(!this.el)this.el=new Audio();this.el.src=r.d;const p=this.el.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}},
   stopPlay(){try{if(this.el&&!this.el.paused)this.el.pause();}catch(e){}},
   async record(k,cb){
     if(this.rec)return;
@@ -2399,7 +2419,8 @@ function aidHTML(f){
 let G=null;
 function later(fn,ms){const g=G;if(!g)return;const t=setTimeout(()=>{if(G===g&&!g.ended)fn();},ms);g.timers.push(t);}
 function stopGame(){try{savePartial();}catch(e){}if(G){G.ended=true;G.timers.forEach(clearTimeout);if(G.clock)clearInterval(G.clock);}G=null;Voice.stop();Sound.stopReal();$('#tip').classList.add('hidden');}
-function startGame(sub,mode){
+function frPreload(){try{FrAudio.preload([...FR_SND].filter(k=>k.startsWith('son:')));const L=FR_LEVELS[S.settings.frLevel-1];if(L&&L.items)FrAudio.preload(L.items.map(x=>typeof x==='string'?'syl:'+x.replace('|',''):''));}catch(e){}}
+function startGame(sub,mode){if(sub==='fr')frPreload();
   if(Acct.wall()){Acct.show('wall');return;}
   if(TimeT.limited()){queueModal(`<div class="bigemoji">🌙</div><h2>Bravo ${nm()} !</h2><p>Tu as bien joué aujourd’hui : <b>${fmtDur(TimeT.sec())}</b>. C’est fini pour aujourd’hui, à demain !</p><button class="btn y block" data-act="mclose">À demain 👋</button>`,()=>{if(S.settings.voice)Voice.say('Bravo ! C’est fini pour aujourd’hui. À demain !');});return;}
   if(THEMES[sub]&&!thUnlocked(sub))return ACT.thlocked(sub);
@@ -2716,7 +2737,7 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.78';
+const VERSION='1.79';
 const VERSIONS=[
  ['1.65','21/11/2026 15:20','Espace parents : bouton Admin et cloche en haut'],
  ['1.64','21/11/2026 15:00','Voix des contributions : plusieurs voix par son, sons des lettres, cris, anglais'],
@@ -2837,10 +2858,10 @@ function paneGifts(){setTimeout(()=>Dem.parentCharger(),0);
 function paneData(){
   return `<section class="acard"><h3>🪙 Bonus des parents</h3><p class="hint">Pour récompenser un effort de la vraie vie.</p><div class="seg"><button data-act="bonus" data-arg="10">+10 🪙</button><button data-act="bonus" data-arg="25">+25 🪙</button><button data-act="bonus" data-arg="50">+50 🪙</button><button data-act="bonus" data-arg="100">+100 🪙</button></div></section>
   <section class="acard"><h3>💾 Sauvegarde</h3><p class="hint">La progression est enregistrée dans ce navigateur, sur cet appareil. Exportez-la pour la garder ou la transférer sur une autre tablette.</p><div class="seg"><button data-act="export">⬇️ Exporter</button><button data-act="import">⬆️ Importer</button></div><input type="file" id="importFile" accept="application/json,.json" class="hidden"></section>
-  <section class="acard"><h3>ℹ️ Crédits</h3><p class="hint">Bruitages : pack « uisfx », thème arcade, domaine public (CC0). Cris d’animaux et voix arabes des mots : arabophones de Wikimedia Commons et Lingua Libre (CC BY, CC BY-SA, CC0), <a href="ar/sources-mots.txt" target="_blank" rel="noopener">auteurs et licences</a>. Noms des lettres arabes : dépôt « arabic-alphabet-audio » (MIT). Autres mots arabes : voix de synthèse libre Piper.</p></section>
+  <section class="acard"><h3>ℹ️ Crédits</h3><p class="hint">Bruitages : pack « uisfx », thème arcade, domaine public (CC0). Cris d’animaux et voix arabes des mots : arabophones de Wikimedia Commons et Lingua Libre (CC BY, CC BY-SA, CC0), <a href="ar/sources-mots.txt" target="_blank" rel="noopener">auteurs et licences</a>. Noms des lettres arabes : dépôt « arabic-alphabet-audio » (MIT). Autres mots arabes : voix de synthèse libre Piper. Sons des lettres et syllabes en français : voix Piper « siwis » (corpus SIWIS, université d’Édimbourg, CC BY 4.0).</p></section>
   <section class="acard"><h3>♻️ Remise à zéro</h3><p class="hint">Efface pièces, niveaux, badges et statistiques. Les réglages, le code et les cadeaux sont conservés.</p><button class="btn r sm" data-act="reset">Tout remettre à zéro</button></section>`;
 }
-function importFile(file){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||typeof d!=='object'||!('xp' in d))throw 0;S=deepMerge(defaultState(),d);try{arMigrate();ecoMigrate();}catch(e){}save();toast('Sauvegarde importée ✅');render();}catch(e){toast('Fichier non reconnu');}};r.readAsText(file);}
+function importFile(file){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||typeof d!=='object'||!('xp' in d))throw 0;S=deepMerge(defaultState(),d);try{arMigrate();ecoMigrate();cleMigrate();}catch(e){}save();toast('Sauvegarde importée ✅');render();}catch(e){toast('Fichier non reconnu');}};r.readAsText(file);}
 
 // ---------- Actions ----------
 const lockedMsg=()=>{toast('Fais d’abord ton entraînement de maths ! 🔢');if(S.settings.voice)Voice.say('Fais d’abord ton entraînement de maths !');};
@@ -3353,7 +3374,7 @@ const Onb={i:0,d:{},
         <p class="olab">Sa classe</p><div class="ochips">${[['gs','Grande section'],['cp','CP'],['ce1','CE1']].map(([c,l])=>`<button class="${d.classe===c?'on':''}" data-act="onbset" data-arg="classe|${c}">${l}</button>`).join('')}</div>
         <p class="otip">👨‍👩‍👧 Vous avez plusieurs enfants ? Ajoutez-les ensuite dans <b>Espace parents › Compte</b> : chacun a son profil, ses niveaux et ses récompenses${k==='plus'?' (jusqu’à 4 enfants)':' (2 pendant l’essai, jusqu’à 4 avec Malino+)'}.</p>`,
       ()=>`<div class="oico">🎮</div><h2>Comment ça marche ?</h2>
-        <div class="ocards"><div><span>🎯</span><b>Une mission par jour</b><small>Les maths, la lecture, puis le coffre. 10 minutes suffisent.</small></div><div><span>🪙</span><b>Des pièces et des niveaux</b><small>Chaque bonne réponse rapporte. Les niveaux ouvrent de nouveaux jeux.</small></div><div><span>🗝️</span><b>Des coffres</b><small>Gagnés en jouant, ils s’ouvrent au bout de ${CFG.cofH} h.</small></div><div><span>🔑</span><b>De vrais cadeaux</b><small>Une clé tous les ${CFG.keyEvery} niveaux pour demander un cadeau à ses parents.</small></div><div><span>🔒</span><b>L’espace parents</b><small>Réglages, progrès et cadeaux, protégé par un code.</small></div></div>
+        <div class="ocards"><div><span>🎯</span><b>Une mission par jour</b><small>Les maths, la lecture, puis le coffre. 10 minutes suffisent.</small></div><div><span>🪙</span><b>Des pièces et des niveaux</b><small>Chaque bonne réponse rapporte. Les niveaux ouvrent de nouveaux jeux.</small></div><div><span>🗝️</span><b>Des coffres</b><small>Gagnés en jouant, ils s’ouvrent au bout de ${CFG.cofH} h.</small></div><div><span>🔑</span><b>De vrais cadeaux</b><small>Une clé 🔑 après ${CFG.keyDays} jours de jeu (ou dans un coffre) pour demander un cadeau à ses parents.</small></div><div><span>🔒</span><b>L’espace parents</b><small>Réglages, progrès et cadeaux, protégé par un code.</small></div></div>
         <p class="otip">Juste après, une petite visite de l’écran d’accueil avec ${kid}.</p>`,
       ()=>`<div class="oico">🗓️</div><h2>Chaque jour, une mission</h2><div class="osteps"><div><b>1</b><span><b>Maths</b> · 5 min de calcul mental, du plus facile au plus dur.</span></div><div><b>2</b><span><b>Lecture</b> · les sons, les syllabes, puis les mots et les phrases.</span></div><div><b>3</b><span><b>Le coffre</b> · des pièces pour habiller son personnage.</span></div></div>
         <p class="otip">🧠 Malino s’adapte : ce que ${kid} rate revient plus souvent, ce qu’il maîtrise revient moins. Une voix lit les consignes, il peut jouer seul.</p>`,
@@ -3420,7 +3441,7 @@ const Tour={i:0,on:false,
      {s:'[data-act=startmath]',e:'🔢',t:'Commence par ici',p:'Les calculs s’adaptent à toi : ce que tu rates revient, ce que tu sais revient moins.'},
      {s:'.cofs',e:'🗝️',t:'Tes coffres',p:`En jouant, tu gagnes des coffres. Ils s’ouvrent au bout de ${CFG.cofH} heures.`},
      {s:'.top .me',e:'🎨',t:'Ton personnage',p:'Avec tes pièces 🪙, habille ton personnage. En montant de niveau, tu ouvres de nouveaux jeux.'},
-     {s:'.minis [data-act=gifts]',e:'🎁',t:'De vrais cadeaux',p:`Tous les ${CFG.keyEvery} niveaux, tu gagnes une clé 🔑 pour demander un cadeau à papa ou maman.`},
+     {s:'.minis [data-act=gifts]',e:'🎁',t:'De vrais cadeaux',p:`Joue ${CFG.keyDays} jours pour gagner une clé 🔑, ou trouve-la dans un coffre. Avec, tu demandes un cadeau à papa ou maman.`},
      {s:'.parentrow [data-act=parent]',e:'🔒',t:'Pour les parents',p:'Réglages, progrès et cadeaux, protégés par un code.'}],
   liste(){return this.S.filter(x=>document.querySelector(x.s));},
   start(){if(SCR!=='home')go('home');closeAllModals();this.on=true;this.i=0;setTimeout(()=>this.draw(),250);},
