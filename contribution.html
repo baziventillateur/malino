@@ -71,6 +71,15 @@ input:focus,textarea:focus{border-color:var(--v)}
 .sup{display:inline-flex;align-items:center;gap:6px;background:#fff;color:var(--vd);border:1.5px solid #DCD3FF;border-radius:12px;padding:9px 14px;font-weight:700;text-decoration:none;font-size:14px}
 .foot{text-align:center;margin:14px 0 4px}.foot p{font-size:12.5px;color:var(--mut);margin:8px 0 0}
 .cd{font-size:12.5px;color:var(--mut);margin-top:10px}
+/* récompense */
+.rw{background:linear-gradient(135deg,#FFF8E6,#FFEFC7);border-radius:16px;padding:12px 14px;margin:10px 0;color:#5A4300;text-align:center}
+.rw p{margin:0 0 6px;font-size:14px}.rw b{color:#3D2C00}
+.rw .st{display:flex;justify-content:center;align-items:center;gap:7px;margin:4px 0 8px}
+.rw .st i{width:32px;height:32px;border-radius:50%;background:#fff;color:#B08A2E;font-style:normal;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid #F3D88A}
+.rw .st i.y{background:var(--v);border-color:var(--v);color:#fff}.rw .st i.g{border:0;background:none;font-size:24px;width:auto}
+.rw .code{display:inline-block;border:2px dashed var(--v);border-radius:12px;padding:8px 16px;font-size:22px;font-weight:800;letter-spacing:2px;color:#2B2160;background:#fff;margin:4px 0 10px}
+.rw .row2{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.rw .row2 a,.rw .row2 button{padding:9px 14px;font-size:14px;border-radius:11px}
+.rwl{background:#FFF8E6;color:#6A5300;border-radius:10px;padding:6px 10px;font-size:13px;margin:0 0 10px}
 .abtn{display:block;text-align:center;text-decoration:none;background:var(--v);color:#fff;border-radius:12px;font-weight:700}
 </style>
 </head>
@@ -86,6 +95,22 @@ const D=(new URLSearchParams(location.search).get('d')||'').toLowerCase().replac
 const KEY='malino-contrib:'+D,HUB='contribution.html',SUP='aide.html?retour=contribution.html';
 const supBtn='<a class="sup" href="'+SUP+'">💬 Support</a>';
 let DEM=null,ST=null,I=0,REC={},busy=false;
+// appareil : identifiant aléatoire pour compter les contributions (récompense), jamais lié à autre chose
+const APP=(()=>{try{let x=localStorage.getItem('malino-contrib-appareil');if(!/^[a-f0-9]{24}$/.test(x||'')){x=Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>b.toString(16).padStart(2,'0')).join('');localStorage.setItem('malino-contrib-appareil',x);}return x;}catch(e){return '';}})();
+const MOI={get(){try{return JSON.parse(localStorage.getItem('malino-contrib-moi')||'{}')||{};}catch(e){return {};}},set(o){try{localStorage.setItem('malino-contrib-moi',JSON.stringify({...MOI.get(),...o}));}catch(e){}}};
+const APPURL='https://malino.paceapp.fr/';
+// encart « 3 contributions = 1 mois offert »
+function rwBox(g,hub){
+  const S=(g&&g.seuil)||3,n=Math.min(S,(g&&g.n)|0),mois=((g&&g.jours)||30)>=28?'1 mois':((g&&g.jours)||30)+' jours';
+  if(g&&g.code)return `<div class="rw"><p style="font-size:16px"><b>🎁 Vous avez gagné ${mois} de Malino+ !</b></p><p>Merci pour vos ${S} contributions. Voici votre code cadeau :</p>
+    <div class="code">${esc(g.code)}</div><div class="row2"><a class="abtn" href="${APPURL}?code=${encodeURIComponent(g.code)}&utm_source=contribution&utm_campaign=recompense" target="_blank" rel="noopener">Activer mon mois offert</a><button class="o" data-copy="${esc(g.code)}">Copier le code</button></div>
+    <p class="small" style="margin:8px 0 0">Sans carte bancaire, sans engagement, pour un compte.</p></div>`;
+  if(g&&g.parMail)return `<div class="rw"><p style="font-size:16px"><b>🎁 Bravo, vous avez gagné ${mois} de Malino+ !</b></p><p style="margin:0">Votre code cadeau vient de partir par e-mail.</p></div>`;
+  const st=`<div class="st">${Array.from({length:S},(_,i)=>`<i class="${i<n?'y':''}">${i<n?'✓':i+1}</i>`).join('')}<i class="g">🎁</i></div>`;
+  if(!n)return hub?`<div class="rw">${st}<p style="margin:0"><b>${S} contributions terminées = ${mois} de Malino+ offert</b> 🎁</p></div>`:'';
+  const k=S-n;return `<div class="rw">${st}<p style="margin:0">Contribution <b>${n} sur ${S}</b> : encore <b>${k}</b> et vous gagnez <b>${mois} de Malino+ offert</b> 🎁</p></div>`;
+}
+function rwBind(){app.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{try{await navigator.clipboard.writeText(b.dataset.copy);b.textContent='✓ Copié';}catch(e){b.textContent=b.dataset.copy;}});}
 const isAr=t=>/[؀-ۿ]/.test(t);
 
 async function call(body){
@@ -161,13 +186,14 @@ function viewAccueil(){
    ${DEM.intro?`<p>${esc(DEM.intro)}</p>`:''}
    <div class="how"><div><i>👀</i>Je lis</div><div><i>${voix?'🎙️':'✍️'}</i>${voix?'J’enregistre':'Je réponds'}</div><div><i>📨</i>J’envoie</div></div>
    <p class="small mut">${N} étape${N>1?'s':''} · environ ${DEM.min||1} min${voix?' · un endroit calme, téléphone à 20 cm de la bouche':''}.</p>
+   <p class="rwl">🎁 3 contributions terminées = 1 mois de Malino+ offert</p>
    <label class="small" for="pr" style="font-weight:700;display:block;margin:4px 0 6px">Votre prénom</label>
-   <input id="pr" autocomplete="given-name" maxlength="40" placeholder="Ex. Samira" value="${esc(ST&&ST.prenom||'')}">
+   <input id="pr" autocomplete="given-name" maxlength="40" placeholder="Ex. Samira" value="${esc(ST&&ST.prenom||MOI.get().prenom||'')}">
    <button class="big" id="go" style="margin-top:10px">Commencer</button><p class="msg" id="msg"></p>
    <p class="small mut c" style="margin:8px 0 0">Seul votre prénom est demandé pour commencer.${voix?' Vos enregistrements servent uniquement à l’appli Malino.':''}</p></div>`;
   const go=async()=>{const p=$('#pr').value.trim();if(!p){$('#msg').textContent='Indiquez votre prénom pour commencer';$('#pr').focus();return;}
     $('#go').disabled=true;$('#go').textContent='Un instant…';
-    const r=await call({mode:'commencer',d:D,prenom:p});
+    MOI.set({prenom:p});const r=await call({mode:'commencer',d:D,prenom:p,appareil:APP});
     if(!r.id){$('#go').disabled=false;$('#go').textContent='Commencer';$('#msg').textContent=r.error==='fermee'?'Cette demande est terminée, merci !':'Connexion impossible, réessayez.';return;}
     ST={id:r.id,jeton:r.jeton,prenom:p,faits:[],i:0};save();I=0;viewEtape();};
   $('#go').onclick=go;$('#pr').onkeydown=e=>{if(e.key==='Enter')go();};
@@ -244,39 +270,50 @@ function viewRecap(){
   app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{I=+b.dataset.go;viewEtape();});
   $('#back').onclick=()=>{I=N-1;viewEtape();};
   $('#send').onclick=async()=>{const b=$('#send');b.disabled=true;b.textContent='Envoi…';
-    const r=await call({mode:'terminer',id:ST.id,jeton:ST.jeton});
-    if(r&&r.ok){ST.fini=true;save();Rec.close();return viewEmail();}
+    const r=await call({mode:'terminer',id:ST.id,jeton:ST.jeton,appareil:APP});
+    if(r&&r.ok){ST.fini=true;ST.prog=r.progres||null;save();Rec.close();
+      const m=MOI.get().email;if(m){b.textContent='Un instant…';const r2=await call({mode:'email',id:ST.id,jeton:ST.jeton,email:m});
+        if(r2&&r2.ok){ST.mail=1;ST.mailTo=m;ST.prog=r2.progres||ST.prog;save();return viewMerci();}}
+      return viewEmail();}
     b.disabled=false;b.textContent='📨 Envoyer';
     if(r&&r.error==='incomplet'){ST.faits=(ST.faits||[]).filter(x=>!r.manque.includes(x));save();return viewRecap();}
     $('#msg').textContent='L’envoi n’a pas marché. Vérifiez votre connexion et réessayez.';};
 }
-function viewEmail(){
+async function viewEmail(){
   $('#hdr').textContent=ST.prenom;
+  if(!ST.prog){const g=await call({mode:'progres',appareil:APP});if(g&&g.seuil!=null)ST.prog=g;}
+  const g=ST.prog||{},gagne=!!g.code,mail0=MOI.get().email||'';
   app.innerHTML=`<div class="card c"><div class="hero">📨</div><h1>C’est envoyé, merci ${esc(ST.prenom)} !</h1>
-   <p>Laissez votre e-mail pour suivre la suite : je vous dirai ce que deviennent vos ${DEM&&DEM.items.some(x=>x.mode!=='texte')?'enregistrements':'réponses'}.</p>
-   <input id="em" type="email" inputmode="email" autocomplete="email" placeholder="votre@email.fr" style="text-align:center">
+   ${rwBox(g)}
+   <p>${gagne?'Laissez votre e-mail pour recevoir aussi votre code cadeau par e-mail.':`Laissez votre e-mail : je vous enverrai votre code cadeau dès ${(g.seuil||3)} contributions, et des nouvelles de vos ${DEM&&DEM.items.some(x=>x.mode!=='texte')?'enregistrements':'réponses'}.`}</p>
+   <input id="em" type="email" inputmode="email" autocomplete="email" placeholder="votre@email.fr" style="text-align:center" value="${esc(mail0)}">
    <button class="big" id="ok" style="margin-top:10px">Valider</button><p class="msg" id="msg"></p>
    <button class="ghost small" id="skip">Non merci</button>
-   <p class="small mut" style="margin:6px 0 0">Votre adresse sert uniquement à vous donner des nouvelles de Malino. Jamais de pub.</p></div>`;
+   <p class="small mut" style="margin:6px 0 0">Votre adresse sert uniquement pour votre code cadeau et des nouvelles de Malino. Jamais de pub.</p></div>`;
+  rwBind();
   const go=async()=>{const e=$('#em').value.trim();if(!/^\S+@\S+\.\S{2,}$/.test(e)){$('#msg').textContent='Vérifiez votre adresse e-mail';$('#em').focus();return;}
     $('#ok').disabled=true;$('#ok').textContent='Un instant…';const r=await call({mode:'email',id:ST.id,jeton:ST.jeton,email:e});
-    if(r&&r.ok){ST.mail=1;save();return viewMerci();}
+    if(r&&r.ok){MOI.set({email:e});ST.mail=1;ST.mailTo=e;ST.prog=r.progres||ST.prog;save();return viewMerci();}
     $('#ok').disabled=false;$('#ok').textContent='Valider';$('#msg').textContent=r&&r.error==='email'?'Vérifiez votre adresse e-mail':'L’envoi n’a pas marché, réessayez.';};
   $('#ok').onclick=go;$('#em').onkeydown=e=>{if(e.key==='Enter')go();};
   $('#skip').onclick=()=>{ST.mail=-1;save();viewMerci();};
 }
 let cdT=null;
 function viewMerci(){
-  $('#hdr').textContent='';const p=ST.prenom;
-  app.innerHTML=`<div class="card c"><div class="hero">🎉</div><h1>Merci beaucoup ${esc(p)}, vous avez terminé !</h1>
-   <p>Grâce à vous, Malino s’améliore pour tous les enfants 🙏<br>Vous pouvez revenir quand vous voulez : de nouvelles contributions arrivent régulièrement.</p>
-   <button class="big" id="hub">Voir les autres contributions</button>
+  $('#hdr').textContent='';const p=ST.prenom,g=ST.prog||{};
+  app.innerHTML=`<div class="card c"><div class="hero">🎉</div><h1>Merci beaucoup pour votre contribution, ${esc(p)} !</h1>
+   <p>Grâce à vous, Malino s’améliore pour tous les enfants 🙏</p>
+   ${rwBox(g)}
+   ${ST.mailTo&&ST.mail===1?`<p class="small mut">📧 Un récapitulatif a été envoyé à ${esc(ST.mailTo)}.</p>`:''}
+   <button class="big" id="hub">${g.code?'Voir les autres contributions':'Faire une autre contribution'}</button>
    <p class="cd" id="cd"></p></div><div class="foot">${supBtn}</div>`;
+  rwBind();
   $('#hub').onclick=()=>goHub(p);
   const c=document.createElement('div');c.className='confetti';const col=['#7B5CFF','#FFB020','#16A34A','#FF5C8A','#36B5FF'];
-  for(let i=0;i<46;i++){const e=document.createElement('i');e.style.left=Math.random()*100+'%';e.style.background=col[i%col.length];e.style.animationDelay=Math.random()*.7+'s';c.appendChild(e);}
-  document.body.appendChild(c);setTimeout(()=>c.remove(),3800);
-  let n=6;const tick=()=>{const el=$('#cd');if(!el)return;if(n<=0)return goHub(p);el.textContent=`Retour à l’accueil des contributions dans ${n} s…`;n--;cdT=setTimeout(tick,1000);};tick();
+  for(let i=0;i<(g.code?90:46);i++){const e=document.createElement('i');e.style.left=Math.random()*100+'%';e.style.background=col[i%col.length];e.style.animationDelay=Math.random()*(g.code?1.4:.7)+'s';c.appendChild(e);}
+  document.body.appendChild(c);setTimeout(()=>c.remove(),4600);
+  if(g.code)return; // le code reste à l'écran : pas de retour automatique
+  let n=10;const tick=()=>{const el=$('#cd');if(!el)return;if(n<=0)return goHub(p);el.textContent=`Retour à l’accueil des contributions dans ${n} s…`;n--;cdT=setTimeout(tick,1000);};tick();
 }
 function goHub(prenom){clearTimeout(cdT);try{history.pushState(null,'',HUB);}catch(e){}viewHub(prenom);}
 function viewDeja(){
@@ -293,8 +330,9 @@ async function viewHub(merci){
   app.innerHTML=`${merci?`<div class="banner"><b>🎉 Merci ${esc(merci)} !</b><br>Il y a d’autres contributions ci-dessous si vous voulez contribuer encore. Sinon, vous pouvez fermer cette page.</div>`:
    `<div class="card"><div class="hub-h"><span class="e">🤝</span><div><h1 style="margin:0">Les contributions Malino</h1></div></div>
    <p style="margin:8px 0 0">Malino aide les enfants à apprendre : maths, lecture, langues. Ces petites missions de quelques minutes m’aident à l’améliorer. Merci d’avance !</p></div>`}
-   <div id="list"><div class="card c mut">Chargement…</div></div>
+   <div id="rwh"></div><div id="list"><div class="card c mut">Chargement…</div></div>
    <div class="foot"><span class="small mut" style="display:block;margin-bottom:8px">Une question, une idée ?</span>${supBtn}<p>Vous pouvez fermer cette page à tout moment.</p></div>`;
+  call({mode:'progres',appareil:APP}).then(g=>{const h=$('#rwh');if(h&&g&&g.seuil!=null){h.innerHTML=rwBox(g,true);rwBind();}});
   const r=await call({mode:'liste'}),L=r&&r.liste,el=$('#list');if(!el)return;
   if(!L){el.innerHTML='<div class="card c mut">Pas de connexion : vérifiez internet puis rechargez la page.</div>';return;}
   if(!L.length){el.innerHTML='<div class="card c"><div class="hero">🌱</div><p class="mut" style="margin:0">Pas de contribution en ce moment. Revenez bientôt !</p></div>';return;}
@@ -303,6 +341,10 @@ async function viewHub(merci){
     <span class="go${f?' o':''}">${f?'Refaire':'Participer'}</span></a>`;}).join('');
 }
 async function boot(){
+  // lien personnel reçu par e-mail : les contributions déjà faites avec cette adresse comptent sur cet appareil
+  const LI=(new URLSearchParams(location.search).get('lier')||'').replace(/[^0-9a-zA-Z.-]/g,'').slice(0,100);
+  if(LI){const r=await call({mode:'lier',lien:LI,appareil:APP});if(r&&r.email)MOI.set({prenom:r.prenom,email:r.email});
+    try{const u=new URL(location.href);u.searchParams.delete('lier');history.replaceState(null,'',u.pathname+u.search);}catch(e){}}
   if(!D)return viewHub();
   const d=await call({mode:'voir',d:D});
   if(d.error==='fermee')return viewError('Merci, c’est complet !','Cette contribution est terminée. Merci beaucoup d’avoir voulu aider 🙏','🎉');
