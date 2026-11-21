@@ -237,18 +237,44 @@ function bindVoix(root,after){
     b.disabled=true;b.textContent='…';const j=await fnc({mode:'adopter',id,item,retirer:on==='1'});
     if(j.ok)after();else{b.disabled=false;b.textContent='Échec';}});
 }
+// Voix de base de l'appli (synthèse, voix trouvée sur internet, ou voix robot du téléphone), lue dans index.html
+let BASE=null,MAN={k:{},b:{}};
+const fnv1=t=>{let h=0x811c9dc5;t=String(t);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return ('0000000'+h.toString(16)).slice(-8);};
+async function baseInfo(){if(BASE)return BASE;BASE={rec:new Set(),syn:new Set(),cry:{}};
+  try{const h=await fetch('index.html',{cache:'no-cache'}).then(r=>r.text());
+    const m1=/const AR_REC=new Set\((\[[^\]]*\])\)/.exec(h),m2=/const AR_SYN=new Set\((\[[^\]]*\])\)/.exec(h),m3=/const CRY_REAL=(\{[\s\S]*?\});/.exec(h);
+    if(m1)BASE.rec=new Set(JSON.parse(m1[1]));if(m2)BASE.syn=new Set(Function('return '+m2[1])());if(m3)BASE.cry=Function('return '+m3[1])();}catch(e){}
+  return BASE;}
+async function loadMan(){try{const j=await fetch(SB_URL+'/storage/v1/object/public/cris/voix/index.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null);MAN={k:(j&&j.k)||{},b:(j&&j.b)||{}};}catch(e){}}
+// ce que l'appli joue quand aucune voix n'est choisie ; def = gardée par défaut à côté des voix choisies
+function baseOf(cle,x){const t=cle.split(':')[0],v=cle.slice(t.length+1),B=BASE||{rec:new Set(),syn:new Set(),cry:{}};
+  if(t==='ar'){const k=fnv1(v),syn=B.syn.has(k)||/^[\u0621-\u064A][\u064B-\u0652]$/.test(v),rec=B.rec.has(k);
+    return {url:rec?SB_URL+'/storage/v1/object/public/cris/ar2/'+k+'.mp3':'ar/'+k+'.mp3',lang:'ar-SA',txt:v,lab:rec?'trouvée sur internet':syn?'de synthèse':'de l’appli',def:!syn};}
+  if(t==='cri'){const r=B.cry[v];if(r)return {url:r[0][0]==='@'?SB_URL+'/storage/v1/object/public/cris/'+r[0].slice(1)+'.mp3':'cris/'+r[0]+'.mp3',lang:'fr-FR',txt:v,lab:r[0][0]==='@'?'trouvé sur internet':'de l’appli',def:true};
+    return {lang:'fr-FR',txt:v,lab:'robot du téléphone',def:false};}
+  return {lang:t==='en'?'en-GB':'fr-FR',txt:t==='son'?(x&&x.aide||v):v,lab:'robot du téléphone',def:false};}
+const baseOn=(cle,b,nU)=>!nU||(MAN.b[cle]===undefined?b.def:!!MAN.b[cle]);
+function baseRow(cle,x,nU){const b=baseOf(cle,x),on=baseOn(cle,b,nU),tts=`${b.lang}|${esc(b.txt)}`;
+  return `<div class="it"><b style="min-width:70px">🤖 Base</b>${b.url?`<audio controls preload="none" src="${esc(b.url)}" data-tts="${tts}"></audio>`:`<button class="o small" data-tts="${tts}">▶ Écouter</button>`}<span class="small mut">voix ${b.lab}</span>${!nU?'<span class="small mut">utilisée (seule voix)</span>':on?`<button class="small" style="background:#DCFCE7;color:#16A34A" data-base="${esc(cle)}|1" title="Ne plus l’utiliser">✓ Utilisée</button>`:`<button class="o small" data-base="${esc(cle)}|0">Utiliser</button>`}</div>`;}
+function sayTts(v){const [lang,...r]=v.split('|'),u=new SpeechSynthesisUtterance(r.join('|'));u.lang=lang;u.rate=.85;try{speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
+function bindBase(root,after){
+  root.querySelectorAll('audio[data-tts]').forEach(a=>a.onerror=()=>{const b=document.createElement('button');b.className='o small';b.textContent='▶ Écouter';b.dataset.tts=a.dataset.tts;b.onclick=()=>sayTts(b.dataset.tts);a.replaceWith(b);const l=b.nextElementSibling;if(l)l.textContent='voix robot du téléphone';});
+  root.querySelectorAll('button[data-tts]').forEach(b=>b.onclick=()=>sayTts(b.dataset.tts));
+  root.querySelectorAll('[data-base]').forEach(b=>b.onclick=async()=>{const i=b.dataset.base.lastIndexOf('|'),cle=b.dataset.base.slice(0,i),on=b.dataset.base.slice(i+1)==='1';
+    b.disabled=true;b.textContent='…';const j=await fnc({mode:'base',cle,on:!on});
+    if(j.ok){MAN.b[cle]=j.base;after();}else{b.disabled=false;b.textContent=j.error==='seule'?'Choisis d’abord une autre voix':'Échec';}});}
 const nRec=dm=>(dm.reponses||[]).reduce((a,r)=>a+Object.values(r.fichiers||{}).filter(e=>e&&e.path).length,0);
 // Écoute par son : pour chaque élément, toutes les voix reçues ; on peut en utiliser plusieurs pour le même son
 function sonsDem(id){const ov=document.createElement('div');ov.id='fiche';document.body.appendChild(ov);document.body.style.overflow='hidden';
   const close=()=>{ov.remove();document.body.style.overflow='';};
-  const draw=()=>{const dm=DV.find(x=>x.id===id);if(!dm)return close();const R=(dm.reponses||[]);
+  const draw=async()=>{await Promise.all([baseInfo(),loadMan()]);const dm=DV.find(x=>x.id===id);if(!dm)return close();const R=(dm.reponses||[]);
     ov.innerHTML=`<div class="fbar row"><button class="o" id="sBack">← Retour</button><b style="flex:1">${esc(dm.emoji||'🤝')} ${esc(dm.titre)}</b></div><main>
-     <p class="small mut" style="margin:0 0 8px">Toutes les voix reçues, son par son. « Utiliser » met la voix dans l’appli ; tu peux en utiliser plusieurs pour le même son : l’appli en choisit une au hasard.</p>
+     <p class="small mut" style="margin:0 0 8px">Son par son : la voix de base de l’appli 🤖 puis les voix reçues. Coche « Utiliser » sur une, deux ou plus (la voix de base comprise) : l’appli en tire une au hasard à chaque fois.</p>
      ${dm.items.map(x=>{const V=R.filter(r=>(r.fichiers||{})[x.id]&&(r.fichiers||{})[x.id].path),nU=V.filter(r=>r.fichiers[x.id].adopte).length,k=cleOf(x),t=k.split(':')[0];
-      return `<div class="card" style="margin-bottom:8px"><div class="row" style="justify-content:space-between"><b class="ar" style="font-size:20px" ${/[؀-ۿ]/.test(x.texte)?'dir="rtl"':''}>${esc(x.texte)}</b><span class="row">${x.sens?`<span class="small mut">${esc(x.sens)}</span>`:''}<span class="tag ${nU?'t-paye':'t-gratuit'}">${nU?`✓ ${nU} voix dans l’appli`:'pas encore dans l’appli'}</span></span></div>
+      return `<div class="card" style="margin-bottom:8px"><div class="row" style="justify-content:space-between"><b class="ar" style="font-size:20px" ${/[؀-ۿ]/.test(x.texte)?'dir="rtl"':''}>${esc(x.texte)}</b><span class="row">${x.sens?`<span class="small mut">${esc(x.sens)}</span>`:''}${(()=>{const bo=k&&nU&&baseOn(k,baseOf(k,x),nU);return `<span class="tag ${nU?'t-paye':'t-gratuit'}">${nU?`✓ ${nU+(bo?1:0)} voix dans l’appli${bo?' (avec la base)':''}`:'voix de base seule'}</span>`;})()}</span></div>
        ${k?`<div class="small mut" style="margin:2px 0 4px">Son de l’appli : ${esc(CLEL[t]||t)} « ${esc(k.slice(t.length+1))} »</div>`:'<div class="small mut">Pas relié à un son de l’appli (ajoute-le dans « Modifier »).</div>'}
-       ${V.map(r=>`<div class="it"><b style="min-width:70px">${esc(r.prenom)}</b><audio controls preload="none" data-path="${esc(r.fichiers[x.id].path)}"></audio>${adoptBtn(r.id,x,r.fichiers[x.id])}<a class="dl" data-dl="${esc(r.fichiers[x.id].path)}" title="Télécharger">⬇️</a></div>`).join('')||'<p class="small mut" style="margin:4px 0 0">Aucune voix reçue pour l’instant.</p>'}</div>`;}).join('')}</main>`;
-    $('#sBack').onclick=close;bindVoix(ov,async()=>{await loadDev();draw();});};
+       ${k?baseRow(k,x,nU):''}${V.map(r=>`<div class="it"><b style="min-width:70px">${esc(r.prenom)}</b><audio controls preload="none" data-path="${esc(r.fichiers[x.id].path)}"></audio>${adoptBtn(r.id,x,r.fichiers[x.id])}<a class="dl" data-dl="${esc(r.fichiers[x.id].path)}" title="Télécharger">⬇️</a></div>`).join('')||'<p class="small mut" style="margin:4px 0 0">Aucune voix reçue pour l’instant.</p>'}</div>`;}).join('')}</main>`;
+    $('#sBack').onclick=close;bindVoix(ov,async()=>{await loadDev();draw();});bindBase(ov,()=>draw());};
   draw();}
 // Invitation par e-mail à participer à une contribution en ligne
 async function inviterDem(dm){const ov=document.createElement('div');ov.id='fiche';document.body.appendChild(ov);document.body.style.overflow='hidden';
