@@ -12,7 +12,7 @@ self.addEventListener('fetch',e=>{
 });
 // Notifications : coffre prêt
 self.addEventListener('push',e=>{let d={};try{d=e.data?e.data.json():{};}catch(x){d={body:e.data&&e.data.text()};}
-  e.waitUntil(self.registration.showNotification(d.title||'Malino',{body:d.body||'',icon:d.icon||'icon-192.png',badge:'icon-192.png',tag:d.tag||'malino',renotify:true,data:{url:d.url||'./'}}));});
+  e.waitUntil(self.registration.showNotification(d.title||'Malino',{body:d.body||'',icon:d.icon||'icon-192.png',badge:'badge-96.png',tag:d.tag||'malino',renotify:true,data:{url:d.url||'./'}}));});
 self.addEventListener('notificationclick',e=>{e.notification.close();const url=(e.notification.data&&e.notification.data.url)||'./';
   e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(l=>{const c=l.find(x=>'focus' in x);if(!c)return self.clients.openWindow(url);
     if(url!=='./'&&url!=='/'&&'navigate' in c)return c.navigate(url).then(w=>(w||c).focus()).catch(()=>c.focus());return c.focus();}));}); // une alerte admin ouvre directement la bonne page
