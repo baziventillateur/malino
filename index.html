@@ -512,6 +512,7 @@ h1,h2,h3,h4{font-weight:700}
 .price{display:inline-block;background:var(--y);color:#4a3200;border-radius:12px;padding:2px 14px;font-size:30px;font-weight:700;vertical-align:middle}
 .bigemo.sm{font-size:64px;vertical-align:middle}
 .bigtxt{font-size:38px;font-weight:700;line-height:1.3}
+.arw{font-family:'Noto Naskh Arabic','Noto Sans Arabic','Geeza Pro','Segoe UI',Tahoma,sans-serif;font-size:60px;line-height:1.45;font-weight:700}.arw.big{font-size:100px;line-height:1.25}.arw.sm{font-size:30px;line-height:1.3}.arr{font-size:20px;color:var(--ink2);font-weight:600}.fixsub .arr{font-size:18px}.opts.emo .opt .arw{font-size:50px;line-height:1.2}.opts.col.txt .opt small{font-size:14px;color:var(--ink2);font-weight:600;margin-left:10px}.aremo{font-size:46px;vertical-align:middle}.arrow{display:flex;align-items:baseline;justify-content:center;gap:12px}.tt[data-arg=arabe] .te{font-family:'Noto Naskh Arabic','Geeza Pro','Segoe UI',Tahoma,sans-serif;font-weight:700;color:#fff;font-size:34px;line-height:1}
 .seqr{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:3px;font-size:34px;line-height:1.2}
 .seqr.big{font-size:52px;gap:10px}
 .seqr.num span{font-weight:800;font-size:30px;background:#fff;border-radius:12px;padding:2px 9px;box-shadow:0 2px 0 #D6DAEA}.seqr .arr{font-size:22px;color:var(--mut)}
@@ -883,6 +884,46 @@ const qEnRead=x=>({ans:x.en,inst:'Lis : quel est le mot anglais ?',instSay:'Rega
   fixHTML:`<span class="emo">${x.v}</span><div class="fixsub"><b>${esc(x.en)}</b> = ${x.fr}</div>`,fixChain:[{say:x.en,lang:EN,rate:.8},{say:'veut dire '+x.fr}]});
 const qEnTr=x=>({ans:x.en,inst:'Comment dit-on en anglais ?',say:x.fr,html:`<div class="bigtxt read">${esc(x.fr)}</div>`,opts:shuffle([x.en,...similarWords(x.en,EN_ALL.map(i=>i.en),2)]).map(w=>({v:w,l:w})),optCls:'col txt',fastMs:9000,afterSay:x.en,afterLang:EN,
   fixHTML:`<span class="emo">${x.v}</span><div class="fixsub">${esc(x.fr)} = <b>${esc(x.en)}</b></div>`,fixChain:[{say:x.fr},{say:'se dit',rate:.9},{say:x.en,lang:EN,rate:.8}]});
+// --- Arabe (arabe standard) : mot écrit en arabe + prononciation en lettres latines + voix si l'appareil en a une
+const AR='ar-SA';
+const arR=r=>window.MLANG==='en'?r:r.replace(/sh/g,'ch').replace(/u/g,'ou');
+const arL=a=>a.map(([ar,r,fr,v])=>({k:r,ar,r,fr,v}));
+const arW=(x,rom)=>`<div class="arw" lang="ar" dir="rtl">${x.ar}</div>${rom===false?'':`<div class="arr">${arR(x.r)}</div>`}`;
+const arSay=x=>({say:x.ar,lang:AR,rate:.75});
+const arEq=x=>`<b class="arw sm" lang="ar" dir="rtl">${x.ar}</b> <span class="arr">(${arR(x.r)})</span>`;
+const qAr=(L,vis)=>x=>({ans:x.k,inst:'Lis ou écoute le mot arabe et trouve',html:arW(x),chain:[arSay(x)],opts:shuffle([x,...others(L,2,[x])]).map(i=>({v:i.k,h:vis(i)})),optCls:'emo',afterSay:x.ar,afterLang:AR,
+  fixHTML:`${vis(x)}<div class="fixsub">${arEq(x)} = ${esc(x.fr)}</div>`,fixChain:[arSay(x),{say:'veut dire '+x.fr}]});
+const qArTxt=L=>x=>({ans:x.k,inst:'Que veut dire ce mot arabe ?',html:arW(x),chain:[arSay(x)],opts:shuffle([x,...others(L,2,[x])]).map(i=>({v:i.k,l:i.fr})),optCls:'col txt',fastMs:9000,afterSay:x.ar,afterLang:AR,
+  fixHTML:`<div class="fixsub">${arEq(x)} = ${esc(x.fr)}</div>`,fixChain:[arSay(x),{say:'veut dire '+x.fr}]});
+const AR_LET=[['ا','alif','ألف'],['ب','ba','باء'],['ت','ta','تاء'],['ث','tha','ثاء'],['ج','jim','جيم'],['ح','ḥa','حاء'],['خ','kha','خاء'],['د','dal','دال'],['ذ','dhal','ذال'],['ر','ra','راء'],
+  ['ز','zay','زاي'],['س','sin','سين'],['ش','shin','شين'],['ص','ṣad','صاد'],['ض','ḍad','ضاد'],['ط','ṭa','طاء'],['ظ','ẓa','ظاء'],['ع','ʿayn','عين'],['غ','ghayn','غين'],
+  ['ف','fa','فاء'],['ق','qaf','قاف'],['ك','kaf','كاف'],['ل','lam','لام'],['م','mim','ميم'],['ن','nun','نون'],['ه','ha','هاء'],['و','waw','واو'],['ي','ya','ياء']].map(([ar,r,nm])=>({k:'L'+r,ar,r,nm}));
+const AR_L1=AR_LET.slice(0,10),AR_L2=AR_LET.slice(10,19),AR_L3=AR_LET.slice(19);
+const arBase=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'');
+const arLetOthers=(x,L)=>others(L.filter(i=>arBase(i.r)!==arBase(x.r)),2,[x]);
+const qArLet=L=>x=>({ans:x.k,inst:'Quelle est cette lettre arabe ?',html:`<div class="arw big" lang="ar">${x.ar}</div>`,opts:shuffle([x,...arLetOthers(x,L)]).map(i=>({v:i.k,l:arR(i.r)})),optCls:'col txt',afterSay:x.nm,afterLang:AR,
+  fixHTML:`<span class="arw" lang="ar">${x.ar}</span><div class="fixsub">C’est la lettre <b>${arR(x.r)}</b></div>`,fixChain:[{say:'Cette lettre s’appelle'},{say:x.nm,lang:AR,rate:.75}]});
+const qArLet2=L=>x=>({ans:x.k,inst:'Lis ou écoute le nom, puis trouve la lettre',html:`<div class="bigtxt read">${arR(x.r)}</div>`,chain:[{say:x.nm,lang:AR,rate:.75}],opts:shuffle([x,...arLetOthers(x,L)]).map(i=>({v:i.k,h:`<span class="arw" lang="ar">${i.ar}</span>`})),optCls:'emo',afterSay:x.nm,afterLang:AR,
+  fixHTML:`<span class="arw" lang="ar">${x.ar}</span><div class="fixsub">C’est la lettre <b>${arR(x.r)}</b></div>`,fixChain:[{say:'Cette lettre s’appelle'},{say:x.nm,lang:AR,rate:.75}]});
+const AR_DIG=['٠','١','٢','٣','٤','٥','٦','٧','٨','٩','١٠'].map((g,i)=>({k:'D'+i,ar:g,v:i}));
+const qArDig=x=>({ans:x.k,inst:'Quel est ce chiffre écrit en arabe ?',html:`<div class="arw big" lang="ar">${x.ar}</div>`,opts:shuffle([x,...others(AR_DIG,2,[x])]).map(i=>({v:i.k,h:vNum(i)})),optCls:'emo',
+  fixHTML:`<span class="arw" lang="ar">${x.ar}</span><div class="fixsub">= <b>${x.v}</b></div>`,fixSay:'Ce chiffre, c’est '+x.v});
+const AR_N1=arL([['واحد','wahid','1',1],['اثنان','ithnan','2',2],['ثلاثة','thalatha','3',3],['أربعة','arba\'a','4',4],['خمسة','khamsa','5',5],['ستة','sitta','6',6],['سبعة','sab\'a','7',7],['ثمانية','thamaniya','8',8],['تسعة','tis\'a','9',9],['عشرة','\'ashara','10',10]]);
+const AR_N2=arL([['أحد عشر','ahada \'ashar','11',11],['اثنا عشر','ithna \'ashar','12',12],['ثلاثة عشر','thalathata \'ashar','13',13],['أربعة عشر','arba\'ata \'ashar','14',14],['خمسة عشر','khamsata \'ashar','15',15],['ستة عشر','sittata \'ashar','16',16],['سبعة عشر','sab\'ata \'ashar','17',17],['ثمانية عشر','thamaniyata \'ashar','18',18],['تسعة عشر','tis\'ata \'ashar','19',19],['عشرون','\'ishrun','20',20]]);
+const AR_COL=arL([['أحمر','ahmar','rouge','#E53935'],['أزرق','azraq','bleu','#1E88E5'],['أخضر','akhdar','vert','#22C55E'],['أصفر','asfar','jaune','#FFD600'],['برتقالي','burtuqali','orange','#FF9A1F'],['وردي','wardi','rose','#FF6FB5'],['بنفسجي','banafsaji','violet','#7B5CFF'],['أسود','aswad','noir','#24263A'],['أبيض','abyad','blanc','#FFFFFF'],['بني','bunni','marron','#8D5A2B']]);
+const AR_ANI=arL([['قط','qitt','le chat','🐱'],['كلب','kalb','le chien','🐶'],['أسد','asad','le lion','🦁'],['فيل','fil','l’éléphant','🐘'],['حصان','hisan','le cheval','🐴'],['بقرة','baqara','la vache','🐮'],['خروف','kharuf','le mouton','🐑'],['أرنب','arnab','le lapin','🐰'],['سمكة','samaka','le poisson','🐟'],['عصفور','\'usfur','l’oiseau','🐦'],['جمل','jamal','le chameau','🐫'],['قرد','qird','le singe','🐵'],['دب','dubb','l’ours','🐻'],['زرافة','zarafa','la girafe','🦒'],['فأر','fa\'r','la souris','🐭'],['دجاجة','dajaja','la poule','🐔'],['نمر','namir','le tigre','🐯'],['سلحفاة','sulahfa','la tortue','🐢'],['نحلة','nahla','l’abeille','🐝'],['فراشة','farasha','le papillon','🦋'],['بطة','batta','le canard','🦆'],['ثعلب','tha\'lab','le renard','🦊']]);
+const AR_FAM=arL([['أب','ab','le père','👨'],['أم','umm','la mère','👩'],['أخ','akh','le frère','👦'],['أخت','ukht','la sœur','👧'],['جد','jadd','le grand-père','👴'],['جدة','jadda','la grand-mère','👵'],['رضيع','radi\'','le bébé','👶'],['عائلة','\'a\'ila','la famille','👨‍👩‍👧']]);
+const AR_FOOD=arL([['خبز','khubz','le pain','🍞'],['ماء','ma\'','l’eau','💧'],['حليب','halib','le lait','🥛'],['تفاحة','tuffaha','la pomme','🍎'],['موز','mawz','la banane','🍌'],['برتقال','burtuqal','l’orange','🍊'],['عنب','\'inab','le raisin','🍇'],['أرز','aruzz','le riz','🍚'],['بيضة','bayda','l’œuf','🥚'],['جبن','jubn','le fromage','🧀'],['عسل','\'asal','le miel','🍯'],['لحم','lahm','la viande','🍖'],['فراولة','farawla','la fraise','🍓'],['جزر','jazar','la carotte','🥕'],['طماطم','tamatim','la tomate','🍅'],['ليمون','laymun','le citron','🍋'],['بطيخ','battikh','la pastèque','🍉'],['كعكة','ka\'ka','le gâteau','🍰'],['شاي','shay','le thé','🍵']]);
+const AR_BODY=arL([['عين','\'ayn','l’œil','👁️'],['أذن','udhun','l’oreille','👂'],['أنف','anf','le nez','👃'],['فم','fam','la bouche','👄'],['يد','yad','la main','✋'],['قدم','qadam','le pied','🦶'],['سن','sinn','la dent','🦷'],['قلب','qalb','le cœur','❤️'],['ذراع','dhira\'','le bras','💪'],['ساق','saq','la jambe','🦵'],['لسان','lisan','la langue','👅']]);
+const AR_HOME=arL([['بيت','bayt','la maison','🏠'],['باب','bab','la porte','🚪'],['كتاب','kitab','le livre','📖'],['قلم','qalam','le stylo','🖊️'],['كرسي','kursi','la chaise','🪑'],['سرير','sarir','le lit','🛏️'],['مدرسة','madrasa','l’école','🏫'],['سيارة','sayyara','la voiture','🚗'],['كرة','kura','le ballon','⚽'],['مفتاح','miftah','la clé','🔑'],['هاتف','hatif','le téléphone','📱'],['ساعة','sa\'a','la montre','⌚'],['حقيبة','haqiba','le sac','🎒'],['دراجة','darraja','le vélo','🚲'],['طائرة','ta\'ira','l’avion','✈️'],['قطار','qitar','le train','🚂']]);
+const AR_NAT=arL([['شمس','shams','le soleil','☀️'],['قمر','qamar','la lune','🌙'],['نجمة','najma','l’étoile','⭐'],['بحر','bahr','la mer','🌊'],['شجرة','shajara','l’arbre','🌳'],['زهرة','zahra','la fleur','🌸'],['مطر','matar','la pluie','🌧️'],['جبل','jabal','la montagne','⛰️'],['نار','nar','le feu','🔥'],['ثلج','thalj','la neige','❄️'],['سحابة','sahaba','le nuage','☁️'],['قوس قزح','qaws quzah','l’arc-en-ciel','🌈']]);
+const AR_MOTS=arL([['مرحبا','marhaban','salut, bienvenue'],['السلام عليكم','as-salamu \'alaykum','bonjour (la paix sur vous)'],['شكرا','shukran','merci'],['نعم','na\'am','oui'],['لا','la','non'],['من فضلك','min fadlik','s’il te plaît'],['عفوا','\'afwan','de rien'],['آسف','asif','pardon'],['مع السلامة','ma\'a s-salama','au revoir'],['صباح الخير','sabah al-khayr','bonjour (le matin)'],['مساء الخير','masa\' al-khayr','bonsoir'],['تصبح على خير','tusbih \'ala khayr','bonne nuit'],['كيف حالك','kayfa haluk','comment vas-tu ?'],['أنا بخير','ana bi-khayr','je vais bien'],['ما اسمك','ma smuk','comment t’appelles-tu ?']]);
+const AR_JOURS=arL([['الاثنين','al-ithnayn','lundi'],['الثلاثاء','ath-thulatha\'','mardi'],['الأربعاء','al-arbi\'a\'','mercredi'],['الخميس','al-khamis','jeudi'],['الجمعة','al-jumu\'a','vendredi'],['السبت','as-sabt','samedi'],['الأحد','al-ahad','dimanche']]);
+const AR_ALL=(()=>{const seen=new Set(),o=[];[AR_ANI,AR_FAM,AR_FOOD,AR_BODY,AR_HOME,AR_NAT].forEach(l=>l.forEach(i=>{if(seen.has(i.k))return;seen.add(i.k);o.push(i);}));return o;})();
+const qArTr=x=>({ans:x.k,inst:'Comment dit-on en arabe ?',say:x.fr,html:`<div class="bigtxt read"><span class="aremo">${x.v}</span> ${esc(x.fr)}</div>`,opts:shuffle([x,...others(AR_ALL,2,[x])]).map(i=>({v:i.k,h:`<span class="arrow"><span class="arw sm" lang="ar" dir="rtl">${i.ar}</span><small>${arR(i.r)}</small></span>`})),optCls:'col txt',fastMs:9000,afterSay:x.ar,afterLang:AR,
+  fixHTML:`<span class="emo">${x.v}</span><div class="fixsub">${esc(x.fr)} = ${arEq(x)}</div>`,fixChain:[{say:x.fr},{say:'se dit',rate:.9},arSay(x)]});
+const qArRead=x=>({ans:x.k,inst:'Lis le mot arabe, sans aide, et trouve',html:arW(x,false),opts:shuffle([x,...others(AR_ALL,2,[x])]).map(i=>({v:i.k,h:i.v})),optCls:'emo',fastMs:9000,afterSay:x.ar,afterLang:AR,
+  fixHTML:`${x.v}<div class="fixsub">${arEq(x)} = ${esc(x.fr)}</div>`,fixChain:[arSay(x),{say:'veut dire '+x.fr}]});
 // ---------- Qui a changé ? et Chiffres éclair (jeux de mémoire) ----------
 const CHG_E=['🍎','🍌','🍓','🚗','⭐','🐱','🐶','🌸','⚽','🎈','🐟','🍪','🚀','🦋','🌙','🎲','🍇','🐸','🎸','🧸','🌳','🍕','🐢','🎩','🚲','☂️','🏀','🍩','🐧','🔔'];
 function chgItems(seed,n,count,kinds,base,per){const r=rng(seed),out=[];
@@ -982,6 +1023,26 @@ const THEMES={
   {e:'💯',n:'Les grands nombres (13 ou 30 ?)',t:8,items:EN_N3,q:qEnN3},
   {e:'📖',n:'Je lis le mot anglais (sans le son)',t:8,items:EN_ALL,q:qEnRead},
   {e:'💀',n:'Traduis en anglais',t:9,items:EN_ALL,q:qEnTr},
+ ]},
+ arabe:{n:'Arabe',e:'ع',c:'#0E9F6E',d:'#0B7A55',desc:'Lettres, nombres, couleurs, animaux, famille… à lire et à écouter',levels:[
+  {e:'🔤',n:'Les lettres : alif à ra',t:1,items:AR_L1,q:qArLet(AR_L1)},
+  {e:'🔢',n:'Les nombres de 1 à 10',t:1,items:AR_N1,q:qAr(AR_N1,vNum)},
+  {e:'🎨',n:'Les couleurs',t:2,items:AR_COL,q:qAr(AR_COL,vCol)},
+  {e:'✏️',n:'Les lettres : zay à ghayn',t:2,items:AR_L2,q:qArLet(AR_L2)},
+  {e:'🐶',n:'Les animaux',t:3,items:AR_ANI,q:qAr(AR_ANI,vEmo)},
+  {e:'👨‍👩‍👧',n:'La famille',t:3,items:AR_FAM,q:qAr(AR_FAM,vEmo)},
+  {e:'🖊️',n:'Les lettres : fa à ya',t:4,items:AR_L3,q:qArLet(AR_L3)},
+  {e:'🍎',n:'Les aliments',t:4,items:AR_FOOD,q:qAr(AR_FOOD,vEmo)},
+  {e:'🧮',n:'Les chiffres écrits en arabe (١ ٢ ٣)',t:5,items:AR_DIG,q:qArDig},
+  {e:'👂',n:'Le corps',t:5,items:AR_BODY,q:qAr(AR_BODY,vEmo)},
+  {e:'🏠',n:'La maison et l’école',t:5,items:AR_HOME,q:qAr(AR_HOME,vEmo)},
+  {e:'☀️',n:'La nature',t:6,items:AR_NAT,q:qAr(AR_NAT,vEmo)},
+  {e:'👋',n:'Les mots de tous les jours',t:6,items:AR_MOTS,q:qArTxt(AR_MOTS)},
+  {e:'📅',n:'Les jours de la semaine',t:7,items:AR_JOURS,q:qArTxt(AR_JOURS)},
+  {e:'🔟',n:'Les nombres de 11 à 20',t:7,items:AR_N2,q:qAr(AR_N2,vNum)},
+  {e:'🔠',n:'Je trouve la lettre (tout l’alphabet)',t:8,items:AR_LET,q:qArLet2(AR_LET)},
+  {e:'💬',n:'Comment dit-on en arabe ?',t:8,items:AR_ALL,q:qArTr},
+  {e:'💀',n:'Je lis le mot arabe, sans aide',t:9,items:AR_ALL,q:qArRead},
  ]},
 };
 // ---------- Nouveaux jeux, débloqués avec le niveau du joueur ----------
@@ -1415,7 +1476,7 @@ const thumb=i=>i.cat==='obj'&&i.k?objThumb(i):i.cat==='pet'&&i.emoji?petThumb(i)
 const STORE_KEY='supercerveau_v1';
 function defaultState(){
   return {v:1,name:'',avatar:Object.assign({},DEFAULT_AV),owned:[],xp:0,coins:20,
-    settings:{mathLevel:1,nQ:10,target:8,mode:'choices',sprintSec:60,aid:true,sound:true,voice:true,voiceQ:false,frOn:true,frAfterMath:true,frLevel:1,frNQ:8,mathAuto:true,frAuto:true,dayLimit:0,pauseTip:true,sndMode:'max',thNQ:8,thAfterMath:true,thAuto:true,coffres:true,lv:{money:1,logic:1,code:1,monde:1,anglais:1,heure:1,formes:1,probl:1,drapeaux:1,espace:1,ortho:1,quoi:1,chiffres:1},thOn:{money:true,logic:true,code:true,monde:true,anglais:true,heure:true,formes:true,probl:true,drapeaux:true,espace:true,ortho:true,quoi:true,chiffres:true}},
+    settings:{mathLevel:1,nQ:10,target:8,mode:'choices',sprintSec:60,aid:true,sound:true,voice:true,voiceQ:false,frOn:true,frAfterMath:true,frLevel:1,frNQ:8,mathAuto:true,frAuto:true,dayLimit:0,pauseTip:true,sndMode:'max',thNQ:8,thAfterMath:true,thAuto:true,coffres:true,lv:{money:1,logic:1,code:1,monde:1,anglais:1,heure:1,formes:1,probl:1,drapeaux:1,espace:1,ortho:1,quoi:1,chiffres:1,arabe:1},thOn:{money:true,logic:true,code:true,monde:true,anglais:true,heure:true,formes:true,probl:true,drapeaux:true,espace:true,ortho:true,quoi:true,chiffres:true,arabe:true}},
     pin:null,facts:{},fr:{},frFlashMs:2000,sessions:[],days:{},streak:{cur:0,best:0,last:null},badges:{},
     stats:{ok:0,n:0,ms:0,bestCombo:0,sprintBest:{},chests:0},
     gifts:[{id:'g1',emoji:'🍦',title:'Une glace',type:'streak',target:5,reached:null,given:false},{id:'g2',emoji:'🎡',title:'Une sortie au parc',type:'level',target:10,reached:null,given:false}],
@@ -1711,10 +1772,10 @@ const Sound={ctx:null,buf:{},loaded:false,last:{},
 
 // ---------- Voix (synthèse vocale du navigateur) ----------
 const Voice={v:null,ok:'speechSynthesis' in window,warm:false,t:0,cur:null,
-  init(){if(!this.ok)return;const pv=()=>{const es=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));this.en=es.find(v=>/en[-_]GB/i.test(v.lang))||es.find(v=>/en[-_]US/i.test(v.lang))||es[0]||null;const vs=speechSynthesis.getVoices().filter(v=>/^fr/i.test(v.lang));this.v=vs.find(v=>/fr[-_]FR/i.test(v.lang)&&/google|amélie|amelie|audrey|thomas|marie|hortense|denise|julie/i.test(v.name))||vs.find(v=>/fr[-_]FR/i.test(v.lang))||vs[0]||null;};pv();try{speechSynthesis.addEventListener?speechSynthesis.addEventListener('voiceschanged',pv):(speechSynthesis.onvoiceschanged=pv);}catch(e){}},
+  init(){if(!this.ok)return;const pv=()=>{const all=speechSynthesis.getVoices();this.n=all.length;this.ar=all.find(v=>/^ar[-_]SA/i.test(v.lang))||all.find(v=>/^ar/i.test(v.lang))||null;const es=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));this.en=es.find(v=>/en[-_]GB/i.test(v.lang))||es.find(v=>/en[-_]US/i.test(v.lang))||es[0]||null;const vs=speechSynthesis.getVoices().filter(v=>/^fr/i.test(v.lang));this.v=vs.find(v=>/fr[-_]FR/i.test(v.lang)&&/google|amélie|amelie|audrey|thomas|marie|hortense|denise|julie/i.test(v.name))||vs.find(v=>/fr[-_]FR/i.test(v.lang))||vs[0]||null;};pv();try{speechSynthesis.addEventListener?speechSynthesis.addEventListener('voiceschanged',pv):(speechSynthesis.onvoiceschanged=pv);}catch(e){}},
   unlock(){Rec.unlock();if(!this.ok||this.warm)return;this.warm=true;try{const u=new SpeechSynthesisUtterance(' ');u.lang='fr-FR';u.volume=0;speechSynthesis.speak(u);}catch(e){}},
   busy(){try{return this.ok&&(speechSynthesis.speaking||speechSynthesis.pending);}catch(e){return false;}},
-  speak(text,o){if(!this.ok||!text)return;o=o||{};try{const u=new SpeechSynthesisUtterance(text);u.lang=o.lang||'fr-FR';const vv=o.lang?this.en:this.v;if(vv)u.voice=vv;u.rate=o.rate||.9;u.pitch=1.05;u.volume=1;this.cur=u;if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(u);}catch(e){}},
+  speak(text,o){if(!this.ok||!text)return;o=o||{};try{const u=new SpeechSynthesisUtterance(text);const isAr=/^ar/i.test(o.lang||'');if(isAr&&!this.ar&&this.n)return;u.lang=o.lang||'fr-FR';const vv=isAr?this.ar:o.lang?this.en:this.v;if(vv)u.voice=vv;u.rate=o.rate||.9;u.pitch=1.05;u.volume=1;this.cur=u;if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(u);}catch(e){}},
   hush(){clearTimeout(this.t);try{if(this.busy())speechSynthesis.cancel();}catch(e){}},
   // Annuler puis parler immédiatement fait taire certains navigateurs : on laisse 90 ms entre les deux
   say(text,o){Chain.stop();Rec.stopPlay();if(!this.ok||!text)return;const b=this.busy();this.hush();if(b)this.t=setTimeout(()=>this.speak(text,o),90);else this.speak(text,o);},
@@ -1853,7 +1914,9 @@ function drawQ(){
     else if(q.type==='flash')h+=`<div id="flashw">${sylHTML(q.word.sy)}</div>`;
     else if(q.type==='wread')h+=sylHTML(q.word.sy)+'<button class="helpbtn" data-act="sylhelp">👂 Aide : syllabe par syllabe</button>';
     else if(q.type==='sent')h+=`<div class="sentence read">${esc(q.show)}</div>`;
-    if(q.say||q.chain)h+='<button class="speaker" data-act="replay" aria-label="Réécouter">🔊</button>';
+    const noAr=Voice.ok&&Voice.n&&!Voice.ar&&(q.chain||[]).some(c=>c&&/^ar/.test(c.lang||''));
+    if(noAr)h+='<div class="nosound">🔇 Pas de voix arabe sur cet appareil : lis la prononciation.</div>';
+    else if(q.say||q.chain)h+='<button class="speaker" data-act="replay" aria-label="Réécouter">🔊</button>';
     if(!Voice.ok&&(q.say||q.chain))h+='<div class="nosound">🔇 Ce navigateur ne sait pas parler. Ouvrez l’appli dans Safari ou Chrome.</div>';
   }
   card.className='qcard';card.innerHTML=h;restart(card,'in');
@@ -2099,8 +2162,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.55';
+const VERSION='1.56';
 const VERSIONS=[
+ ['1.56','21/11/2026 10:30','Nouveau jeu : Arabe (18 mondes, lettres, mots, chiffres)'],
  ['1.55','20/11/2026 22:10','Guide parents et admin mis à jour avec les 2 nouveaux jeux'],
  ['1.54','20/11/2026 22:00','Nouveaux jeux : Qui a changé ? et Chiffres éclair'],
  ['1.53','20/11/2026 21:30','Cheveux longs visibles et gratuits : le profil fille s’affiche enfin'],
@@ -2108,7 +2172,6 @@ const VERSIONS=[
  ['1.51','20/11/2026 20:55','Écran « Qui joue ? » en grandes cartes + bouton Changer de profil'],
  ['1.50','19/11/2026 23:35','Sons du Drive : paliers, coffres, combos, avec fondu'],
  ['1.49','19/11/2026 22:15','Numéro de version dans l’Espace parents'],
- ['1.48','19/11/2026 22:05','Vrais cris pour tous les animaux'],
 ];
 function renderAdmin(){
   const adm=!!(Plan.info&&Plan.info.admin);
@@ -2239,7 +2302,7 @@ const ACT={
   pushtest(){Push.test();toast('🔔 Notification de test envoyée');},
   guide(){const sec=(t,l,o)=>`<details class="gd"${o?' open':''}><summary>${t}</summary><ul>${l.map(x=>`<li>${x}</li>`).join('')}</ul></details>`;
     queueModal(`<h2>📖 Comment marche Malino</h2><div class="guide">`
-    +sec('🎮 Les jeux et les mondes',['<b>Maths</b> et <b>Lecture</b> sont le cœur de l’appli. Le <b>Défi éclair</b> mesure la vitesse : le plus de calculs justes en 60 secondes.','Les <b>autres jeux</b> : Monnaie, Logique, Robot, Découverte, Anglais, puis ceux qui se débloquent avec le niveau du joueur : Qui a changé ? (niveau 7), L’heure (5), Formes (8), Chiffres éclair (10), Problèmes (12), Drapeaux (15), Sciences (20), Orthographe (25).','<b>Qui a changé ?</b> et <b>Chiffres éclair</b> travaillent la mémoire : on regarde une scène ou un nombre quelques secondes, puis on retrouve ce qui a changé ou le bon chiffre. Le temps d’affichage raccourcit de monde en monde.','Chaque jeu avance par <b>mondes</b>. Les étoiles indiquent la difficulté ; au-dessus viennent Expert, Épique, Ultra et Impossible.','Le monde suivant s’ouvre quand le monde en cours est bien maîtrisé. Vous pouvez aussi le choisir vous-même dans Réglages et Autres jeux.'],1)
+    +sec('🎮 Les jeux et les mondes',['<b>Maths</b> et <b>Lecture</b> sont le cœur de l’appli. Le <b>Défi éclair</b> mesure la vitesse : le plus de calculs justes en 60 secondes.','Les <b>autres jeux</b> : Monnaie, Logique, Robot, Découverte, Anglais, Arabe, puis ceux qui se débloquent avec le niveau du joueur : Qui a changé ? (niveau 7), L’heure (5), Formes (8), Chiffres éclair (10), Problèmes (12), Drapeaux (15), Sciences (20), Orthographe (25).','<b>Arabe</b> (arabe standard) : chaque mot est écrit en arabe, avec sa prononciation en lettres latines. La voix lit le mot si l’appareil possède une voix arabe ; sinon l’enfant s’appuie sur la prononciation écrite. 18 mondes : lettres, nombres, couleurs, animaux, famille, mots de tous les jours…','<b>Qui a changé ?</b> et <b>Chiffres éclair</b> travaillent la mémoire : on regarde une scène ou un nombre quelques secondes, puis on retrouve ce qui a changé ou le bon chiffre. Le temps d’affichage raccourcit de monde en monde.','Chaque jeu avance par <b>mondes</b>. Les étoiles indiquent la difficulté ; au-dessus viennent Expert, Épique, Ultra et Impossible.','Le monde suivant s’ouvre quand le monde en cours est bien maîtrisé. Vous pouvez aussi le choisir vous-même dans Réglages et Autres jeux.'],1)
     +sec('⭐ Niveau du joueur, pièces et étoiles',['Chaque bonne réponse donne de l’<b>expérience</b> : elle fait monter le <b>niveau du joueur</b> (à côté de l’avatar). Une réponse rapide rapporte plus.','Les <b>pièces 🪙</b> se gagnent avec les réponses rapides, les combos, la fin de partie et les coffres. Elles servent uniquement à acheter des objets pour le personnage.','En fin de partie : de 1 à 3 <b>étoiles</b> selon la réussite, et un bonus de pièces.','Une partie arrêtée avant la fin garde ses réponses et ses pièces, mais ne donne ni étoiles ni bonus de fin.'])
     +sec('🎯 Mission du jour, série et coffre du jour',['La <b>mission du jour</b> : une partie de maths et une partie de lecture.','Mission finie : le <b>coffre du jour 🎁</b> s’ouvre tout de suite (des pièces, parfois un objet).','La <b>série 🔥</b> compte les jours de suite où l’enfant a joué. Plus elle est longue, plus le coffre du jour est généreux.','Avec Malino+ : un <b>coffre doré</b> une fois par semaine, avec 3 fois plus de pièces et un objet.'])
     +sec('🗝️ Coffres magiques (12 heures)',['L’enfant <b>gagne</b> un coffre avec une partie à 3 étoiles (une chance sur deux), un niveau de joueur gagné, un monde gagné, la mission du jour ou un gros badge.','Il y a <b>4 emplacements</b>, et 6 coffres au maximum par jour. Chaque coffre s’ouvre <b>12 heures</b> après avoir été gagné.','5 sortes : bois, argent, or, épique, légendaire. Plus le coffre est rare, meilleur est le contenu.','À l’ouverture : une <b>farce</b> (chaussette qui pue…), un <b>bon cadeau</b> (pièces, autocollant) ou un cadeau <b>épique</b> (objet ou autocollant rare).','Les notifications « coffre prêt » s’activent dans Famille et compte, téléphone par téléphone. Les coffres se désactivent ici, dans Réglages.'])
