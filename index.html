@@ -220,6 +220,7 @@ h1,h2,h3,h4{font-weight:700}
 .word{font-size:clamp(44px,13vw,66px);font-weight:700;letter-spacing:1px}
 .word.gone{color:var(--mut)}
 .sentence{font-size:clamp(26px,7.5vw,36px);font-weight:700;line-height:1.3}
+.ctext{font-size:20px;line-height:1.45;font-weight:600;text-align:left;background:#FFF8E6;border-radius:14px;padding:10px 12px;margin-top:6px}.ctext.big{font-size:clamp(22px,6.5vw,28px);text-align:center}.cq{font-size:18px;font-weight:800;margin-top:10px;line-height:1.3}.ctext.long{font-size:17px;line-height:1.4;padding:8px 10px}#qh:has(.ctext)~.speaker,#flashw:has(.ctext)~.speaker,#flashw:has(.cq)~.speaker{width:46px;height:46px;font-size:20px;margin-top:6px;box-shadow:0 3px 0 rgba(0,0,0,.15)}.opts.comp .opt{font-size:18px;min-height:50px;line-height:1.25;padding:8px 10px;font-weight:700}.opts.col.comp{gap:8px}
 .speaker{width:86px;height:86px;border-radius:50%;background:var(--p);color:#fff;font-size:40px;box-shadow:0 6px 0 var(--pd);margin-top:4px}
 .speaker:active{transform:translateY(5px);box-shadow:0 1px 0 var(--pd)}
 .count{font-size:110px;font-weight:700;color:var(--v)}
@@ -741,6 +742,116 @@ const W2C=[['mai-son','🏠'],['la-pin','🐰'],['mou-ton','🐑'],['ca-deau','�
 const W3=[['to-ma-te','🍅'],['ba-na-ne','🍌'],['sa-la-de','🥗'],['a-na-na[s]','🍍'],['pi-ra-te','🏴‍☠️'],['tu-li-pe','🌷'],['a-vo-ca[t]','🥑'],['ki-mo-no','👘'],['é-lé-phan[t]','🐘'],['cho-co-la[t]','🍫'],['pa-pi-llon','🦋'],['es-car-go[t]','🐌'],['gi-ra-fe','🦒'],['ca-mé-ra','🎥'],['pa-ra-pluie','☂️'],['ba-lei-ne','🐳'],['ca-ro-tte','🥕'],['cou-ron-ne','👑'],['o-ran-ge','🍊'],['lu-net-tes','👓'],['fan-tô-me','👻'],['che-mi-se','👔'],['ba-guet-te','🥖'],['é-pon-ge','🧽'],['é-toi-le','⭐'],['ca-la-mar','🦑'],['ca-na-ri','🐤'],['tor-na-de','🌪️']].map(([x,e])=>mkW(x,e));
 const SIGHT=['le','la','les','un','une','des','et','il','elle','je','tu','on','dans','sur','avec','pour','mon','ma','mes','papa','maman','oui','non','qui','de','du'];
 const SENT=[['Le chat boit du lait.','🐱🥛','chat'],['Le chat joue au ballon.','🐱⚽','chat'],['Le chat dort.','🐱💤','chat'],['Le chien mange un os.','🐶🦴','chien'],['Le chien court vite.','🐶💨','chien'],['Papa lit un livre.','👨📖','gens'],['Maman fait un gâteau.','👩🎂','gens'],['Le bébé dort.','👶💤','gens'],['Il pleut.','🌧️','meteo'],['Il neige.','❄️','meteo'],['Le soleil brille.','☀️','meteo'],['La fusée part dans l’espace.','🚀✨','vehicule'],['La voiture roule vite.','🚗💨','vehicule'],['Le bateau est sur la mer.','⛵🌊','vehicule'],['Le poisson nage.','🐟🌊','animal'],['L’oiseau vole.','🐦☁️','animal'],['Le dragon crache du feu.','🐉🔥','animal'],['Le lapin mange une carotte.','🐰🥕','manger'],['Le singe mange une banane.','🐵🍌','manger'],['La pomme est rouge.','🍎','fruit'],['La banane est jaune.','🍌','fruit']].map(([s,e,g])=>({s,e,g}));
+// ---------- Lecture : lire et comprendre ----------
+// Progression tirée des recherches sur la compréhension (Bianco ; Cèbe et Goigoux ; évaluations nationales de CE1) :
+// informations écrites dans une phrase (qui, quoi, où, quand), reprises (il, elle, le, lui…), informations à relier
+// dans une petite histoire, liens de parenté, inférences (pourquoi ?), contrôle de sa lecture (vrai ou faux),
+// textes plus longs, puis lecture suivie d'une réponse de mémoire.
+const cpL=(p,a)=>a.map((r,i)=>({k:p+(i+1),t:r[0],q:r[1],a:r[2],d:r[3]}));
+const cpS=(p,l)=>{const o=[];l.forEach((s,j)=>s[1].forEach((r,i)=>o.push({k:p+(j+1)+'.'+(i+1),t:s[0],q:r[0],a:r[1],d:r[2]})));return o;};
+const CP_QUI=cpL('qq',[
+ ['Léo mange une pomme rouge.','Qui mange une pomme ?','Léo',['Lina','Papa']],
+ ['Léo mange une pomme rouge.','De quelle couleur est la pomme ?','rouge',['verte','jaune']],
+ ['Lina donne un ballon à Tom.','Qui donne le ballon ?','Lina',['Tom','Léo']],
+ ['Lina donne un ballon à Tom.','Qui reçoit le ballon ?','Tom',['Lina','Maman']],
+ ['Le chat de Sami dort sur le canapé.','Qui dort sur le canapé ?','le chat',['Sami','le chien']],
+ ['Papa prépare une soupe de carottes.','Que prépare Papa ?','une soupe',['un gâteau','une salade']],
+ ['Inès dessine un grand soleil jaune.','Que dessine Inès ?','un soleil',['une maison','une fleur']],
+ ['Le chien de Jade court après un oiseau.','Après quoi court le chien ?','un oiseau',['un chat','une balle']],
+ ['Maman achète du pain et du fromage.','Qu’est-ce que Maman achète ?','du pain et du fromage',['du lait et des œufs','des pommes']],
+ ['Hugo arrose les fleurs du jardin.','Que fait Hugo ?','il arrose les fleurs',['il cueille les fleurs','il mange des fraises']],
+ ['Maya et Adam construisent un château de sable.','Que construisent Maya et Adam ?','un château de sable',['une cabane','une tour']],
+ ['Le bébé pleure parce qu’il a faim.','Qui pleure ?','le bébé',['Maman','la grande sœur']],
+ ['Zoé porte un bonnet bleu et des gants verts.','De quelle couleur sont les gants ?','verts',['bleus','rouges']],
+ ['Le facteur apporte une lettre à Noah.','Qui apporte une lettre ?','le facteur',['Noah','la maîtresse']],
+ ['Grand-mère tricote une écharpe pour Lou.','Pour qui est l’écharpe ?','pour Lou',['pour Grand-mère','pour Papa']],
+ ['Yanis lance la balle et son chien la rapporte.','Qui rapporte la balle ?','le chien',['Yanis','le chat']]]);
+const CP_OU=cpL('ou',[
+ ['Le soir, Chloé lit une histoire dans son lit.','Où Chloé lit-elle ?','dans son lit',['dans le jardin','à l’école']],
+ ['Le soir, Chloé lit une histoire dans son lit.','Quand Chloé lit-elle ?','le soir',['le matin','à midi']],
+ ['Ce matin, Malik a pris le bus pour aller à l’école.','Où va Malik ?','à l’école',['à la piscine','au parc']],
+ ['Ce matin, Malik a pris le bus pour aller à l’école.','Comment Malik va-t-il à l’école ?','en bus',['à pied','à vélo']],
+ ['Le poisson rouge nage dans son bocal, sur la table du salon.','Où est le bocal ?','sur la table du salon',['dans la cuisine','sous le lit']],
+ ['Dimanche, toute la famille pique-nique au bord du lac.','Quand la famille pique-nique-t-elle ?','dimanche',['samedi','lundi']],
+ ['Dimanche, toute la famille pique-nique au bord du lac.','Où la famille pique-nique-t-elle ?','au bord du lac',['dans la forêt','à la plage']],
+ ['En hiver, les oiseaux cherchent des graines dans la neige.','En quelle saison sommes-nous ?','en hiver',['en été','au printemps']],
+ ['Emma a caché son cadeau sous le sapin.','Où est caché le cadeau ?','sous le sapin',['dans l’armoire','derrière la porte']],
+ ['Après la récréation, Rayan range ses crayons dans sa trousse.','Où Rayan range-t-il ses crayons ?','dans sa trousse',['dans son cartable','sur la table']],
+ ['Après la récréation, Rayan range ses crayons dans sa trousse.','Quand Rayan range-t-il ses crayons ?','après la récréation',['avant la récréation','à midi']],
+ ['Pendant les vacances, Alice va chez son oncle à la montagne.','Où va Alice ?','à la montagne',['à la mer','en ville']],
+ ['À midi, les enfants mangent à la cantine.','Où les enfants mangent-ils ?','à la cantine',['à la maison','dans la cour']],
+ ['La lune brille dans le ciel pendant la nuit.','Quand la lune brille-t-elle ?','pendant la nuit',['le matin','à midi']]]);
+const CP_PRO=cpL('pr',[
+ ['Léo appelle sa sœur Lina. Elle arrive en courant.','Qui arrive en courant ?','Lina',['Léo','Maman']],
+ ['Maman offre une poupée à Jade. Jade la serre très fort.','Dans « Jade la serre », « la », c’est qui ou quoi ?','la poupée',['Maman','Jade']],
+ ['Papa a fait un gâteau. Les enfants le mangent au goûter.','Dans « les enfants le mangent », « le », c’est quoi ?','le gâteau',['Papa','le goûter']],
+ ['Inès et Maya jouent dans la cour. Elles font la course.','Qui fait la course ?','Inès et Maya',['Inès toute seule','la maîtresse']],
+ ['Le chien voit un chat. Il aboie très fort.','Qui aboie ?','le chien',['le chat','Papa']],
+ ['La maîtresse parle à Hugo. Elle lui donne un livre.','Qui donne un livre ?','la maîtresse',['Hugo','Papa']],
+ ['La maîtresse parle à Hugo. Elle lui donne un livre.','À qui donne-t-elle le livre ?','à Hugo',['à la maîtresse','à Lina']],
+ ['Noah a perdu ses clés. Sa grand-mère les retrouve sous le tapis.','Qu’est-ce que la grand-mère retrouve ?','les clés',['Noah','le tapis']],
+ ['Adam et son papa vont à la piscine. Ils nagent pendant une heure.','Qui nage ?','Adam et son papa',['Adam tout seul','son papa tout seul']],
+ ['Zoé a une tortue. Chaque matin, elle lui donne de la salade.','Qui mange la salade ?','la tortue',['Zoé','le lapin']],
+ ['Le loup voit les trois petits cochons. Ils se cachent dans la maison de briques.','Qui se cache ?','les petits cochons',['le loup','le chasseur']],
+ ['Lou écrit une lettre à son cousin. Elle la met dans une enveloppe.','Que met Lou dans l’enveloppe ?','la lettre',['son cousin','un dessin']],
+ ['« Nous allons au cinéma avec Papa », dit Malik à sa sœur.','Dans cette phrase, « nous », c’est qui ?','Malik et sa sœur',['Papa et Maman','les amis de Malik']],
+ ['Rayan cherche son chat partout. Enfin, il le trouve dans le panier à linge.','Qui trouve le chat ?','Rayan',['le chat','Maman']]]);
+const CP_HIST=cpS('hi',[
+ ['Samedi, Lina va au marché avec son papa. Ils achètent des tomates et des fraises. Lina porte le panier.',[['Avec qui Lina va-t-elle au marché ?','avec son papa',['avec sa maman','avec son frère']],['Qui porte le panier ?','Lina',['Papa','le marchand']]]],
+ ['Tom a un petit lapin blanc qui s’appelle Flocon. Flocon adore les carottes. Le soir, il dort dans sa cage, près de la fenêtre.',[['Comment s’appelle le lapin ?','Flocon',['Tom','Carotte']],['Où dort Flocon ?','dans sa cage',['dans le lit de Tom','dans le jardin']]]],
+ ['Il pleut. Inès met ses bottes et prend son parapluie rouge. Elle saute dans les flaques en allant à l’école.',[['Que fait Inès en allant à l’école ?','elle saute dans les flaques',['elle chante','elle court sous un abri']],['De quelle couleur est le parapluie ?','rouge',['bleu','jaune']]]],
+ ['Hugo et Adam jouent au football dans le jardin. Hugo tire très fort et le ballon casse une fleur. Maman n’est pas contente.',[['Où jouent Hugo et Adam ?','dans le jardin',['dans la rue','au stade']],['Qui a tiré dans le ballon ?','Hugo',['Adam','Maman']]]],
+ ['Pour l’anniversaire de Jade, Grand-père a fait une tarte aux pommes. Jade souffle ses sept bougies. Tout le monde chante.',[['Quel gâteau Grand-père a-t-il fait ?','une tarte aux pommes',['un gâteau au chocolat','une tarte aux fraises']],['Quel âge a Jade ?','sept ans',['six ans','huit ans']]]],
+ ['Maya a perdu son doudou. Elle le cherche dans sa chambre, puis dans le salon. Son frère le trouve dans la voiture.',[['Qu’a perdu Maya ?','son doudou',['son cartable','sa poupée']],['Où était le doudou ?','dans la voiture',['dans sa chambre','dans le salon']]]],
+ ['Le matin, Sami va à l’école à vélo. À midi, il mange à la cantine. Le soir, il fait ses devoirs avec sa maman.',[['Comment Sami va-t-il à l’école ?','à vélo',['en bus','à pied']],['Avec qui Sami fait-il ses devoirs ?','avec sa maman',['avec son papa','avec la maîtresse']]]]]);
+const CP_FAM=cpL('fa',[
+ ['Bernard part au marché avec sa fille Jasmine et sa sœur Rosa.','Qui est Jasmine ?','la fille de Bernard',['la sœur de Bernard','la maman de Bernard']],
+ ['Bernard part au marché avec sa fille Jasmine et sa sœur Rosa.','Qui est Rosa ?','la sœur de Bernard',['la fille de Bernard','la grand-mère de Jasmine']],
+ ['Bernard part au marché avec sa fille Jasmine et sa sœur Rosa.','Pour Jasmine, qui est Rosa ?','sa tante',['sa sœur','sa cousine']],
+ ['Léa joue avec son petit frère Tom et leur cousin Hugo.','Qui est Tom ?','le frère de Léa',['le cousin de Léa','le papa de Léa']],
+ ['Léa joue avec son petit frère Tom et leur cousin Hugo.','Qui est Hugo ?','le cousin de Léa',['le frère de Léa','l’oncle de Léa']],
+ ['Mamie Rose prépare des crêpes pour son petit-fils Adam.','Pour Adam, qui est Mamie Rose ?','sa grand-mère',['sa maman','sa tante']],
+ ['Le papa de Lina s’appelle Karim. Karim a un frère qui s’appelle Youssef.','Pour Lina, qui est Youssef ?','son oncle',['son grand-père','son cousin']],
+ ['Inès a une sœur jumelle, Lou. Elles ont le même anniversaire.','Qui est Lou ?','la sœur jumelle d’Inès',['la cousine d’Inès','l’amie d’Inès']],
+ ['Monsieur Martin est le maître de la classe de Noah. Il a vingt-cinq élèves.','Qui est Monsieur Martin ?','le maître de Noah',['le papa de Noah','le voisin de Noah']],
+ ['Emma promène le chien de sa voisine, Madame Petit.','À qui est le chien ?','à Madame Petit',['à Emma','à la maman d’Emma']],
+ ['Sofia et Rayan sont les enfants de Nadia. Nadia est la fille de Papi Jean.','Pour Sofia, qui est Papi Jean ?','son grand-père',['son papa','son oncle']],
+ ['Le fils de Paul s’appelle Malo. La fille de Malo s’appelle Nina.','Pour Nina, qui est Paul ?','son grand-père',['son papa','son oncle']]]);
+const CP_POURQ=cpL('pq',[
+ ['Tom met son manteau, son bonnet et ses gants.','Pourquoi ?','il fait froid',['il fait chaud','il va se baigner']],
+ ['Lina bâille et se frotte les yeux.','Pourquoi ?','elle a sommeil',['elle a faim','elle est en colère']],
+ ['Le sol de la cour est tout mouillé et il y a des flaques.','Que s’est-il passé ?','il a plu',['il a fait très chaud','le vent a soufflé']],
+ ['Hugo ouvre le frigo et prend une banane. Son ventre gargouille.','Pourquoi Hugo prend-il une banane ?','il a faim',['il a soif','il veut jouer']],
+ ['Les enfants mettent leur maillot et prennent leur serviette.','Où vont-ils ?','à la piscine',['à l’école','au cinéma']],
+ ['Maman allume les bougies et tout le monde chante « Joyeux anniversaire ».','Que fête-t-on ?','un anniversaire',['Noël','la fin de l’école']],
+ ['Adam pleure. Son genou saigne et son vélo est par terre.','Que s’est-il passé ?','il est tombé de vélo',['il a perdu son vélo','il a gagné la course']],
+ ['Inès saute de joie : elle a reçu le chiot dont elle rêvait.','Comment se sent Inès ?','très heureuse',['triste','fatiguée']],
+ ['Le jardinier prend son arrosoir : les fleurs sont toutes penchées.','Pourquoi les fleurs sont-elles penchées ?','elles ont soif',['elles dorment','il fait nuit']],
+ ['Jade met de la crème solaire, ses lunettes de soleil et son chapeau.','Quel temps fait-il ?','il fait beau et chaud',['il pleut','il neige']],
+ ['Sami cherche partout son cartable. Le bus de l’école arrive dans deux minutes.','Comment se sent Sami ?','pressé et inquiet',['calme et reposé','content et tranquille']],
+ ['Quand Papa rentre, le chien remue la queue et saute partout.','Pourquoi le chien saute-t-il ?','il est content de voir Papa',['il a peur de Papa','il veut dormir']],
+ ['La glace de Maya coule sur sa main et goutte par terre.','Pourquoi la glace coule-t-elle ?','il fait chaud, elle fond',['elle est trop froide','Maya souffle dessus']],
+ ['Lou chuchote et marche sur la pointe des pieds : son petit frère dort.','Pourquoi Lou chuchote-t-elle ?','pour ne pas réveiller son frère',['elle a mal à la gorge','elle joue à cache-cache']]]);
+const CP_VF=cpS('vf',[
+ ['Léo et sa maman vont à la boulangerie. Léo choisit un croissant. Sa maman prend une baguette.',[['« Léo choisit une baguette. »','Faux'],['« Léo va à la boulangerie avec sa maman. »','Vrai'],['« La maman prend une baguette. »','Vrai']]],
+ ['Ce matin, il neige. Zoé et Noah font un bonhomme de neige. Ils lui mettent une carotte pour le nez.',[['« Il pleut ce matin. »','Faux'],['« Le nez du bonhomme est une carotte. »','Vrai'],['« Zoé fait le bonhomme toute seule. »','Faux']]],
+ ['Le chat de Malik s’appelle Pirate. Il a un œil noir et un œil vert. Il adore dormir au soleil.',[['« Pirate est un chien. »','Faux'],['« Pirate a un œil vert. »','Vrai'],['« Pirate aime dormir à l’ombre. »','Faux']]],
+ ['À la fête de l’école, Chloé chante sur la scène. Ses parents sont au premier rang. Ils applaudissent très fort.',[['« Chloé danse sur la scène. »','Faux'],['« Les parents de Chloé applaudissent. »','Vrai'],['« Les parents sont au dernier rang. »','Faux']]],
+ ['Rayan plante une graine dans un pot. Il l’arrose chaque jour. Au bout d’une semaine, une petite tige verte sort de la terre.',[['« Rayan arrose la graine une fois par semaine. »','Faux'],['« Une petite tige verte pousse. »','Vrai']]]].map(([t,l])=>[t,l.map(([s,a])=>[s,a,[a==='Vrai'?'Faux':'Vrai']])]));
+const CP_LONG=cpS('lg',[
+ ['Ce samedi, Alice va à la mer avec ses grands-parents. Dans la voiture, elle chante pendant tout le trajet. Sur la plage, elle construit un château de sable avec son grand-père. Sa grand-mère lit sous le parasol. Le soir, Alice est si fatiguée qu’elle s’endort dans la voiture.',[['Avec qui Alice construit-elle le château ?','avec son grand-père',['avec sa grand-mère','toute seule']],['Que fait la grand-mère ?','elle lit sous le parasol',['elle se baigne','elle chante']],['Pourquoi Alice s’endort-elle dans la voiture ?','elle est très fatiguée',['elle s’ennuie','elle est malade']]]],
+ ['Noah veut faire une surprise à sa maman. D’abord, il cueille des fleurs dans le jardin. Ensuite, il dessine un grand cœur sur une feuille. Enfin, il pose les fleurs et le dessin sur la table. Quand sa maman rentre, elle lui fait un gros bisou.',[['Que fait Noah en premier ?','il cueille des fleurs',['il dessine un cœur','il pose le dessin sur la table']],['Que dessine Noah ?','un grand cœur',['des fleurs','sa maison']],['Comment se sent la maman ?','heureuse et touchée',['fâchée','inquiète']]]],
+ ['À l’école, la maîtresse annonce une sortie au zoo. Les élèves sont ravis. Au zoo, Yanis voit un éléphant qui s’arrose avec sa trompe. Sofia préfère les singes qui sautent de branche en branche. Avant de rentrer, toute la classe pique-nique près du lac des flamants roses.',[['Où va la classe ?','au zoo',['à la ferme','au musée']],['Quels animaux Sofia préfère-t-elle ?','les singes',['les éléphants','les flamants roses']],['Que fait l’éléphant ?','il s’arrose avec sa trompe',['il mange une banane','il dort']]]],
+ ['Il est huit heures. Hugo doit partir à l’école, mais il ne trouve plus sa chaussure gauche. Il regarde sous son lit, puis derrière la porte. Son chien Biscuit arrive en remuant la queue… avec la chaussure dans la gueule ! Hugo éclate de rire.',[['Que cherche Hugo ?','sa chaussure gauche',['son cartable','son chien']],['Qui avait pris la chaussure ?','Biscuit, le chien',['sa sœur','le chat']],['Où Hugo regarde-t-il en premier ?','sous son lit',['derrière la porte','dans le jardin']]]]]);
+const CP_MEM=CP_HIST.concat(CP_LONG).map(x=>Object.assign({},x,{k:'m'+x.k,mem:1}));
+const cpText=(t,big)=>`<div class="ctext read${big?' big':t.length>200?' long':''}">${esc(t)}</div>`;
+const cpQ=q=>`<div class="cq">${esc(q)}</div>`;
+function compQ(base,L,x){const vf=x.a==='Vrai'||x.a==='Faux',q=vf?x.q+' Vrai ou faux ?':x.q,big=x.t.length<70;
+  const opts=vf?['Vrai','Faux'].map(v=>({v,l:v==='Vrai'?'✅ Vrai':'❌ Faux'})):shuffle([x.a,...x.d]).map(v=>({v,l:v}));
+  const o={...base,type:'gen',ans:x.a,inst:x.mem?'Lis bien l’histoire : elle va disparaître !':L.inst,say:q,html:cpText(x.t,big)+cpQ(q),opts,optCls:vf?'two comp':'col comp',
+    fastMs:6000+x.t.length*45,fixHTML:`${cpText(x.t)}<div class="fixsub">${esc(x.q)}<br><b>${esc(x.a)}</b></div>`,fixChain:[{say:x.t,rate:.9},{say:'La réponse : '+x.a}]};
+  if(x.mem){o.flashHide=4000+x.t.length*90;o.html=cpText(x.t);o.flashAfter=cpQ(q);}
+  return o;}
 const FR_LEVELS=[
  {e:'🅰️',n:'Le son des voyelles',type:'vowel',items:VOW},
  {e:'🐍',n:'Le premier son d’un mot',type:'first',items:FIRST},
@@ -754,6 +865,15 @@ const FR_LEVELS=[
  {e:'⚡',n:'Lecture éclair',type:'flash',items:W2S.concat(W2C,W3)},
  {e:'🔎',n:'Les petits mots',type:'sight',items:SIGHT},
  {e:'💬',n:'Petites phrases',type:'sent',items:SENT},
+ {e:'🔍',n:'Lire et comprendre : qui ? quoi ?',type:'comp',t:5,inst:'Lis la phrase, puis réponds',items:CP_QUI},
+ {e:'📍',n:'Lire et comprendre : où ? quand ?',type:'comp',t:5,inst:'Lis la phrase, puis réponds',items:CP_OU},
+ {e:'🔗',n:'Il, elle, le, lui : de qui parle-t-on ?',type:'comp',t:6,inst:'Lis bien les deux phrases',items:CP_PRO},
+ {e:'📖',n:'Petites histoires',type:'comp',t:6,inst:'Lis l’histoire, puis réponds',items:CP_HIST},
+ {e:'👪',n:'Qui est qui ? (la famille)',type:'comp',t:7,inst:'Lis bien : qui est qui ?',items:CP_FAM},
+ {e:'🤔',n:'Pourquoi ? Je devine',type:'comp',t:7,inst:'Lis, puis devine la réponse',items:CP_POURQ},
+ {e:'✅',n:'Vrai ou faux ?',type:'comp',t:8,inst:'Lis l’histoire : la phrase est-elle vraie ?',items:CP_VF},
+ {e:'📚',n:'Histoires plus longues',type:'comp',t:8,inst:'Lis toute l’histoire, puis réponds',items:CP_LONG},
+ {e:'💀',n:'Je lis, puis je réponds de mémoire',type:'comp',t:9,items:CP_MEM},
 ];
 const LOC=window.MLANG==='en'?'en-GB':'fr-FR';
 const itemKey=x=>typeof x==='string'?x:(x.k||x.w||x.s);
@@ -797,6 +917,7 @@ function frQ(lv,x){
         fixHTML:`<span class="emo">${x.e}</span><div>${sylHTML(x.sy)}</div>`,fixChain:sylChain(x)};}
     case 'sight':{const d=similarWords(x,L.items,2);
       return {...base,ans:x,say:x,inst:'Écoute et trouve le petit mot',opts:shuffle([x,...d]).map(v=>({v,l:v})),optCls:'read',fixHTML:`<span class="read">${esc(x)}</span>`,fixSay:x};}
+    case 'comp':return compQ(base,L,x);
     case 'sent':{const same=shuffle(L.items.filter(i=>i!==x&&i.g===x.g)),oth=shuffle(L.items.filter(i=>i!==x&&i.g!==x.g)),d=same.concat(oth).slice(0,2);
       return {...base,ans:x.s,show:x.s,afterSay:x.s,inst:'Lis la phrase et trouve l’image',opts:shuffle([x,...d]).map(i=>({v:i.s,l:i.e})),optCls:'emo emo2',fixHTML:`<span class="emo">${x.e}</span><div class="fixsub read">${esc(x.s)}</div>`,fixSay:x.s};}
   }
@@ -2313,8 +2434,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.58';
+const VERSION='1.59';
 const VERSIONS=[
+ ['1.59','21/11/2026 12:45','Lecture : 9 mondes « lire et comprendre » après Petites phrases'],
  ['1.58','21/11/2026 12:00','Arabe pour débutants : leçon obligatoire, alphabet par petits groupes'],
  ['1.57','21/11/2026 11:20','Malino en anglais (interface, maths, 7 jeux), sélecteur de langue'],
  ['1.56','21/11/2026 10:30','Nouveau jeu : Arabe (18 mondes, lettres, mots, chiffres)'],
@@ -2322,7 +2444,6 @@ const VERSIONS=[
  ['1.54','20/11/2026 22:00','Nouveaux jeux : Qui a changé ? et Chiffres éclair'],
  ['1.53','20/11/2026 21:30','Cheveux longs visibles et gratuits : le profil fille s’affiche enfin'],
  ['1.52','20/11/2026 21:05','Choix garçon / fille à la création et sur chaque profil'],
- ['1.51','20/11/2026 20:55','Écran « Qui joue ? » en grandes cartes + bouton Changer de profil'],
 ];
 const noFr=h=>window.MLANG==='fr'?h:h.replace(/<section class="acard"><h3>(?:📖 Lecture|🎙️ Sons des lettres)<\/h3>[\s\S]*?<\/section>/g,'').replace(/<li>Lecture \(méthode syllabique\)[^<]*<\/li>/,'');
 function renderAdmin(){
@@ -2360,7 +2481,7 @@ function paneSettings(){
   const st=S.settings,m=levelMastery('math',st.mathLevel),fm=levelMastery('fr',st.frLevel);
   const rec=m>=.8&&st.mathLevel<MATH_LEVELS.length?`<div class="reco">✅ ${nm()} maîtrise ${pct(m)} du monde ${st.mathLevel}. Vous pouvez passer au suivant.<button class="btn g sm" data-act="setlvl" data-arg="${st.mathLevel+1}">Passer au monde ${st.mathLevel+1}</button></div>`:'';
   const frec=fm>=.8&&st.frLevel<FR_LEVELS.length?`<div class="reco">✅ ${pct(fm)} du monde ${st.frLevel} de lecture maîtrisé.<button class="btn g sm" data-act="setfr" data-arg="${st.frLevel+1}">Passer au monde ${st.frLevel+1}</button></div>`:'';
-  return `<section class="acard"><h3>💡 La méthode</h3><ul class="tips"><li>10 minutes par jour suffisent : maths, puis lecture, puis le coffre du jour. Les autres jeux et les coffres magiques viennent en bonus.</li><li>Lecture (méthode syllabique) : le son des lettres → j’assemble (s + e = se) → mots de 2 syllabes → mots de 3 syllabes. Les syllabes sont en couleurs alternées, avec les lettres muettes en gris.</li><li>Chaque partie répète quelques questions plusieurs fois. Une erreur ? Correction à l’écran et à voix haute, il refait la question tout de suite, puis on la lui repose plus loin.</li><li>Un calcul est « maîtrisé » après 3 bonnes réponses rapides d’affilée.</li><li>Chaque jeu avance par <b>mondes</b>, du plus facile jusqu’à Expert, Épique, Ultra et Impossible. Passez au monde suivant au-delà de 80 % de maîtrise (ou laissez l’appli le faire seule). En maths, passez ensuite au clavier, puis baissez l’objectif de vitesse (8 s → 6 s → 4 s).</li><li>Le <b>niveau du joueur</b> monte avec tout ce qu’il fait et débloque de nouveaux jeux : l’heure, les formes, les problèmes, les drapeaux, les sciences, l’orthographe.</li><li>Une partie arrêtée avant la fin compte quand même : réponses, pièces et temps sont gardés.</li></ul><button class="btn sm o" data-act="guide">📖 Tout comprendre : coffres, cadeaux, objets…</button></section>
+  return `<section class="acard"><h3>💡 La méthode</h3><ul class="tips"><li>10 minutes par jour suffisent : maths, puis lecture, puis le coffre du jour. Les autres jeux et les coffres magiques viennent en bonus.</li><li>Lecture (méthode syllabique) : le son des lettres → j’assemble (s + e = se) → mots de 2 syllabes → mots de 3 syllabes → petites phrases. Les syllabes sont en couleurs alternées, avec les lettres muettes en gris. Ensuite vient « lire et comprendre » : qui, quoi, où, les reprises (il, elle, le, lui), les petites histoires, les liens de famille, les « pourquoi », le vrai ou faux, puis des histoires lues et racontées de mémoire.</li><li>Chaque partie répète quelques questions plusieurs fois. Une erreur ? Correction à l’écran et à voix haute, il refait la question tout de suite, puis on la lui repose plus loin.</li><li>Un calcul est « maîtrisé » après 3 bonnes réponses rapides d’affilée.</li><li>Chaque jeu avance par <b>mondes</b>, du plus facile jusqu’à Expert, Épique, Ultra et Impossible. Passez au monde suivant au-delà de 80 % de maîtrise (ou laissez l’appli le faire seule). En maths, passez ensuite au clavier, puis baissez l’objectif de vitesse (8 s → 6 s → 4 s).</li><li>Le <b>niveau du joueur</b> monte avec tout ce qu’il fait et débloque de nouveaux jeux : l’heure, les formes, les problèmes, les drapeaux, les sciences, l’orthographe.</li><li>Une partie arrêtée avant la fin compte quand même : réponses, pièces et temps sont gardés.</li></ul><button class="btn sm o" data-act="guide">📖 Tout comprendre : coffres, cadeaux, objets…</button></section>
   <section class="acard"><h3>🌐 Langue · Language</h3><div class="seg" data-noi18n>${[['fr','🇫🇷 Français'],['en','🇬🇧 English']].map(([c,l])=>`<button class="${(window.MLANG||'fr')===c?'on':''}" data-act="setlang" data-arg="${c}">${l}</button>`).join('')}</div><p class="hint">En anglais : maths et jeux visuels. La lecture et l’orthographe restent en français.</p></section>
   <section class="acard"><h3>👦 Enfant</h3><label class="fld">Prénom<input data-field="name" value="${esc(S.name)}" maxlength="20" autocomplete="off"></label><div class="seg" style="margin-top:8px"><button class="${S.genre==='g'?'on':''}" data-act="setgenre" data-arg="g">👦 Garçon</button><button class="${S.genre==='f'?'on':''}" data-act="setgenre" data-arg="f">👧 Fille</button></div></section>
   <section class="acard"><h3>🗝️ Coffres magiques</h3>${tog('coffres','Coffres à ouvrir après 12 h','Gagnés en jouant : 3 étoiles, nouveau niveau, mission du jour. Dedans : pièces, autocollants, objets… ou une farce !')}</section>
