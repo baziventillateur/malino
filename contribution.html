@@ -351,8 +351,12 @@ async function boot(){
   if(d.error==='pause')return viewError('Cette contribution est en pause','Elle revient bientôt. En attendant, d’autres contributions vous attendent peut-être.','⏸️');
   if(!d.items)return viewError(d.error==='reseau'?'Pas de connexion':'Contribution introuvable',d.error==='reseau'?'Vérifiez votre connexion internet puis rechargez la page.':'Ce lien n’existe pas ou n’est plus actif.');
   DEM=d;ST=load();
+  // lien « reprendre » reçu par e-mail : on retrouve une contribution commencée, sur n'importe quel appareil
+  const RP=(new URLSearchParams(location.search).get('reprise')||'').replace(/[^0-9a-zA-Z.-]/g,'').slice(0,120),[rid,rjt]=RP.split('.');
+  if(rid&&rjt){if(!ST||ST.id!==rid){ST={id:rid,jeton:rjt,prenom:'',faits:[],i:0};save();}try{const u=new URL(location.href);u.searchParams.delete('reprise');history.replaceState(null,'',u.pathname+u.search);}catch(e){}}
   if(ST&&ST.fini)return ST.mail?viewDeja():viewEmail();
   if(ST&&ST.id){const r=await call({mode:'reprendre',id:ST.id,jeton:ST.jeton});
+    if(r&&r.faits&&rid&&rid===ST.id){if(!ST.prenom&&r.prenom)ST.prenom=r.prenom;const k=DEM.items.findIndex(x=>!r.faits.includes(x.id));ST.i=k<0?DEM.items.length-1:k;}
     if(r&&r.faits){ST.faits=r.faits;save();if(r.statut==='complet'){ST.fini=true;save();return viewEmail();}I=Math.min(DEM.items.length-1,Math.max(0,ST.i|0));return viewEtape();}
     if(r&&r.error==='jeton'){localStorage.removeItem(KEY);ST=null;}}
   viewAccueil();
