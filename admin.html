@@ -45,6 +45,8 @@ details summary{cursor:pointer;font-weight:700;font-size:15px}
 .kpis.k6{grid-template-columns:repeat(3,1fr)}.kpis.k4{grid-template-columns:repeat(4,1fr);gap:6px}.kpis.k4 .kpi{padding:6px 8px}.kpis.k4 .kpi b{font-size:17px}.kpis.k4 small{font-size:11px}.kpis.k6 .kpi b{font-size:17px}
 .bars{display:flex;align-items:flex-end;gap:2px;height:96px;padding:2px 0;border-bottom:1px solid #E6E3F2}.bc{flex:1;height:100%;display:flex;align-items:flex-end;border-radius:3px}.bc.acc{background:#F6F2FF}.bc i{display:block;width:100%;background:var(--v);border-radius:3px 3px 0 0}
 .barax{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:3px}.sw-acc{display:inline-block;width:10px;height:10px;border-radius:3px;background:#F6F2FF;border:1px solid #E3DAFF;vertical-align:-1px}
+.bell{position:relative;padding:6px 9px}.bell b:not(:empty){position:absolute;top:-5px;right:-5px;min-width:17px;padding:0 4px;border-radius:99px;background:#FF4D4F;color:#fff;font-size:10.5px;line-height:17px;font-weight:800}
+.nday{font-size:12px;font-weight:700;color:var(--mut);margin:10px 2px 4px;text-transform:uppercase;letter-spacing:.03em}.nit{display:flex;gap:9px;align-items:flex-start;background:#fff;border-radius:12px;padding:8px 10px;margin-bottom:5px;box-shadow:0 1px 2px rgba(40,20,120,.05);cursor:pointer}.nit.new{background:#F6F2FF;box-shadow:inset 3px 0 0 var(--v)}.nit .ic{font-size:19px;line-height:22px}.nit .tx{flex:1;min-width:0}.nit b{display:block;font-size:13.5px}.nit span{display:block;font-size:12.5px;color:var(--ink2);word-break:break-word}.nit small{color:var(--mut);font-size:11.5px;white-space:nowrap}
 .tabs{position:sticky;top:44px;z-index:4;display:flex;gap:6px;padding:6px 12px;background:var(--bg);max-width:980px;margin:0 auto}.tabs button{background:#fff;color:var(--ink2);font-weight:700;font-size:13px;padding:6px 11px;border-radius:99px;box-shadow:0 1px 2px rgba(40,20,120,.08)}.tabs button.on{background:var(--v);color:#fff}.tabs b:not(:empty){display:inline-block;min-width:18px;padding:0 5px;margin-left:3px;border-radius:99px;background:#FF5C5C;color:#fff;font-size:11px;line-height:18px}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#FF5C5C;margin-right:4px;vertical-align:1px}.lnk{display:flex;gap:5px;margin:6px 0}.lnk input{flex:1;font-size:12.5px;color:var(--ink2)}.dem{border:1px solid #EEE9FF;border-radius:12px;padding:8px 10px;margin:0 0 8px}.dem.off{opacity:.7}
 .dem .lnk{display:flex;gap:5px;margin:6px 0}.dem .lnk input{flex:1;font-size:12.5px;color:var(--ink2)}
@@ -54,7 +56,7 @@ textarea{font:inherit;border:1px solid #D9D3F3;border-radius:9px;padding:6px 8px
 </style>
 </head>
 <body>
-<header><img src="logo.svg" alt=""><h1>Malino · Admin</h1><button class="o" id="refresh" title="Actualiser">↻</button><a href="./" style="font-size:13px;color:var(--vd);font-weight:600;text-decoration:none">Appli</a></header>
+<header><img src="logo.svg" alt=""><h1>Malino · Admin</h1><button class="o bell" id="bell" title="Notifications">🔔<b id="bellN"></b></button><button class="o" id="refresh" title="Actualiser">↻</button><a href="./" style="font-size:13px;color:var(--vd);font-weight:600;text-decoration:none">Appli</a></header>
 <nav id="tabs" class="tabs hidden"><button data-view="tableau">📊 Tableau de bord</button><button data-view="contrib">🤝 Contributions <b id="tabN"></b></button></nav>
 <main id="app"><p class="mut">Chargement…</p></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -92,9 +94,50 @@ async function load(){
   app.innerHTML='<p class="mut">Chargement…</p>';
   const {data,error}=await sb.rpc('admin_tableau');
   if(error){app.innerHTML=`<div class="card"><h2>Accès refusé</h2><p>Le compte <b>${esc(session.user.email)}</b> n’est pas administrateur.</p><button id="out" class="o">Changer de compte</button></div>`;$('#out').onclick=async()=>{await sb.auth.signOut({scope:'local'});loginView('mail');};return;}
-  D=data;$('#tabs').classList.remove('hidden');render();loadDev();
+  D=data;$('#tabs').classList.remove('hidden');render();loadDev();bellCount();if(!load.t)load.t=setInterval(bellCount,60000);
+  if(location.hash==='#notifs'&&!load.nb){load.nb=1;openBell();}
 }
 
+// ---------- Cloche : notifications importantes (journal) et push sur le téléphone ----------
+const NTYPE={inscription:['👋','Nouveau compte'],contrib_debut:['🎙️','Contribution commencée'],contrib_fin:['✅','Contribution terminée'],code_utilise:['🎟️','Code promo utilisé'],code_refuse:['🚫','Code promo refusé'],cadeau_achete:['🎁','Cadeau Malino+ acheté'],cadeau_sans_formulaire:['🎁','Cadeau payé sans destinataire'],nouvel_abonne:['🎉','Nouvel abonné Malino+'],paiement_recu:['💶','Paiement reçu'],paiement_echoue:['⚠️','Paiement échoué'],paiement_abandonne:['🛒','Paiement commencé puis abandonné'],resiliation:['👋','Résiliation'],resiliation_prevue:['👋','Résiliation programmée'],remboursement:['↩️','Remboursement'],abonne_sans_compte:['⚠️','Abonné sans compte reconnu'],webhook_erreur:['🚨','Erreur Stripe'],envoi_code_echec:['🚨','Code de connexion non envoyé'],envoi_cadeau_echec:['🚨','Cadeau non envoyé']};
+const PUSHPUB='BFLJzcDWvgan1IMMnPf51wZb-fSJOCpnpv5yd-CBrMAjsNzUSDMy0iCBp5NzzjojAtClpyiH9nYpxdxe_fFPUCQ';
+async function bellCount(){const {data,error}=await sb.rpc('admin_notifs_compte');if(error)return;const b=$('#bellN');if(b)b.textContent=data?(data>99?'99+':data):'';}
+const PushA={
+  sup(){return 'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;},
+  ios(){return /iphone|ipad|ipod/i.test(navigator.userAgent)&&!(navigator.standalone||matchMedia('(display-mode: standalone)').matches);},
+  async reg(){try{return (await navigator.serviceWorker.getRegistration())||(await navigator.serviceWorker.register('sw.js'));}catch(e){return null;}},
+  async etat(){if(!this.sup())return 'nosup';if(Notification.permission==='denied')return 'denied';const r=await this.reg();const s=r&&await r.pushManager.getSubscription();return s&&Notification.permission==='granted'?'on':'off';},
+  async activer(){if(!this.sup())return 'nosup';const p=await Notification.requestPermission();if(p!=='granted')return 'denied';
+    const r=await this.reg();await navigator.serviceWorker.ready;let s=await r.pushManager.getSubscription();
+    if(!s){const k=atob(PUSHPUB.replace(/-/g,'+').replace(/_/g,'/'));s=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:Uint8Array.from(k,c=>c.charCodeAt(0))});}
+    const j=s.toJSON(),{error}=await sb.rpc('malino_push_abonner',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_ua:navigator.userAgent.slice(0,200)});if(error)throw error;
+    await this.tester();return 'on';},
+  async tester(){const {data:{session}}=await sb.auth.getSession();return fetch(SB_URL+'/functions/v1/malino-notif',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+session.access_token},body:JSON.stringify({test:true})}).then(r=>r.json()).catch(()=>({}));},
+  async couper(){const r=await this.reg(),s=r&&await r.pushManager.getSubscription();if(s){await sb.rpc('malino_push_desabonner',{p_endpoint:s.endpoint});await s.unsubscribe();}}
+};
+async function openBell(){if($('#bellov'))return;const ov=document.createElement('div');ov.id='fiche';ov.innerHTML='<div class="fbar row"><button class="o" id="nBack">← Retour</button><b style="flex:1">🔔 Notifications</b></div><main id="bellov"><p class="mut">Chargement…</p></main>';document.body.appendChild(ov);document.body.style.overflow='hidden';
+  const close=()=>{ov.remove();document.body.style.overflow='';if(location.hash==='#notifs')try{history.replaceState(null,'',VIEW==='contrib'?'#contrib':location.pathname);}catch(e){}};$('#nBack').onclick=close;
+  const {data,error}=await sb.rpc('admin_notifs',{p_limit:120}),m=$('#bellov');if(!m)return;
+  if(error||!data){m.innerHTML='<p class="msg">Chargement impossible.</p>';return;}
+  const vu=data.vu_le?Date.parse(data.vu_le):0,L=data.items||[];let jour='';
+  const pc=async()=>{const el=$('#pushc');if(!el)return;const st=await PushA.etat();
+    el.innerHTML=st==='on'?'<span class="small">📲 <b>Push activé</b> sur cet appareil</span><span class="row"><button class="o small" id="pT">Tester</button><button class="o small" id="pX">Couper</button></span>'
+      :st==='nosup'?`<span class="small mut">📲 ${PushA.ios()?'Sur iPhone : ajoute Malino à l’écran d’accueil, ouvre-le depuis l’icône, puis reviens ici pour activer le push.':'Ce navigateur ne gère pas les notifications push.'}</span>`
+      :st==='denied'?'<span class="small mut">📲 Notifications bloquées pour ce site : autorise-les dans les réglages du navigateur.</span>'
+      :'<span class="small">📲 Reçois une notification sur ce téléphone à chaque évènement important</span><button class="small" id="pA">Activer</button>';
+    const a=$('#pA');if(a)a.onclick=async()=>{a.disabled=true;a.textContent='…';try{await PushA.activer();}catch(e){alert('Activation impossible, réessaie.');}pc();};
+    const t=$('#pT');if(t)t.onclick=async()=>{t.textContent='Envoi…';const j=await PushA.tester();t.textContent=j&&j.sent?'✅ Envoyé':'Rien reçu ?';};
+    const x=$('#pX');if(x)x.onclick=async()=>{await PushA.couper();pc();};};
+  m.innerHTML=`<div class="card row" id="pushc" style="justify-content:space-between"></div>`+(L.length?L.map(n=>{const [ic,ti]=NTYPE[n.type]||['🔔',n.type],d=new Date(n.cree_le),dj=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}),h=dj!==jour?`<div class="nday">${dj===new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})?'Aujourd’hui':dj}</div>`:'';jour=dj;
+    const sub=n.type.startsWith('contrib_')?esc(n.detail||''):[n.email,n.detail].filter(Boolean).map(esc).join(' · ');
+    return h+`<div class="nit${Date.parse(n.cree_le)>vu?' new':''}" data-nt="${esc(n.type)}" data-ne="${esc(n.email||'')}"><span class="ic">${ic}</span><span class="tx"><b>${esc(ti)}</b>${sub?`<span>${sub}</span>`:''}</span><small>${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</small></div>`;}).join(''):'<p class="mut small">Aucune notification pour le moment.</p>')
+    +'<p class="small mut" style="text-align:center;margin:10px 0">Inscriptions, paiements, codes promo, cadeaux, résiliations, contributions commencées et terminées.</p>';
+  pc();
+  m.querySelectorAll('[data-nt]').forEach(el=>el.onclick=()=>{const t=el.dataset.nt,e=el.dataset.ne;
+    if(t.startsWith('contrib_')){close();setView('contrib');return;}
+    const f=e&&D&&D.familles.find(x=>(x.email||'').toLowerCase()===e.toLowerCase());if(f){close();openFiche(f.user_id);}});
+  if(data.non_lus){await sb.rpc('admin_notifs_vu');bellCount();}
+}
 // ---------- Contributions : pages publiques où des personnes aident (voix, réponses), et ce qu'elles envoient ----------
 const FNC=SB_URL+'/functions/v1/malino-contrib',HUBURL=location.origin+'/contribution.html',CURL=id=>HUBURL+'?d='+encodeURIComponent(id);
 const CST={brouillon:['✏️ Brouillon','t-gratuit'],en_ligne:['🟢 En ligne','t-paye'],suspendue:['⏸️ Suspendue','t-essai'],cloturee:['🔒 Clôturée','t-echec']};
@@ -221,7 +264,7 @@ function editDem(dm){const ov=document.createElement('div');ov.id='fiche';const 
 const DAY=864e5,dk=t=>new Date(t).toLocaleDateString('sv-SE',{timeZone:'Europe/Paris'});
 const JEUX={math:'🔢 Maths',fr:'📖 Lecture',sprint:'⚡ Défi éclair',money:'💶 Monnaie',logic:'🧩 Logique',code:'🤖 Robot',monde:'🌍 Découverte',anglais:'🇬🇧 Anglais',heure:'🕐 L’heure',formes:'📐 Formes',probl:'🧮 Problèmes',drapeaux:'🚩 Drapeaux',espace:'🪐 Sciences',ortho:'✍️ Orthographe',quoi:'🔦 Qui a changé ?',chiffres:'💡 Chiffres éclair',arabe:'ع Arabe'};
 let FLT='tous';
-const JTYPE={relance_j1:'Relance J+1',rapport_niveau:'Rapport : nouveau niveau',rapport_hebdo:'Récap de la semaine',rapport_inactif:'Relance d’inactivité',rapport_fin_essai:'Rappel : essai fini demain',rapport_essai_termine:'Essai terminé',rapport_prolongation:'Offre de prolongation',rapport_merci:'Merci (abonné)',rapport_astuces:'Astuces (abonné)',rapport_auto_chaud:'🔥 Relance « prêt à convertir »',rapport_auto_demarrer:'🧊 Aide au démarrage',rapport_auto_decroche:'😴 Relance « décroche »',rapport_auto_offre:'💎 Offre −30 %',rapport_auto_offre_rappel:'💎 Rappel : dernier jour de l’offre',rapport_auto_impaye:'💳 Paiement en échec',paiement_abandonne:'Paiement commencé, pas terminé',nouvel_abonne:'Nouvel abonné',code_utilise:'Code promo utilisé',cadeau_admin:'Mois offert',cadeau_achete:'Cadeau acheté',paiement_echoue:'Paiement échoué',resiliation:'Résiliation',resiliation_prevue:'Résiliation prévue',remboursement:'Remboursement'};
+const JTYPE={inscription:'Nouveau compte',contrib_debut:'Contribution commencée',contrib_fin:'Contribution terminée',contrib_invitation:'Invitation à contribuer',paiement_recu:'Paiement reçu',relance_j1:'Relance J+1',rapport_niveau:'Rapport : nouveau niveau',rapport_hebdo:'Récap de la semaine',rapport_inactif:'Relance d’inactivité',rapport_fin_essai:'Rappel : essai fini demain',rapport_essai_termine:'Essai terminé',rapport_prolongation:'Offre de prolongation',rapport_merci:'Merci (abonné)',rapport_astuces:'Astuces (abonné)',rapport_auto_chaud:'🔥 Relance « prêt à convertir »',rapport_auto_demarrer:'🧊 Aide au démarrage',rapport_auto_decroche:'😴 Relance « décroche »',rapport_auto_offre:'💎 Offre −30 %',rapport_auto_offre_rappel:'💎 Rappel : dernier jour de l’offre',rapport_auto_impaye:'💳 Paiement en échec',paiement_abandonne:'Paiement commencé, pas terminé',nouvel_abonne:'Nouvel abonné',code_utilise:'Code promo utilisé',cadeau_admin:'Mois offert',cadeau_achete:'Cadeau acheté',paiement_echoue:'Paiement échoué',resiliation:'Résiliation',resiliation_prevue:'Résiliation prévue',remboursement:'Remboursement'};
 // jours de jeu de toute la famille (un jour compte à partir d'1 minute)
 function actOf(kids){const J={};(kids||[]).forEach(k=>Object.entries(k.jours||{}).forEach(([d,s])=>J[d]=(J[d]||0)+s));
   const days=Object.keys(J).filter(d=>J[d]>=60).sort(),s7=dk(Date.now()-6*DAY),last=days[days.length-1]||null;
@@ -397,7 +440,8 @@ async function offrir(mail,mois,message){
   await load();const n=$('#gRes');n.className='msg ok';n.textContent=`✅ ${mois} mois offerts à ${mail}${r.applique?' (déjà actif sur son compte)':' (activé à sa première connexion)'}${r.envoye?' · e-mail envoyé':' · ⚠️ e-mail non envoyé'}`;
 }
 $('#refresh').onclick=load;
-window.addEventListener('hashchange',()=>{if(/^#(contrib|dev)$/.test(location.hash)&&VIEW!=='contrib')setView('contrib');});
+$('#bell').onclick=()=>openBell();
+window.addEventListener('hashchange',()=>{if(location.hash==='#notifs'&&D)openBell();if(/^#(contrib|dev)$/.test(location.hash)&&VIEW!=='contrib')setView('contrib');});
 document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('on',b.dataset.view===VIEW);b.onclick=()=>setView(b.dataset.view);});
 load();
 </script>

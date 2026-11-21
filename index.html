@@ -271,6 +271,7 @@ h1,h2,h3,h4{font-weight:700}
 
 /* Sous-pages */
 .stop{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.admtop{margin-left:auto;display:flex;gap:6px;align-items:center}.admb{display:inline-flex;align-items:center;gap:4px;background:#fff;color:#5A3BE0;border-radius:12px;padding:6px 10px;font-weight:800;font-size:13px;text-decoration:none;box-shadow:0 2px 0 rgba(60,30,160,.12);position:relative}.admb.bell{padding:6px 9px}.admb b:not(:empty){position:absolute;top:-6px;right:-6px;min-width:17px;padding:0 4px;border-radius:99px;background:#FF4D4F;color:#fff;font-size:10.5px;line-height:17px}
 .stop h2{margin:0;font-size:26px;flex:1}
 .lead{color:var(--ink2);font-weight:500;margin:0 0 12px}
 .bigav{width:min(60vw,230px);height:min(60vw,230px);margin:0 auto 10px;filter:drop-shadow(0 8px 14px rgba(36,38,58,.18))}
@@ -2485,16 +2486,16 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.64';
+const VERSION='1.65';
 const VERSIONS=[
+ ['1.65','21/11/2026 15:20','Espace parents : bouton Admin et cloche en haut'],
  ['1.64','21/11/2026 15:00','Voix des contributions : plusieurs voix par son, sons des lettres, cris, anglais'],
  ['1.63','21/11/2026 14:10','Page « Contributions » pour aider Malino (voix, idées)'],
  ['1.62','21/11/2026 13:30','Arabe : 136 mots avec la voix d’un arabophone'],
  ['1.61','21/11/2026 13:20','Arabe : les 28 lettres enregistrées par un arabophone'],
  ['1.60','21/11/2026 12:15','Arabe : sons enregistrés pour toutes les lettres et tous les mots'],
  ['1.59','21/11/2026 12:45','Lecture : 9 mondes « lire et comprendre » après Petites phrases'],
- ['1.58','21/11/2026 12:00','Arabe pour débutants : leçon obligatoire, alphabet par petits groupes'],
- ['1.57','21/11/2026 11:20','Malino en anglais (interface, maths, 7 jeux), sélecteur de langue']
+ ['1.58','21/11/2026 12:00','Arabe pour débutants : leçon obligatoire, alphabet par petits groupes']
 ];
 const noFr=h=>window.MLANG==='fr'?h:h.replace(/<section class="acard"><h3>(?:📖 Lecture|🎙️ Sons des lettres)<\/h3>[\s\S]*?<\/section>/g,'').replace(/<li>Lecture \(méthode syllabique\)[^<]*<\/li>/,'');
 function renderAdmin(){
@@ -2504,9 +2505,9 @@ function renderAdmin(){
   const kids=Acct.list||[];
   const sw=kids.length?`<div class="kidsw"><span class="tlab">Enfant</span><div class="kids">${kids.map(r=>`<button class="${r.id===Acct.pid?'on':''}" data-act="acctswitch" data-arg="${r.id}">${esc(r.id===Acct.pid?(S.name||r.nom):r.nom)}</button>`).join('')}${kids.length>1?`<button class="${adminTab==='comparer'?'on':''}" data-act="tab" data-arg="comparer">📊 Comparer</button>`:''}</div></div>`:'';
   const enf=[['reglages','⚙️ Réglages'],['progres','📈 Progrès'],['cadeaux','🎁 Cadeaux'],['jeux','🎲 Jeux']];
-  const com=[['compte','👤 Famille & compte'],['donnees','💾 Données']].concat(adm?[['admin','🛠 Admin']]:[]);
+  const com=[['compte','👤 Famille & compte'],['donnees','💾 Données']];if(adm)setTimeout(admBell,0);
   const tb=l=>l.map(([k,t])=>`<button class="${adminTab===k?'on':''}" data-act="tab" data-arg="${k}">${t}</button>`).join('');
-  return `<div class="stop"><button class="xbtn" data-act="leaveadmin" aria-label="Retour">←</button><h2>Espace parents</h2></div>
+  return `<div class="stop"><button class="xbtn" data-act="leaveadmin" aria-label="Retour">←</button><h2>Espace parents</h2>${adm?`<span class="admtop"><a href="admin.html#notifs" class="admb bell" aria-label="Notifications">🔔<b id="admN">${admBell.n||''}</b></a><a href="admin.html" class="admb">🛠 Admin</a></span>`:''}</div>
   ${sw}
   <div class="tgrp"><span class="tlab">Pour ${esc(S.name||'l’enfant')}</span><div class="tabs">${tb(enf)}</div></div>
   <div class="tgrp"><span class="tlab">Commun à la famille</span><div class="tabs">${tb(com)}</div></div>
@@ -2525,6 +2526,8 @@ function paneCompare(){
   </table></div></section>`;
 }
 
+// Admin : compteur de la cloche (notifications non lues), rafraîchi au plus toutes les 30 s
+function admBell(){const now=Date.now();if(admBell.t&&now-admBell.t<30000||!Acct.sb)return;admBell.t=now;Acct.sb.rpc('admin_notifs_compte').then(({data})=>{admBell.n=data||0;const e=document.getElementById('admN');if(e)e.textContent=admBell.n?(admBell.n>99?'99+':admBell.n):'';}).catch(()=>{});}
 function paneAdmin(){
   return `<section class="acard"><h3>🛠 Administration</h3><p class="hint">Tableau de bord de l’appli : comptes, codes, paiements et envois.</p><a class="btn p sm" href="admin.html" style="display:inline-block;text-decoration:none">Ouvrir le tableau admin</a></section>`;
 }
