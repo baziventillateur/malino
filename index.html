@@ -85,6 +85,15 @@ h1,h2,h3,h4{font-weight:700}
 .xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--y),var(--o));border-radius:99px;transition:width .6s}
 .xpt{font-size:12px;color:var(--ink2);font-weight:500}
 .pills{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.loginbtn{display:flex;flex-direction:column;align-items:center;gap:1px;background:var(--g);color:#fff;border:0;border-radius:14px;padding:6px 12px;box-shadow:0 3px 0 var(--gd);font:inherit;cursor:pointer;line-height:1.1;animation:lgp 2.6s ease-in-out infinite}
+.loginbtn b{font-size:15px}.loginbtn small{font-size:11px;font-weight:600;opacity:.95}
+@keyframes lgp{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+#tour{position:fixed;inset:0;z-index:74}#tour svg{position:absolute;inset:0}
+.tring{position:absolute;border-radius:16px;box-shadow:0 0 0 3px #FFD84D,0 0 18px 4px rgba(255,216,77,.55);pointer-events:none;animation:pop .3s}
+.tbub{position:absolute;background:#fff;border-radius:18px;padding:12px 14px 10px;box-shadow:0 12px 30px rgba(20,14,60,.35);animation:pop .3s;text-align:left}
+.tbub p{margin:4px 0 8px;font-size:14px;line-height:1.35;color:var(--ink2)}.tbh{display:flex;align-items:center;gap:8px}.tbh span{font-size:26px}.tbh b{font-size:16.5px}
+.tarr{position:absolute;width:14px;height:14px;background:#fff;transform:translateX(-50%) rotate(45deg)}.tbub.b .tarr{top:-7px}.tbub.h .tarr{bottom:-7px}
+.tbf{display:flex;align-items:center;gap:8px}.tbf .btn{margin-left:auto}.tbf .alink{margin:0;font-size:13px}.tdots{display:flex;gap:4px}.tdots i{width:7px;height:7px;border-radius:50%;background:#E3DCFB}.tdots i.on{background:var(--v)}
 .week{display:flex;justify-content:space-between;gap:4px;margin-bottom:12px;padding:10px 12px}
 .day{flex:1;text-align:center;font-size:12px;font-weight:600;color:var(--ink2)}
 .day b{display:flex;align-items:center;justify-content:center;margin:4px auto 0;width:34px;height:34px;border-radius:50%;background:var(--soft);font-size:17px}
@@ -2627,7 +2636,7 @@ function weekHTML(){const now=new Date(),dow=(now.getDay()+6)%7,mon=addDays(now,
 function renderHome(){Dem.sync();
   const li=levelInfo(S.xp),st=S.settings,t=today(),ml=MATH_LEVELS[st.mathLevel-1],mm=levelMastery('math',st.mathLevel),mf=mathFacts(st.mathLevel).length,fl=FR_LEVELS[st.frLevel-1];
   const sprintLocked=!t.math,frLocked=st.frAfterMath&&!t.math,best=S.stats.sprintBest[st.mathLevel]||0,reached=S.gifts.filter(g=>g.reached&&!g.given),nb=Object.keys(S.badges).length,ready=chestAvailable();
-  return `<div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills"><span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">🔄 Changer</button>':''}</div></div>
+  return `<div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills">${Acct.user?'':'<button class="loginbtn" data-act="openlogin"><b>Se connecter</b><small>💾 Garder mes progrès</small></button>'}<span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">🔄 Changer</button>':''}</div></div>
   <div class="week card">${weekHTML()}</div>${Plan.banner()}
   
   <div class="mission card"><div class="mtx"><h3>Mission du jour</h3><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${frOnNow()?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'🎉':'🎁'}</button></div>
@@ -2637,7 +2646,7 @@ function renderHome(){Dem.sync();
   ${frOnNow()?`<button class="play ${frLocked?'locked':''} ${!frLocked&&!t.fr?'pulse':''}" style="--c:var(--p);--d:var(--pd)" data-act="startfr"><span class="ico">📖</span><span class="tx"><span class="t1">Lecture</span><span class="t2">${frLocked?'Après ton entraînement de maths':`Monde ${st.frLevel} · ${fl.n}`}</span></span>${frLocked?'<span class="lock">🔒</span>':''}</button>`:''}
   ${themesHTML()}
   <div class="minis"><button class="mini" data-act="shop"><span>🎨</span>Mon perso</button><button class="mini" data-act="badges"><span>🏆</span>Badges ${nb}/${BADGES.length}</button><button class="mini ${S.gifts.some(g=>g.reached&&!g.given)||(Dem.dispo()&&!Dem.attente())?'blink':''}" data-act="gifts"><span>🎁</span>Cadeaux${S.gifts.some(g=>g.reached&&!g.given)?`<i class="dot">${S.gifts.filter(g=>g.reached&&!g.given).length}</i>`:Dem.dispo()&&!Dem.attente()?'<i class="dot">🔑</i>':''}</button></div>
-  <div class="parentrow"><button class="parentbtn" data-act="parent">🔒 Espace parents</button><a class="parentbtn" href="aide.html" target="_blank" rel="noopener">💬 Aide</a>${Acct.user?'':'<button class="parentbtn" data-act="openlogin">🔑 Connexion</button>'}${Plan.pill()}<button class="parentbtn" data-act="offrir">🎁 Offrir</button></div>`;
+  <div class="parentrow"><button class="parentbtn" data-act="parent">🔒 Espace parents</button><a class="parentbtn" href="aide.html" target="_blank" rel="noopener">💬 Aide</a>${Plan.pill()}<button class="parentbtn" data-act="offrir">🎁 Offrir</button></div>`;
 }
 function renderGame(){
   return `<div class="game"><div class="gtop"><button class="xbtn" data-act="quit" aria-label="Arrêter">✕</button>${G.mode==='sprint'?`<div class="clock" id="clock">⏱ ${S.settings.sprintSec}</div>`:'<div class="gprog"><i id="gprog"></i></div>'}<div class="combo" id="combo"></div></div>
@@ -2699,7 +2708,7 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.73';
+const VERSION='1.74';
 const VERSIONS=[
  ['1.65','21/11/2026 15:20','Espace parents : bouton Admin et cloche en haut'],
  ['1.64','21/11/2026 15:00','Voix des contributions : plusieurs voix par son, sons des lettres, cris, anglais'],
@@ -2828,6 +2837,7 @@ function importFile(file){const r=new FileReader();r.onload=()=>{try{const d=JSO
 // ---------- Actions ----------
 const lockedMsg=()=>{toast('Fais d’abord ton entraînement de maths ! 🔢');if(S.settings.voice)Voice.say('Fais d’abord ton entraînement de maths !');};
 const ACT={
+  tournext(){Tour.next();},tourskip(){Tour.end();},tourgo(){Tour.start();},
   askok(){Ask.done(true);},askno(){Ask.done(false);},
   dhist(){Dem.hOpen=!Dem.hOpen;Dem.hN=5;Dem.parentDessiner();},dhmore(){Dem.hN+=5;Dem.parentDessiner();},
   giftmore(){giftN=S.gifts.length>giftN?giftN+5:5;keepScroll(render);},
@@ -3018,7 +3028,7 @@ const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:
   setMsg(t,ok){const m=$('#amsg');if(!m)return;m.textContent=t||'';m.className='amsg'+(ok?' ok':'');},
   draw(){
     const el=$('#auth'),w=this.mode==='wall'&&!this.user;el.className='auth';
-    const head=`<img class="alogo" src="logo.svg" alt="">`+(w?`<h2>Bravo ! 🎉</h2><p>Pour continuer à jouer, <b>un parent</b> se connecte (gratuit, 1 minute) : <b>14 jours de Malino+ offerts</b>, sans carte bancaire.</p>`:`<h2>Connexion</h2><p>Un parent se connecte pour retrouver la progression sur tous les appareils.</p>`);
+    const head=`<img class="alogo" src="logo.svg" alt="">`+(w?`<h2>Bravo ! 🎉</h2><p>Pour continuer à jouer, <b>un parent</b> se connecte (gratuit, 1 minute) : <b>14 jours de Malino+ offerts</b>, sans carte bancaire.</p>`:(this.user?`<h2>Connexion</h2><p>Un parent se connecte pour retrouver la progression sur tous les appareils.</p>`:`<h2>Garder les progrès 💾</h2><p>Un parent se connecte avec son e-mail (gratuit, 1 minute) : les niveaux, les pièces et les cadeaux sont enregistrés, sur tous les appareils. <b>14 jours de Malino+ offerts.</b></p>`));
     let body=this.note?`<p class="anote">${esc(this.note)}</p>`:'';const v=this.view;
     if(v==='email')body=`<label class="fld">E-mail du parent<input id="aEmail" type="email" inputmode="email" autocomplete="email" placeholder="parent@exemple.fr" value="${esc(this.email)}"></label><button class="btn p sm block" data-act="authsend">Recevoir mon code ✉️</button><button class="alink" data-act="authview" data-arg="pw">J’ai un mot de passe</button>`;
     else if(v==='code')body=`<p>Un code a été envoyé à <b>${esc(this.email)}</b>.<br>Pense à regarder les courriers indésirables.</p><label class="fld">Code reçu par e-mail<input id="aCode" class="acode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="········"></label><button class="btn p sm block" data-act="authverify">Valider</button><button class="alink" id="aResend" data-act="authsend" data-arg="again" ${this.wait>0?'disabled':''}>${this.wait>0?`Renvoyer le code (${this.wait} s)`:'Renvoyer le code'}</button><button class="alink" data-act="authview" data-arg="email">Changer d’adresse</button>`;
@@ -3135,7 +3145,7 @@ function famCard(){
   if(pi.invitation)return `<p class="hint">Invitation envoyée à <b>${esc(pi.invitation.email)}</b>, valable jusqu’au ${fmtDate(pi.invitation.expire_le)}.</p><button class="btn sm o" data-act="famAnnuler">Annuler l’invitation</button>`;
   return `<p class="hint">Ajoutez l’autre parent : il reçoit un mail et crée son propre compte pour suivre les mêmes enfants.</p><label class="fld">E-mail de l’autre parent<input id="famMail" type="email" inputmode="email" placeholder="parent@exemple.fr"></label><button class="btn p sm" style="margin-top:8px" data-act="famInviter">Envoyer l’invitation</button>`;
 }
-function paneAccount(){return paneAccount0()+Install.card();}
+function paneAccount(){return paneAccount0()+Install.card()+`<section class="acard"><h3>🧭 Visite guidée</h3><p class="hint">Revoir la présentation de l’écran d’accueil avec ${esc(nm())}.</p><button class="btn sm o" data-act="tourgo">▶ Revoir la visite</button></section>`;}
 function paneAccount0(){
   if(!Acct.user)return `<section class="acard"><h3>👤 Compte parent</h3><p class="hint">Sans compte, la progression reste sur cet appareil. Avec un compte (gratuit), elle est sauvegardée et on la retrouve sur toutes les tablettes. Après ${WALL_AFTER} séances, la connexion est demandée pour continuer.</p><button class="btn p sm" data-act="openlogin">Se connecter / créer un compte</button></section>`;
   const k=Plan.kind(),pi=Plan.info||{};
@@ -3334,6 +3344,9 @@ const Onb={i:0,d:{},
         <p class="olab">Garçon ou fille ?</p><div class="ochips">${[['g','👦 Garçon'],['f','👧 Fille']].map(([c,l])=>`<button class="${d.genre===c?'on':''}" data-act="onbset" data-arg="genre|${c}">${l}</button>`).join('')}</div>
         <p class="olab">Sa classe</p><div class="ochips">${[['gs','Grande section'],['cp','CP'],['ce1','CE1']].map(([c,l])=>`<button class="${d.classe===c?'on':''}" data-act="onbset" data-arg="classe|${c}">${l}</button>`).join('')}</div>
         <p class="otip">👨‍👩‍👧 Vous avez plusieurs enfants ? Ajoutez-les ensuite dans <b>Espace parents › Compte</b> : chacun a son profil, ses niveaux et ses récompenses${k==='plus'?' (jusqu’à 4 enfants)':' (2 pendant l’essai, jusqu’à 4 avec Malino+)'}.</p>`,
+      ()=>`<div class="oico">🎮</div><h2>Comment ça marche ?</h2>
+        <div class="ocards"><div><span>🎯</span><b>Une mission par jour</b><small>Les maths, la lecture, puis le coffre. 10 minutes suffisent.</small></div><div><span>🪙</span><b>Des pièces et des niveaux</b><small>Chaque bonne réponse rapporte. Les niveaux ouvrent de nouveaux jeux.</small></div><div><span>🗝️</span><b>Des coffres</b><small>Gagnés en jouant, ils s’ouvrent au bout de 12 h.</small></div><div><span>🔑</span><b>De vrais cadeaux</b><small>Une clé tous les 2 niveaux pour demander un cadeau à ses parents.</small></div><div><span>🔒</span><b>L’espace parents</b><small>Réglages, progrès et cadeaux, protégé par un code.</small></div></div>
+        <p class="otip">Juste après, une petite visite de l’écran d’accueil avec ${kid}.</p>`,
       ()=>`<div class="oico">🗓️</div><h2>Chaque jour, une mission</h2><div class="osteps"><div><b>1</b><span><b>Maths</b> · 5 min de calcul mental, du plus facile au plus dur.</span></div><div><b>2</b><span><b>Lecture</b> · les sons, les syllabes, puis les mots et les phrases.</span></div><div><b>3</b><span><b>Le coffre</b> · des pièces pour habiller son personnage.</span></div></div>
         <p class="otip">🧠 Malino s’adapte : ce que ${kid} rate revient plus souvent, ce qu’il maîtrise revient moins. Une voix lit les consignes, il peut jouer seul.</p>`,
       ()=>`<div class="oico">📊</div><h2>Vous savez où insister</h2><p>Dans l’<b>Espace parents</b>, vous suivez sa réussite, sa vitesse et les calculs ou les sons à retravailler.</p>
@@ -3348,7 +3361,7 @@ const Onb={i:0,d:{},
         <p>${k==='plus'?`Tout est débloqué${pi.plus_jusqua?` jusqu’au <b>${fmtDate(pi.plus_jusqua)}</b>`:''}.`:`Jusqu’au <b>${fin}</b>, profitez de presque tout, sans carte bancaire.`}</p>
         <div class="ocmp"><div><b>Toujours gratuit</b><span>✅ Maths et lecture</span><span>✅ Monnaie et Logique</span><span>✅ Récompenses</span></div><div class="p"><b>👑 Malino+</b><span>🎲 Tous les jeux et tous les mondes</span><span>👨‍👩‍👧 Jusqu’à 4 enfants</span><span>📊 Suivi détaillé</span><span>💎 Objets Plasma</span></div></div>
         ${k!=='plus'?'<p class="otip">👥 Invitez 2 amis : <b>+7 jours</b> pour chaque ami inscrit. Ensuite : 2,50 €/mois avec l’offre annuelle.</p>':''}`
-    ].slice(0,2);
+    ].slice(0,3);
   },
   draw(){
     const st=this.steps(),n=st.length,i=this.i,el=$('#onb');
@@ -3386,9 +3399,35 @@ const Onb={i:0,d:{},
     if(Acct.sb)Acct.sb.rpc('maj_parent',{p_prenom:d.prenom||'',p_onb:true}).then(()=>{});
     if(Acct.push)Acct.push();
     go('home');
-    if(!S.sessions.length)setTimeout(()=>{try{startGame('math','train');}catch(e){}},350);
+    setTimeout(()=>Tour.start(),450);
   }
 };
+// Visite guidée de l'accueil (bulles sur les éléments, comme dans PaceApp) : après l'accueil, puis à la demande
+const Tour={i:0,on:false,
+  S:[{s:'.mission',e:'🎯',t:'Ta mission du jour',p:'Chaque jour : les maths, la lecture, puis le coffre 🎁. 10 minutes suffisent !'},
+     {s:'[data-act=startmath]',e:'🔢',t:'Commence par ici',p:'Les calculs s’adaptent à toi : ce que tu rates revient, ce que tu sais revient moins.'},
+     {s:'.cofs',e:'🗝️',t:'Tes coffres',p:'En jouant, tu gagnes des coffres. Ils s’ouvrent au bout de 12 heures.'},
+     {s:'.top .me',e:'🎨',t:'Ton personnage',p:'Avec tes pièces 🪙, habille ton personnage. En montant de niveau, tu ouvres de nouveaux jeux.'},
+     {s:'.minis [data-act=gifts]',e:'🎁',t:'De vrais cadeaux',p:'Tous les 2 niveaux, tu gagnes une clé 🔑 pour demander un cadeau à papa ou maman.'},
+     {s:'.parentrow [data-act=parent]',e:'🔒',t:'Pour les parents',p:'Réglages, progrès et cadeaux, protégés par un code.'}],
+  liste(){return this.S.filter(x=>document.querySelector(x.s));},
+  start(){if(SCR!=='home')go('home');closeAllModals();this.on=true;this.i=0;setTimeout(()=>this.draw(),250);},
+  draw(){if(!this.on)return;const L=this.liste(),st=L[this.i];if(!st)return this.end();const t=document.querySelector(st.s);
+    try{t.scrollIntoView({block:'center'});}catch(e){}
+    setTimeout(()=>{if(!this.on)return;const r=t.getBoundingClientRect(),pad=6,x=r.left-pad,y=r.top-pad,w=r.width+pad*2,h=r.height+pad*2,W=innerWidth,H=innerHeight,bas=y+h+190<H||y<200,bw=Math.min(330,W-24),bx=Math.max(12,Math.min(W-bw-12,x+w/2-bw/2)),ax=Math.max(18,Math.min(bw-18,x+w/2-bx));
+      let el=document.getElementById('tour');if(!el){el=document.createElement('div');el.id='tour';document.body.appendChild(el);}
+      const last=this.i===L.length-1;
+      el.innerHTML=`<svg width="100%" height="100%"><defs><mask id="tourm"><rect width="100%" height="100%" fill="white"/><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="16" fill="black"/></mask></defs><rect width="100%" height="100%" fill="rgba(30,24,70,.66)" mask="url(#tourm)"/></svg>
+        <div class="tring" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"></div>
+        <div class="tbub ${bas?'b':'h'}" style="left:${bx}px;width:${bw}px;${bas?`top:${y+h+12}px`:`bottom:${H-y+12}px`}"><i class="tarr" style="left:${ax}px"></i>
+          <div class="tbh"><span>${st.e}</span><b>${st.t}</b></div><p>${st.p}</p>
+          <div class="tbf"><span class="tdots">${L.map((_,j)=>`<i class="${j===this.i?'on':''}"></i>`).join('')}</span>${last?'':'<button class="alink" data-act="tourskip">Passer</button>'}<button class="btn sm g" data-act="tournext">${last?'C’est parti ! 🚀':'Suivant ➜'}</button></div></div>`;
+      if(S.settings.voice)try{Voice.say((st.t+'. '+st.p).replace(/\p{Extended_Pictographic}|\uFE0F/gu,''));}catch(e){}},280);},
+  next(){this.i++;if(this.i>=this.liste().length)return this.end();this.draw();},
+  end(){this.on=false;const el=document.getElementById('tour');if(el)el.remove();try{Voice.stop();}catch(e){}try{localStorage.setItem('malino_tour','1');}catch(e){}window.scrollTo(0,0);
+    if(!S.sessions.length)setTimeout(()=>{try{startGame('math','train');}catch(e){}},300);}
+};
+addEventListener('resize',()=>{if(Tour.on)Tour.draw();});
 
 try{if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}catch(e){}
 // ---------- Origine de l'inscription ----------
