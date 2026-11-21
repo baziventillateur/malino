@@ -100,6 +100,7 @@ async function load(){
 
 // ---------- Cloche : notifications importantes (journal) et push sur le téléphone ----------
 const NTYPE={inscription:['👋','Nouveau compte'],contrib_debut:['🎙️','Contribution commencée'],contrib_fin:['✅','Contribution terminée'],code_utilise:['🎟️','Code promo utilisé'],code_refuse:['🚫','Code promo refusé'],cadeau_achete:['🎁','Cadeau Malino+ acheté'],cadeau_sans_formulaire:['🎁','Cadeau payé sans destinataire'],nouvel_abonne:['🎉','Nouvel abonné Malino+'],paiement_recu:['💶','Paiement reçu'],paiement_echoue:['⚠️','Paiement échoué'],paiement_abandonne:['🛒','Paiement commencé puis abandonné'],resiliation:['👋','Résiliation'],resiliation_prevue:['👋','Résiliation programmée'],remboursement:['↩️','Remboursement'],abonne_sans_compte:['⚠️','Abonné sans compte reconnu'],webhook_erreur:['🚨','Erreur Stripe'],envoi_code_echec:['🚨','Code de connexion non envoyé'],envoi_cadeau_echec:['🚨','Cadeau non envoyé']};
+const NGROUPES=[['comptes','👋','Nouveaux comptes'],['contrib_debut','🎙️','Contributions commencées'],['contrib_fin','✅','Contributions terminées'],['paiements','💶','Paiements et abonnements'],['codes','🎟️','Codes promo et cadeaux'],['departs','👋','Résiliations et remboursements'],['erreurs','🚨','Erreurs techniques']];
 const PUSHPUB='BFLJzcDWvgan1IMMnPf51wZb-fSJOCpnpv5yd-CBrMAjsNzUSDMy0iCBp5NzzjojAtClpyiH9nYpxdxe_fFPUCQ';
 async function bellCount(){const {data,error}=await sb.rpc('admin_notifs_compte');if(error)return;const b=$('#bellN');if(b)b.textContent=data?(data>99?'99+':data):'';}
 const PushA={
@@ -112,7 +113,8 @@ const PushA={
     if(!s){const k=atob(PUSHPUB.replace(/-/g,'+').replace(/_/g,'/'));s=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:Uint8Array.from(k,c=>c.charCodeAt(0))});}
     const j=s.toJSON(),{error}=await sb.rpc('malino_push_abonner',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_ua:navigator.userAgent.slice(0,200)});if(error)throw error;
     await this.tester();return 'on';},
-  async tester(){const {data:{session}}=await sb.auth.getSession();return fetch(SB_URL+'/functions/v1/malino-notif',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+session.access_token},body:JSON.stringify({test:true})}).then(r=>r.json()).catch(()=>({}));},
+  async fn(body){const {data:{session}}=await sb.auth.getSession();return fetch(SB_URL+'/functions/v1/malino-notif',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+session.access_token},body:JSON.stringify(body)}).then(r=>r.json()).catch(()=>({}));},
+  tester(groupe){return this.fn(groupe?{test:true,groupe}:{test:true});},
   async couper(){const r=await this.reg(),s=r&&await r.pushManager.getSubscription();if(s){await sb.rpc('malino_push_desabonner',{p_endpoint:s.endpoint});await s.unsubscribe();}}
 };
 async function openBell(){if($('#bellov'))return;const ov=document.createElement('div');ov.id='fiche';ov.innerHTML='<div class="fbar row"><button class="o" id="nBack">← Retour</button><b style="flex:1">🔔 Notifications</b></div><main id="bellov"><p class="mut">Chargement…</p></main>';document.body.appendChild(ov);document.body.style.overflow='hidden';
@@ -128,11 +130,17 @@ async function openBell(){if($('#bellov'))return;const ov=document.createElement
     const a=$('#pA');if(a)a.onclick=async()=>{a.disabled=true;a.textContent='…';try{await PushA.activer();}catch(e){alert('Activation impossible, réessaie.');}pc();};
     const t=$('#pT');if(t)t.onclick=async()=>{t.textContent='Envoi…';const j=await PushA.tester();t.textContent=j&&j.sent?'✅ Envoyé':'Rien reçu ?';};
     const x=$('#pX');if(x)x.onclick=async()=>{await PushA.couper();pc();};};
-  m.innerHTML=`<div class="card row" id="pushc" style="justify-content:space-between"></div>`+(L.length?L.map(n=>{const [ic,ti]=NTYPE[n.type]||['🔔',n.type],d=new Date(n.cree_le),dj=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}),h=dj!==jour?`<div class="nday">${dj===new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})?'Aujourd’hui':dj}</div>`:'';jour=dj;
+  m.innerHTML=`<div class="card row" id="pushc" style="justify-content:space-between"></div><div class="card" id="nprefs"></div>`+(L.length?L.map(n=>{const [ic,ti]=NTYPE[n.type]||['🔔',n.type],d=new Date(n.cree_le),dj=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}),h=dj!==jour?`<div class="nday">${dj===new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})?'Aujourd’hui':dj}</div>`:'';jour=dj;
     const sub=n.type.startsWith('contrib_')?esc(n.detail||''):[n.email,n.detail].filter(Boolean).map(esc).join(' · ');
     return h+`<div class="nit${Date.parse(n.cree_le)>vu?' new':''}" data-nt="${esc(n.type)}" data-ne="${esc(n.email||'')}"><span class="ic">${ic}</span><span class="tx"><b>${esc(ti)}</b>${sub?`<span>${sub}</span>`:''}</span><small>${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</small></div>`;}).join(''):'<p class="mut small">Aucune notification pour le moment.</p>')
     +'<p class="small mut" style="text-align:center;margin:10px 0">Inscriptions, paiements, codes promo, cadeaux, résiliations, contributions commencées et terminées.</p>';
   pc();
+  // choix des notifications reçues en push (la cloche garde tout)
+  const np=async()=>{const el=$('#nprefs');if(!el)return;const j=await PushA.fn({mode:'prefs'}),P=(j&&j.prefs)||{};
+    el.innerHTML=`<h2 style="margin-bottom:4px">📲 Mes notifications push</h2><p class="small mut" style="margin:0 0 6px">Choisis ce qui t’envoie une notification sur le téléphone. ▶ envoie un essai.</p>`+NGROUPES.map(([k,ic,l])=>`<div class="row" style="justify-content:space-between;padding:5px 0;border-top:1px solid #F3F1FA"><span>${ic} ${l}</span><span class="row"><button class="o small" data-ness="${k}" title="Envoyer un essai">▶</button><button class="sw ${P[k]!==false?'on':''}" data-npref="${k}" aria-label="Activer ou couper"></button></span></div>`).join('');
+    el.querySelectorAll('[data-npref]').forEach(b=>b.onclick=async()=>{const on=!b.classList.contains('on');b.classList.toggle('on',on);const r=await PushA.fn({mode:'prefs_set',groupe:b.dataset.npref,actif:on});if(!r||!r.ok)b.classList.toggle('on',!on);});
+    el.querySelectorAll('[data-ness]').forEach(b=>b.onclick=async()=>{b.textContent='…';const r=await PushA.tester(b.dataset.ness);b.textContent=r&&r.sent?'✓':'✕';setTimeout(()=>{b.textContent='▶';},2500);});};
+  np();
   m.querySelectorAll('[data-nt]').forEach(el=>el.onclick=()=>{const t=el.dataset.nt,e=el.dataset.ne;
     if(t.startsWith('contrib_')){close();setView('contrib');return;}
     const f=e&&D&&D.familles.find(x=>(x.email||'').toLowerCase()===e.toLowerCase());if(f){close();openFiche(f.user_id);}});
