@@ -5,7 +5,7 @@ self.addEventListener('fetch',e=>{
   const r=e.request;if(r.method!=='GET')return;
   if(new URL(r.url).origin!==location.origin)return;
   e.respondWith(fetch(r).then(res=>{
-    if(r.mode==='navigate'){const c=res.clone();caches.open(C).then(k=>k.put('./',c));}
+    if(r.mode==='navigate'){if(res.ok&&/\/(index\.html)?$/.test(new URL(r.url).pathname)){const c=res.clone();caches.open(C).then(k=>k.put('./',c));}} // seule l'appli sert de page hors ligne (pas l'admin ni les contributions)
     else if(res.ok&&/\/(lang-[a-z]+\.js|ar\/[0-9a-f]{8}\.mp3)$/.test(new URL(r.url).pathname)){const c=res.clone();caches.open(C).then(k=>k.put(r,c));} // dictionnaires de langue : disponibles hors ligne
     return res;
   }).catch(()=>caches.match(r).then(m=>m||caches.match('./'))));

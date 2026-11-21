@@ -42,10 +42,11 @@ details summary{cursor:pointer;font-weight:700;font-size:15px}
 .pred h2{flex-wrap:wrap}.pred h2 b{font-size:20px}.gauge{height:8px;border-radius:99px;background:#EEF0F5;overflow:hidden;margin:2px 0 8px}.gauge i{display:block;height:100%;border-radius:99px}
 .why{margin:0 0 6px;padding-left:18px;font-size:13px;color:var(--ink2)}.why li{margin:1px 0}.todo{margin:6px 0 8px;font-weight:600;font-size:13.5px;background:#F4F1FF;border-radius:10px;padding:7px 9px}
 .btnl{display:inline-block;background:var(--v);color:#fff;font-weight:600;border-radius:9px;padding:6px 10px;text-decoration:none}
-.kpis.k6{grid-template-columns:repeat(3,1fr)}.kpis.k6 .kpi b{font-size:17px}
+.kpis.k6{grid-template-columns:repeat(3,1fr)}.kpis.k4{grid-template-columns:repeat(4,1fr);gap:6px}.kpis.k4 .kpi{padding:6px 8px}.kpis.k4 .kpi b{font-size:17px}.kpis.k4 small{font-size:11px}.kpis.k6 .kpi b{font-size:17px}
 .bars{display:flex;align-items:flex-end;gap:2px;height:96px;padding:2px 0;border-bottom:1px solid #E6E3F2}.bc{flex:1;height:100%;display:flex;align-items:flex-end;border-radius:3px}.bc.acc{background:#F6F2FF}.bc i{display:block;width:100%;background:var(--v);border-radius:3px 3px 0 0}
 .barax{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:3px}.sw-acc{display:inline-block;width:10px;height:10px;border-radius:3px;background:#F6F2FF;border:1px solid #E3DAFF;vertical-align:-1px}
-.dev h3{font-size:14px;margin:4px 0 6px;display:flex;align-items:center;gap:6px}.dem{border:1px solid #EEE9FF;border-radius:12px;padding:8px 10px;margin:0 0 8px}.dem.off{opacity:.7}
+.tabs{position:sticky;top:44px;z-index:4;display:flex;gap:6px;padding:6px 12px;background:var(--bg);max-width:980px;margin:0 auto}.tabs button{background:#fff;color:var(--ink2);font-weight:700;font-size:13px;padding:6px 11px;border-radius:99px;box-shadow:0 1px 2px rgba(40,20,120,.08)}.tabs button.on{background:var(--v);color:#fff}.tabs b:not(:empty){display:inline-block;min-width:18px;padding:0 5px;margin-left:3px;border-radius:99px;background:#FF5C5C;color:#fff;font-size:11px;line-height:18px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#FF5C5C;margin-right:4px;vertical-align:1px}.lnk{display:flex;gap:5px;margin:6px 0}.lnk input{flex:1;font-size:12.5px;color:var(--ink2)}.dem{border:1px solid #EEE9FF;border-radius:12px;padding:8px 10px;margin:0 0 8px}.dem.off{opacity:.7}
 .dem .lnk{display:flex;gap:5px;margin:6px 0}.dem .lnk input{flex:1;font-size:12.5px;color:var(--ink2)}
 .pers{border-top:1px solid #F3F1FA;padding:6px 0}.pers>.row{cursor:pointer}.pers .its{margin:6px 0 2px;padding-left:4px}
 .it{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:13px;flex-wrap:wrap}.it .ar{font-size:18px;min-width:70px;text-align:right;font-family:"Noto Naskh Arabic","Geeza Pro","Segoe UI",serif}.it .s{color:var(--mut);flex:1;min-width:80px}.it audio{height:28px;width:150px}.it button{padding:4px 8px}
@@ -54,6 +55,7 @@ textarea{font:inherit;border:1px solid #D9D3F3;border-radius:9px;padding:6px 8px
 </head>
 <body>
 <header><img src="logo.svg" alt=""><h1>Malino · Admin</h1><button class="o" id="refresh" title="Actualiser">↻</button><a href="./" style="font-size:13px;color:var(--vd);font-weight:600;text-decoration:none">Appli</a></header>
+<nav id="tabs" class="tabs hidden"><button data-view="tableau">📊 Tableau de bord</button><button data-view="contrib">🤝 Contributions <b id="tabN"></b></button></nav>
 <main id="app"><p class="mut">Chargement…</p></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
@@ -67,7 +69,7 @@ const dh=x=>x?new Date(x).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',
 const ago=x=>{if(!x)return '—';const m=(Date.now()-Date.parse(x))/6e4;return m<60?Math.round(m)+' min':m<1440?Math.round(m/60)+' h':Math.round(m/1440)+' j';};
 const lvl=xp=>{let L=1,r=xp||0;while(r>=80+40*L){r-=80+40*L;L++;}return L;};
 const jours=x=>Math.max(0,Math.ceil((Date.parse(x)-Date.now())/864e5));
-let D=null,email='',q='';
+let D=null,email='',q='',VIEW=/^#(contrib|dev)$/.test(location.hash)?'contrib':'tableau';
 
 function loginView(step,msg){
   app.innerHTML=`<div id="login" class="card"><img src="logo.svg" width="56" height="56" style="border-radius:14px"><h2 style="justify-content:center">Connexion admin</h2>
@@ -90,54 +92,85 @@ async function load(){
   app.innerHTML='<p class="mut">Chargement…</p>';
   const {data,error}=await sb.rpc('admin_tableau');
   if(error){app.innerHTML=`<div class="card"><h2>Accès refusé</h2><p>Le compte <b>${esc(session.user.email)}</b> n’est pas administrateur.</p><button id="out" class="o">Changer de compte</button></div>`;$('#out').onclick=async()=>{await sb.auth.signOut({scope:'local'});loginView('mail');};return;}
-  D=data;draw();loadDev();
+  D=data;$('#tabs').classList.remove('hidden');render();loadDev();
 }
 
-// ---------- Développement : contributions (pages publiques à envoyer à quelqu'un qui aide) ----------
-const FNC=SB_URL+'/functions/v1/malino-contrib',CURL=id=>location.origin+'/contribuer.html?d='+encodeURIComponent(id);
-let DV=null,DVERR='',DVOPEN={};
-async function loadDev(){const {data,error}=await sb.rpc('admin_contrib');DV=error?null:data;DVERR=error?(/admin_contrib/.test(error.message||'')?'base':'err'):'';drawDev();
-  if(location.hash==='#dev'&&!loadDev.done){loadDev.done=1;const e=$('#dev');e&&e.scrollIntoView({behavior:'smooth'});}}
-function drawDev(){const el=$('#dev');if(!el)return;
-  const head=`<h2>🛠️ Développement</h2><h3>🎙️ Contributions<button class="o small" id="cNew" style="margin-left:auto">+ Nouvelle demande</button></h3><p class="small mut" style="margin:-2px 0 8px">Des pages publiques à envoyer à quelqu’un qui t’aide.</p>`;
-  if(!DV){el.innerHTML=head+`<p class="small mut">${DVERR==='base'?'Les tables des contributions ne sont pas encore créées sur Supabase.':DVERR?'Chargement impossible.':'Chargement…'}</p>`;const n=$('#cNew');if(n)n.onclick=()=>editDem();return;}
-  el.innerHTML=head+(DV.length?DV.map(dm=>{const R=dm.reponses||[],N=dm.items.length,fin=R.filter(r=>r.statut==='complet').length;
-    return `<div class="dem${dm.actif?'':' off'}"><div class="row" style="justify-content:space-between"><b>${esc(dm.titre)}</b><span class="row"><span class="tag ${dm.actif?'t-paye':'t-gratuit'}">${dm.actif?'ouverte':'fermée'}</span><span class="small mut">${N} élément${N>1?'s':''} · ${R.length} personne${R.length>1?'s':''} · ${fin} terminé${fin>1?'s':''}</span></span></div>
-      <div class="lnk"><input readonly value="${esc(CURL(dm.id))}"><button class="o small" data-ccopy="${esc(dm.id)}">Copier</button>${navigator.share?`<button class="o small" data-cshare="${esc(dm.id)}">Partager</button>`:''}<a class="btnl small" href="${esc(CURL(dm.id))}" target="_blank" rel="noopener" style="padding:6px 8px">Voir</a></div>
-      <div class="row"><button class="o small" data-cedit="${esc(dm.id)}">Modifier</button><button class="${dm.actif?'r':'o'} small" data-cact="${esc(dm.id)}">${dm.actif?'Fermer la page':'Rouvrir'}</button></div>
-      ${R.map(r=>{const f=r.fichiers||{},n=dm.items.filter(x=>f[x.id]).length,op=DVOPEN[r.id];
-        return `<div class="pers"><div class="row" data-cper="${r.id}" style="justify-content:space-between"><b>${op?'▾':'▸'} ${esc(r.prenom)}</b><span class="row"><span class="tag ${r.statut==='complet'?'t-paye':'t-essai'}">${r.statut==='complet'?'✅ terminé':`⏳ en cours ${n}/${N}`}</span><span class="small mut">${dh(r.termine_le||r.maj_le)}</span></span></div>
-          ${op?`<div class="its">${dm.items.map(x=>{const e=f[x.id];return `<div class="it"><span class="ar" ${/[؀-ۿ]/.test(x.texte)?'dir="rtl"':''}>${esc(x.texte)}</span><span class="s">${esc(x.sens||'')}</span>${!e?'<span class="small mut">pas encore</span>':e.texte?`<span>${esc(e.texte)}</span>`:`<audio controls preload="none" data-path="${esc(e.path)}"></audio>${x.cible?(e.adopte?'<span class="tag t-paye">✓ dans l’appli</span>':`<button class="o small" data-adopt="${r.id}|${esc(x.id)}">Utiliser dans l’appli</button>`):''}`}</div>`;}).join('')}</div>`:''}</div>`;}).join('')||'<p class="small mut" style="margin:6px 0 0">Personne n’a encore commencé. Envoie le lien !</p>'}</div>`;}).join(''):'<p class="small mut">Aucune demande pour le moment.</p>')+
-    `<p class="small mut" style="margin:4px 0 0">Chaque personne donne son prénom puis avance étape par étape. Quand elle a tout envoyé, tu reçois un e-mail. « Utiliser dans l’appli » remplace la voix du mot dans Malino, sans nouvelle version.</p>`;
+// ---------- Contributions : pages publiques où des personnes aident (voix, réponses), et ce qu'elles envoient ----------
+const FNC=SB_URL+'/functions/v1/malino-contrib',HUBURL=location.origin+'/contribution.html',CURL=id=>HUBURL+'?d='+encodeURIComponent(id);
+const CST={brouillon:['✏️ Brouillon','t-gratuit'],en_ligne:['🟢 En ligne','t-paye'],suspendue:['⏸️ Suspendue','t-essai'],cloturee:['🔒 Clôturée','t-echec']};
+let DV=null,DVERR='',DVOPEN={},CFLT='nouv';
+const isNew=r=>r.statut==='complet'&&!r.vu;
+async function loadDev(){const {data,error}=await sb.rpc('admin_contrib');DV=error?null:data;DVERR=error?(/admin_contrib|column|statut/.test(error.message||'')?'base':'err'):'';
+  const n=DV?DV.reduce((a,d)=>a+(d.reponses||[]).filter(isNew).length,0):0,t=$('#tabN');if(t)t.textContent=n?n:'';
+  if(VIEW==='contrib')drawContrib();else devLink();}
+function devLink(){const el=$('#devlink');if(!el)return;if(!DV){el.innerHTML='';return;}
+  const n=DV.reduce((a,d)=>a+(d.reponses||[]).filter(isNew).length,0),on=DV.filter(d=>d.statut==='en_ligne').length;
+  el.innerHTML=`<div class="card row" style="cursor:pointer;justify-content:space-between" id="goC"><b>🤝 Contributions</b><span class="row"><span class="small mut">${on} en ligne</span>${n?`<span class="tag t-chaud">${n} nouvelle${n>1?'s':''}</span>`:''}<span class="go">›</span></span></div>`;
+  $('#goC').onclick=()=>setView('contrib');}
+function setView(v){VIEW=v;try{history.replaceState(null,'',v==='contrib'?'#contrib':location.pathname);}catch(e){}
+  document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('on',b.dataset.view===v));window.scrollTo(0,0);render();}
+function render(){if(!D)return;if(VIEW==='contrib')drawContrib();else draw();}
+function persItems(dm,r){const f=r.fichiers||{};return `<div class="its">${dm.items.map(x=>{const e=f[x.id];return `<div class="it"><span class="ar" ${/[؀-ۿ]/.test(x.texte)?'dir="rtl"':''}>${esc(x.texte)}</span><span class="s">${esc(x.sens||'')}</span>${!e?'<span class="small mut">pas encore</span>':e.texte?`<span>${esc(e.texte)}</span>`:`<audio controls preload="none" data-path="${esc(e.path)}"></audio>${x.cible?(e.adopte?'<span class="tag t-paye">✓ dans l’appli</span>':`<button class="o small" data-adopt="${r.id}|${esc(x.id)}">Utiliser dans l’appli</button>`):''}`}</div>`;}).join('')}</div>`;}
+function drawContrib(){
+  if(!DV){app.innerHTML=`<div class="card"><h2>🤝 Contributions</h2><p class="small mut">${DVERR==='base'?'La base des contributions doit être mise à jour sur Supabase.':DVERR?'Chargement impossible.':'Chargement…'}</p></div>`;return;}
+  const R=[];DV.forEach(dm=>(dm.reponses||[]).forEach(r=>R.push({r,dm})));R.sort((a,b)=>Date.parse(b.r.maj_le)-Date.parse(a.r.maj_le));
+  const nNew=R.filter(x=>isNew(x.r)).length,nFin=R.filter(x=>x.r.statut==='complet').length,nOn=DV.filter(d=>d.statut==='en_ligne').length;
+  const F={nouv:['✨ Nouvelles',x=>isNew(x.r)],fin:['✅ Terminées',x=>x.r.statut==='complet'],cours:['⏳ En cours',x=>x.r.statut!=='complet'],tout:['Toutes',()=>true]};
+  if(CFLT==='nouv'&&!nNew)CFLT='tout';
+  const list=R.filter(F[CFLT][1]);
+  app.innerHTML=`<div class="kpis k4"><div class="kpi hl"><b>${nNew}</b><small>nouvelles</small></div><div class="kpi"><b>${nFin}</b><small>terminées</small></div><div class="kpi"><b>${R.length-nFin}</b><small>en cours</small></div><div class="kpi"><b>${nOn}</b><small>contributions en ligne</small></div></div>
+  <div class="card"><h2>🌐 Page publique des contributions</h2><div class="lnk"><input readonly value="${esc(HUBURL)}"><button class="o small" data-cpy="${esc(HUBURL)}">Copier</button>${navigator.share?`<button class="o small" data-shr="${esc(HUBURL)}">Partager</button>`:''}<a class="btnl small" href="${esc(HUBURL)}" target="_blank" rel="noopener" style="padding:6px 8px">Voir</a></div><p class="small mut" style="margin:0">Elle liste toutes les contributions « en ligne ». Tu peux aussi envoyer le lien direct d’une contribution.</p></div>
+  <div class="card"><h2>📥 Reçues ${nNew?`<span class="tag t-chaud">${nNew} nouvelle${nNew>1?'s':''}</span>`:''}</h2>
+   <div class="chips">${Object.entries(F).map(([k,[l,fn]])=>`<button class="chip ${CFLT===k?'on':''}" data-cf="${k}">${l} <b>${R.filter(fn).length}</b></button>`).join('')}</div>
+   ${list.map(({r,dm})=>{const N=dm.items.length,n=dm.items.filter(x=>(r.fichiers||{})[x.id]).length,op=DVOPEN[r.id];
+     return `<div class="pers"><div class="row" data-cper="${r.id}" style="justify-content:space-between"><b>${isNew(r)?'<span class="dot"></span>':''}${op?'▾':'▸'} ${esc(r.prenom)} <span class="small mut" style="font-weight:400">· ${esc(dm.emoji||'🤝')} ${esc(dm.titre)}</span></b><span class="row"><span class="tag ${r.statut==='complet'?'t-paye':'t-essai'}">${r.statut==='complet'?'✅ terminé':`⏳ ${n}/${N}`}</span><span class="small mut">${dh(r.termine_le||r.maj_le)}</span></span></div>
+      ${r.email?`<div class="small" style="margin:2px 0 0 14px">📧 <a href="mailto:${esc(r.email)}">${esc(r.email)}</a></div>`:''}
+      ${op?persItems(dm,r)+`<div class="row" style="margin:4px 0 2px">${r.email?`<a class="btnl small" style="padding:5px 9px" href="mailto:${esc(r.email)}?subject=${encodeURIComponent('Merci pour votre contribution à Malino')}">✉️ Écrire</a>`:''}<button class="r small" data-cdel="${r.id}">🗑️ Supprimer</button></div>`:''}</div>`;}).join('')||'<p class="small mut" style="margin:6px 0 0">Rien ici pour le moment.</p>'}</div>
+  <div class="card"><h2>🗂️ Mes contributions <button class="o small" id="cNew" style="margin-left:auto">+ Nouvelle contribution</button></h2>
+   ${DV.map(dm=>{const R2=dm.reponses||[],N=dm.items.length,fin=R2.filter(r=>r.statut==='complet').length,[lab,cls]=CST[dm.statut]||CST.brouillon,s=dm.statut;
+    const act=s==='brouillon'?[['en_ligne','🚀 Mettre en ligne','']]:s==='en_ligne'?[['suspendue','⏸️ Suspendre','o'],['cloturee','🔒 Clôturer','r']]:s==='suspendue'?[['en_ligne','▶️ Remettre en ligne',''],['cloturee','🔒 Clôturer','r']]:[['en_ligne','↩️ Rouvrir','o']];
+    return `<div class="dem"><div class="row" style="justify-content:space-between"><b>${esc(dm.emoji||'🤝')} ${esc(dm.titre)}</b><span class="tag ${cls}">${lab}</span></div>
+     <div class="small mut" style="margin:2px 0 4px">${N} étape${N>1?'s':''} · ${R2.length} personne${R2.length>1?'s':''} · ${fin} terminé${fin>1?'s':''}${dm.resume?' · '+esc(dm.resume):''}</div>
+     ${s==='brouillon'?'':`<div class="lnk"><input readonly value="${esc(CURL(dm.id))}"><button class="o small" data-cpy="${esc(CURL(dm.id))}">Copier</button>${navigator.share?`<button class="o small" data-shr="${esc(CURL(dm.id))}">Partager</button>`:''}</div>`}
+     <div class="row">${act.map(([v,l,c])=>`<button class="${c} small" data-cst="${esc(dm.id)}|${v}">${l}</button>`).join('')}<button class="o small" data-cedit="${esc(dm.id)}">✏️ Modifier</button></div></div>`;}).join('')||'<p class="small mut">Aucune contribution pour le moment.</p>'}
+   <p class="small mut" style="margin:4px 0 0"><b>Brouillon</b> : invisible · <b>En ligne</b> : visible sur la page publique · <b>Suspendue</b> : en pause, ceux qui ont commencé peuvent finir · <b>Clôturée</b> : terminée. À la fin, chaque personne laisse son e-mail si elle veut et reçoit un merci ; toi, tu reçois un e-mail dès qu’une contribution est terminée.</p></div>`;
   $('#cNew').onclick=()=>editDem();
-  el.querySelectorAll('[data-ccopy]').forEach(b=>b.onclick=async()=>{const u=CURL(b.dataset.ccopy);try{await navigator.clipboard.writeText(u);b.textContent='Copié ✅';}catch(e){prompt('Copie ce lien :',u);}});
-  el.querySelectorAll('[data-cshare]').forEach(b=>b.onclick=()=>{const dm=DV.find(x=>x.id===b.dataset.cshare);navigator.share({title:'Malino',text:`Bonjour ! Tu peux m’aider pour Malino ? Ça prend quelques minutes : ${dm?dm.titre:''}`,url:CURL(b.dataset.cshare)}).catch(()=>{});});
-  el.querySelectorAll('[data-cedit]').forEach(b=>b.onclick=()=>editDem(DV.find(x=>x.id===b.dataset.cedit)));
-  el.querySelectorAll('[data-cact]').forEach(b=>b.onclick=async()=>{const dm=DV.find(x=>x.id===b.dataset.cact);if(dm.actif&&!confirm('Fermer cette page ? Les personnes qui ouvrent le lien verront « c’est complet ».'))return;await sb.rpc('admin_contrib_actif',{p_id:dm.id,p_actif:!dm.actif});loadDev();});
-  el.querySelectorAll('[data-cper]').forEach(b=>b.onclick=()=>{DVOPEN[b.dataset.cper]=!DVOPEN[b.dataset.cper];drawDev();});
-  const au=[...el.querySelectorAll('audio[data-path]')];
+  app.querySelectorAll('[data-cf]').forEach(b=>b.onclick=()=>{CFLT=b.dataset.cf;drawContrib();});
+  app.querySelectorAll('[data-cpy]').forEach(b=>b.onclick=async()=>{const u=b.dataset.cpy;try{await navigator.clipboard.writeText(u);b.textContent='Copié ✅';}catch(e){prompt('Copie ce lien :',u);}});
+  app.querySelectorAll('[data-shr]').forEach(b=>b.onclick=()=>navigator.share({title:'Malino · Contributions',text:'Bonjour ! Tu peux m’aider pour Malino ? Ça prend quelques minutes :',url:b.dataset.shr}).catch(()=>{}));
+  app.querySelectorAll('[data-cedit]').forEach(b=>b.onclick=()=>editDem(DV.find(x=>x.id===b.dataset.cedit)));
+  app.querySelectorAll('[data-cst]').forEach(b=>b.onclick=async()=>{const [id,v]=b.dataset.cst.split('|');
+    if(v==='cloturee'&&!confirm('Clôturer cette contribution ? Elle disparaît de la page publique et plus personne ne peut la faire.'))return;
+    b.disabled=true;const {error}=await sb.rpc('admin_contrib_statut',{p_id:id,p_statut:v});if(error){b.disabled=false;b.textContent='Échec';return;}loadDev();});
+  app.querySelectorAll('[data-cper]').forEach(b=>b.onclick=()=>{const id=b.dataset.cper;DVOPEN[id]=!DVOPEN[id];
+    const x=R.find(y=>y.r.id===id);if(DVOPEN[id]&&x&&isNew(x.r)){x.r.vu=true;sb.rpc('admin_contrib_vu',{p_ids:[id]});const t=$('#tabN'),k=R.filter(y=>isNew(y.r)).length;if(t)t.textContent=k||'';}
+    drawContrib();});
+  app.querySelectorAll('[data-cdel]').forEach(b=>b.onclick=async()=>{if(!confirm('Supprimer cette contribution reçue ? (ex. un essai ou un spam)'))return;await sb.rpc('admin_contrib_suppr',{p_id:b.dataset.cdel});loadDev();});
+  const au=[...app.querySelectorAll('audio[data-path]')];
   if(au.length)sb.storage.from('contrib').createSignedUrls(au.map(a=>a.dataset.path),3600).then(({data})=>{(data||[]).forEach((s,i)=>{if(s&&s.signedUrl&&au[i])au[i].src=s.signedUrl;});});
-  el.querySelectorAll('[data-adopt]').forEach(b=>b.onclick=async()=>{const [id,item]=b.dataset.adopt.split('|');if(!confirm('Utiliser cet enregistrement comme voix officielle de ce mot dans Malino ?'))return;
+  app.querySelectorAll('[data-adopt]').forEach(b=>b.onclick=async()=>{const [id,item]=b.dataset.adopt.split('|');if(!confirm('Utiliser cet enregistrement comme voix officielle de ce mot dans Malino ?'))return;
     b.disabled=true;b.textContent='…';const {data:{session}}=await sb.auth.getSession();
     const j=await fetch(FNC,{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+session.access_token},body:JSON.stringify({mode:'adopter',id,item})}).then(r=>r.json()).catch(()=>({}));
     if(j.ok)loadDev();else{b.disabled=false;b.textContent='Échec, réessayer';}});
 }
 function editDem(dm){const ov=document.createElement('div');ov.id='fiche';const items=dm?dm.items:[],mode=items[0]&&items[0].mode==='texte'?'texte':'voix';
   const lignes=items.map(x=>[x.texte,x.sens||'',x.aide||'',x.cible||'',x.consigne||''].join(' | ').replace(/( \| )+$/,'')).join('\n');
-  ov.innerHTML=`<div class="fbar row"><button class="o" id="eBack">← Retour</button><b style="flex:1">${dm?'Modifier la demande':'Nouvelle demande'}</b></div><main><div class="card">
+  ov.innerHTML=`<div class="fbar row"><button class="o" id="eBack">← Retour</button><b style="flex:1">${dm?'Modifier la contribution':'Nouvelle contribution'}</b></div><main><div class="card">
+   <div class="row" style="flex-wrap:nowrap"><div style="width:64px"><label class="small mut">Icône</label><input id="eEm" value="${esc(dm?dm.emoji:'🤝')}" maxlength="4" style="width:100%;text-align:center;font-size:18px;margin:3px 0 8px"></div>
+   <div style="flex:1"><label class="small mut">Titre affiché</label><input id="eTi" value="${esc(dm?dm.titre:'')}" placeholder="ex. Votre voix pour l’arabe de Malino" style="width:100%;margin:3px 0 8px"></div></div>
    <label class="small mut">Identifiant du lien (lettres, chiffres, tirets)</label><input id="eId" value="${esc(dm?dm.id:'')}" ${dm?'disabled':''} placeholder="ex. voix-arabe-2" style="width:100%;margin:3px 0 8px">
-   <label class="small mut">Titre affiché</label><input id="eTi" value="${esc(dm?dm.titre:'')}" placeholder="ex. Votre voix pour l’arabe de Malino" style="width:100%;margin:3px 0 8px">
+   <label class="small mut">Résumé sur la page publique (une phrase)</label><input id="eRe" value="${esc(dm?dm.resume||'':'')}" maxlength="160" placeholder="ex. Lire 10 mots à voix haute" style="width:100%;margin:3px 0 8px">
    <label class="small mut">Message d’accueil (après « Bonjour, merci pour votre contribution »)</label><textarea id="eIn" rows="3" style="margin:3px 0 8px">${esc(dm?dm.intro:'')}</textarea>
    <label class="small mut">Ce que la personne fait à chaque étape</label><select id="eMo" style="width:100%;margin:3px 0 8px"><option value="voix" ${mode==='voix'?'selected':''}>🎙️ Elle enregistre sa voix</option><option value="texte" ${mode==='texte'?'selected':''}>✍️ Elle écrit une réponse</option></select>
    <label class="small mut">Une étape par ligne : <b>texte | sens | prononciation | mot de l’appli | consigne</b> (seul le texte est obligatoire)</label>
    <textarea id="eIt" rows="10" dir="auto" style="margin:3px 0 4px;font-size:15px">${esc(lignes)}</textarea>
-   <p class="small mut" style="margin:0 0 8px">« Mot de l’appli » = le mot tel qu’il est écrit dans Malino (sans voyelles) : il permet de remplacer sa voix en un clic.</p>
+   <p class="small mut" style="margin:0 0 8px">« Mot de l’appli » = le mot tel qu’il est écrit dans Malino (sans voyelles) : il permet de remplacer sa voix en un clic.${dm?'':' Une nouvelle contribution est créée en <b>brouillon</b> : tu la mets en ligne quand tu veux.'}</p>
    <button id="eGo" style="width:100%">Enregistrer</button><p class="msg" id="eRes"></p></div></main>`;
   document.body.appendChild(ov);document.body.style.overflow='hidden';const close=()=>{ov.remove();document.body.style.overflow='';};$('#eBack').onclick=close;
   $('#eGo').onclick=async()=>{const old={};items.forEach(x=>old[x.texte]=x.id);const used=new Set(),md=$('#eMo').value;let n=0;
     const its=$('#eIt').value.split('\n').map(l=>l.split('|').map(s=>s.trim())).filter(c=>c[0]).map(c=>{let id=old[c[0]];if(!id||used.has(id)){do{id='i'+String(++n).padStart(2,'0');}while(used.has(id)||Object.values(old).includes(id));}used.add(id);
       const o={id,texte:c[0]};if(c[1])o.sens=c[1];if(c[2])o.aide=c[2];if(c[3])o.cible=c[3];if(c[4])o.consigne=c[4];if(md==='texte')o.mode='texte';return o;});
-    const {data,error}=await sb.rpc('admin_contrib_enregistrer',{p:{id:dm?dm.id:$('#eId').value,titre:$('#eTi').value,intro:$('#eIn').value,items:its}}),r=$('#eRes');
+    const {data,error}=await sb.rpc('admin_contrib_enregistrer',{p:{id:dm?dm.id:$('#eId').value,titre:$('#eTi').value,intro:$('#eIn').value,resume:$('#eRe').value,emoji:$('#eEm').value,items:its}}),r=$('#eRes');
     if(error||!data||!data.ok){r.textContent={id:'Identifiant : 3 à 40 lettres minuscules, chiffres ou tirets',titre:'Indique un titre',items:'Ajoute au moins une ligne'}[data&&data.error]||'Échec, réessaie';return;}
     close();loadDev();};}
 
@@ -290,7 +323,7 @@ function draw(){
   <div class="card"><h2>👨‍👩‍👧 Familles <span class="mut small">${F.length}</span></h2><div class="chips">${Object.entries(FILTRES).map(([k,[l,fn]])=>`<button class="chip ${FLT===k?'on':''}" data-flt="${k}">${l} <b>${F.filter(f=>fn(f._p)).length}</b></button>`).join('')}</div><input id="q" placeholder="Rechercher un e-mail ou un prénom" value="${esc(q)}" style="width:100%;margin-bottom:6px">${flt.map(f=>`<div class="fam" data-fiche="${f.user_id}"><div class="row" style="justify-content:space-between"><b style="word-break:break-all">${f.prenom?esc(f.prenom)+' · ':''}${esc(f.email)} <span class="go">›</span></b><span class="row">${st(f)}<button class="o small" data-gift="${esc(f.email)}">+1 mois</button></span></div><div class="row" style="margin:3px 0 2px"><span class="tag ${f._p.cls}">${f._p.tag}</span>${f._p.score!=null&&f._p.k!=='client'?`<span class="small mut">${f._p.score} % de chances</span>`:''}${f.offre_jusqua?`<span class="tag t-chaud">−30 % → ${d(f.offre_jusqua)}</span>`:''}</div><div class="small mut">Inscrit le ${d(f.cree_le)} · actif il y a ${ago(f.derniere_activite)}${f.total?` · payé ${eur(f.total)}`:''}${f.bonus_jours?` · +${f.bonus_jours} j parrainage`:''}${f.code?` · 🎟️ ${esc(f.code)}`:''}</div><div class="kids" style="margin-top:3px">${f.proprio?`<span class="small mut">👥 co-parent de ${esc(f.proprio)}</span>`:''}${f.enfants.map(k=>`<span class="kid">${esc(k.nom)} · niv. ${lvl(k.xp)} · ${k.seances} séances${k.t7>=60?` · ${Math.round(k.t7/60)} min/7 j`:''}</span>`).join('')||(f.proprio?'':'<span class="small mut">aucun enfant</span>')}</div></div>`).join('')||'<p class="mut small">Aucune famille</p>'}</div>
   <div class="card"><h2>💳 Paiements <span class="mut small">${P.length}</span></h2><div class="scroll"><table><tr><th>Date</th><th>E-mail</th><th>Type</th><th>Montant</th><th>Statut</th></tr>${P.map(p=>`<tr><td class="small">${dh(p.cree_le)}</td><td>${esc(p.email||'')}</td><td>${p.type==='cadeau'?'🎁 cadeau':'Abonnement'}</td><td>${eur(p.montant)}</td><td><span class="tag t-${p.statut}">${{paye:'payé',echec:'échec',rembourse:'remboursé'}[p.statut]||p.statut}</span></td></tr>`).join('')||'<tr><td colspan="5" class="mut">Aucun paiement pour le moment</td></tr>'}</table></div></div>
   <div class="card"><h2>🎁 Cadeaux</h2><div class="scroll"><table><tr><th>Date</th><th>De</th><th>Pour</th><th>Durée</th><th>Statut</th></tr>${D.cadeaux.map(g=>`<tr><td class="small">${d(g.cree_le)}</td><td>${esc(g.offrant_prenom||'')}<br><span class="small mut">${esc(g.offrant_email||'')}</span></td><td>${esc(g.dest_email)}</td><td>${g.mois} mois</td><td><span class="tag ${g.statut==='applique'?'t-paye':g.statut==='paye'?'t-essai':'t-gratuit'}">${{attente:'non payé',paye:'en attente de connexion',applique:'activé'}[g.statut]}</span></td></tr>`).join('')||'<tr><td colspan="5" class="mut">Aucun cadeau</td></tr>'}</table></div></div>
-  <div class="card dev" id="dev"></div>
+  <div id="devlink"></div>
   <div class="card"><details><summary>🛑 Demandes STOP (${D.stops.length})</summary><p class="small mut">Les adresses de cette liste ne reçoivent plus d’invitations ni de cadeaux par e-mail (les codes de connexion restent possibles).</p><div class="row"><input type="email" id="sEmail" placeholder="e-mail à bloquer"><button id="sAdd" class="r">Ajouter</button></div><table style="margin-top:6px">${D.stops.map(s=>`<tr><td>${esc(s.email)}</td><td class="small mut">${d(s.cree_le)}</td><td><button class="o" data-unstop="${esc(s.email)}">Retirer</button></td></tr>`).join('')}</table></details></div>
   <div class="card"><details><summary>📜 Journal complet</summary><table>${D.journal.map(j=>`<tr><td class="small mut">${dh(j.cree_le)}</td><td>${esc(j.type)}</td><td>${esc(j.email||'')}</td><td class="small">${esc(j.detail||'')}</td></tr>`).join('')}</table></details></div>
   <p class="small mut" style="text-align:center">Mis à jour à ${dh(D.maintenant)} · Stripe : compte Pace, produit Malino+</p>`;
@@ -307,7 +340,7 @@ function draw(){
   app.querySelectorAll('[data-flt]').forEach(b=>b.onclick=()=>{FLT=b.dataset.flt;draw();});
   app.querySelectorAll('[data-fiche]').forEach(r=>r.onclick=e=>{if(e.target.closest('button'))return;openFiche(r.dataset.fiche);});
   app.querySelectorAll('[data-gift]').forEach(b=>b.onclick=()=>{if(confirm(`Offrir 1 mois de Malino+ à ${b.dataset.gift} ? Un e-mail lui sera envoyé.`))offrir(b.dataset.gift,1,'');});
-  drawDev();
+  devLink();
   $('#sAdd').onclick=async()=>{const e=$('#sEmail').value.trim();if(!e)return;await sb.rpc('admin_stop',{mail:e,ajouter:true});load();};
   app.querySelectorAll('[data-unstop]').forEach(b=>b.onclick=async()=>{await sb.rpc('admin_stop',{mail:b.dataset.unstop,ajouter:false});load();});
 }
@@ -321,6 +354,8 @@ async function offrir(mail,mois,message){
   await load();const n=$('#gRes');n.className='msg ok';n.textContent=`✅ ${mois} mois offerts à ${mail}${r.applique?' (déjà actif sur son compte)':' (activé à sa première connexion)'}${r.envoye?' · e-mail envoyé':' · ⚠️ e-mail non envoyé'}`;
 }
 $('#refresh').onclick=load;
+window.addEventListener('hashchange',()=>{if(/^#(contrib|dev)$/.test(location.hash)&&VIEW!=='contrib')setView('contrib');});
+document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('on',b.dataset.view===VIEW);b.onclick=()=>setView(b.dataset.view);});
 load();
 </script>
 </body>

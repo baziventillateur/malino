@@ -32,7 +32,7 @@ p{font-size:17px;line-height:1.4;color:#4b4180}
   <h1>Besoin d’aide ?</h1>
   <p>On est là pour t’aider ! Pour parler avec le support de Malino :</p>
   <div class="step">👉 Clique sur la bulle de discussion en bas à droite de l’écran</div>
-  <a class="back" href="./">← Retour à Malino</a>
+  <a class="back" id="back" href="./">← Retour à Malino</a>
   <p style="font-size:11px;margin-top:12px;color:#9a93c8">Voix : Piper TTS, voix « siwis » (SIWIS, Univ. d’Édimbourg, CC BY 4.0)</p>
 </main>
 
@@ -41,6 +41,7 @@ p{font-size:17px;line-height:1.4;color:#4b4180}
   <path d="M70 70 L100 98 L64 112" fill="none" stroke="#FFE17A" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
 
+<script>(function(){var r=new URLSearchParams(location.search).get('retour')||'';if(/^contribution\.html(\?[\w=&-]*)?$/.test(r)){var a=document.getElementById('back');a.href=r;a.textContent='← Retour aux contributions';}})();</script>
 <script src="https://code.tidio.co/jub5k7agyx478c0qfw044g3bepaackg7.js" async></script>
 </body>
 </html>
