@@ -1158,7 +1158,7 @@ const AR_R12=AR_G1.concat(AR_G2),AR_R15=AR_R12.concat(AR_G3,AR_G4,AR_G5);
 // une fois la lettre vue dans un sens (lettre → nom), une fois dans l'autre (nom → lettre)
 const qArLetMix=(L,g)=>x=>Object.assign(Math.random()<.5?qArLet(L)(x):qArLet2(L)(x),{lesson:g});
 const ArLesson={
-  open(g,done,replay){this.g=g;this.L=arGrp(g);this.done=done;this.replay=!!replay;this.i=(!replay&&!S.arIntro)?-1:0;this.phase='learn';this.queueQ=[];
+  open(g,done,replay){this.g=g;this.L=arGrp(g);ArAudio.preload(this.L.flatMap(l=>[l.nm,AR_INFO[l.ar][2][0]]));this.done=done;this.replay=!!replay;this.i=(!replay&&!S.arIntro)?-1:0;this.phase='learn';this.queueQ=[];
     queueModal('<div id="arles"></div>',()=>this.draw());},
   el(){return document.getElementById('arles');},
   say(c){const x=AR_LET.find(l=>l.ar===c);if(x)Voice.say(x.nm,{lang:AR,rate:.75});},
@@ -1168,18 +1168,18 @@ const ArLesson={
       e.innerHTML=`<div class="arles">${x}<div class="arstep">Leçon · lettre ${this.i+1} sur ${L.length}</div><div class="arrow2">${L.map((m,j)=>`<span class="${j===this.i?'on':j<this.i?'ok':''}" lang="ar">${m.ar}</span>`).join('')}</div>
         <div class="arbig" lang="ar">${l.ar}</div><div class="arname">${arR(l.r)} <button class="arspk" data-act="arsay" data-arg="${l.ar}" aria-label="Écouter">🔊</button></div>
         <div class="arline"><b>Son</b> ${esc(inf[0])}</div><div class="arline"><b>Forme</b> ${esc(inf[1])}</div>
-        <div class="arex"><span class="aremo">${w[2]}</span><span class="arw sm" lang="ar" dir="rtl">${w[0]}</span><span><b>${arR(w[1])}</b> · ${esc(w[3])}</span></div>
+        <div class="arex"><span class="aremo">${w[2]}</span><span class="arw sm" lang="ar" dir="rtl">${w[0]}</span><span><b>${arR(w[1])}</b> · ${esc(w[3])}</span><button class="arspk" data-act="arword" data-arg="${w[0]}" aria-label="Écouter le mot">🔊</button></div>
         <div class="arnav">${this.i>0?'<button class="btn w" data-act="arlesprev">←</button>':''}<button class="btn g" data-act="arlesnext">${this.i<L.length-1?'Lettre suivante ➜':this.replay?'Terminer ✓':'Je vérifie ➜'}</button></div></div>`;
-      if(Voice.ar)setTimeout(()=>this.say(l.ar),300);return;}
+      setTimeout(()=>this.say(l.ar),350);return;}
     if(this.phase==='check'){const t=this.queueQ[0];
       e.innerHTML=`<div class="arles"><div class="arstep">Vérification · encore ${this.queueQ.length}</div><h2>Touche la lettre <b>${arR(t.r)}</b></h2><div class="archk" style="grid-template-columns:repeat(${Math.min(L.length,4)},1fr)">${shuffle(L.slice()).map(m=>`<button class="opt" data-act="archk" data-arg="${m.ar}" lang="ar">${m.ar}</button>`).join('')}</div>${this.miss.has(t.ar)?`<p class="hint">💡 ${esc(AR_INFO[t.ar][1])}</p>`:''}</div>`;
-      if(Voice.ar)setTimeout(()=>this.say(t.ar),250);return;}
+      setTimeout(()=>this.say(t.ar),300);return;}
     e.innerHTML=`<div class="arles"><div class="bigemoji">🎉</div><h2>Bravo !</h2><p>Tu connais maintenant ces lettres :</p><div class="arrow2 big">${L.map(m=>`<span class="ok" lang="ar">${m.ar}</span>`).join('')}</div><button class="btn y block" data-act="arlesend">On s’entraîne ! 🚀</button></div>`;},
   next(){if(this.i<0){S.arIntro=1;save();this.i=0;}else if(this.i<this.L.length-1)this.i++;else if(this.replay){nextModal();return;}else{this.phase='check';this.miss=new Set();this.queueQ=shuffle(this.L.slice());}this.draw();},
   prev(){if(this.i>0){this.i--;this.draw();}},
   check(c){const t=this.queueQ[0],b=[...document.querySelectorAll('#arles [data-act=archk]')],ok=c===t.ar;
     b.forEach(x=>{x.disabled=true;if(x.dataset.arg===t.ar)x.classList.add('good');else if(x.dataset.arg===c)x.classList.add('bad');});
-    Sound.play(ok?'good':'bad');if(!ok){this.miss.add(t.ar);if(Voice.ar)this.say(t.ar);}
+    Sound.play(ok?'good':'bad');if(!ok){this.miss.add(t.ar);setTimeout(()=>this.say(t.ar),350);}
     setTimeout(()=>{this.queueQ.shift();if(!ok)this.queueQ.push(t);if(!this.queueQ.length){this.phase='end';S.arLesson=S.arLesson||{};S.arLesson[this.g]=Date.now();save();Sound.play('level');Confetti.burst(120);}this.draw();},ok?650:1500);},
   end(){nextModal();const d=this.done;this.done=null;if(d)setTimeout(d,150);}
 };
@@ -2040,15 +2040,32 @@ const Sound={ctx:null,buf:{},loaded:false,last:{},
     }}
 };
 
+// ---------- Sons arabes enregistrés ----------
+// Beaucoup de téléphones n'ont pas de voix arabe : chaque lettre et chaque mot a son fichier (ar/<empreinte>.mp3).
+// Si un fichier manque, on se rabat sur la voix du téléphone quand elle existe.
+const ArAudio={buf:{},cur:null,
+  key(t){let h=0x811c9dc5;t=String(t);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return ('0000000'+h.toString(16)).slice(-8);},
+  load(t){if(this.buf[t])return this.buf[t];Sound.unlock();const c=Sound.ctx;if(!c)return Promise.resolve(null);
+    const p=fetch('ar/'+this.key(t)+'.mp3').then(r=>r.ok?r.arrayBuffer():null).then(a=>a?new Promise((ok,ko)=>c.decodeAudioData(a,ok,ko)):null).then(b=>{p.b=b;return b;}).catch(()=>{delete this.buf[t];return null;});
+    return this.buf[t]=p;},
+  dur(t){const p=this.buf[t];return p&&p.b?p.b.duration:0;},
+  stop(){const k=this.cur;this.cur=null;if(k)try{k.stop();}catch(e){}},
+  async play(t){const my=this.tok=(this.tok||0)+1;const b=await this.load(t);if(my!==this.tok)return;
+    if(!b){if(Voice.ar)Voice.native(t,{lang:'ar-SA',rate:.75});return;}
+    const c=Sound.ctx;if(c.state==='suspended')try{c.resume();}catch(e){}
+    this.stop();const s=c.createBufferSource(),g=c.createGain();s.buffer=b;g.gain.value=1;s.connect(g);g.connect(c.destination);s.start();this.cur=s;s.onended=()=>{if(this.cur===s)this.cur=null;};},
+  preload(list){(list||[]).forEach(t=>{if(t)this.load(t);});}
+};
 // ---------- Voix (synthèse vocale du navigateur) ----------
 const Voice={v:null,ok:'speechSynthesis' in window,warm:false,t:0,cur:null,
   init(){if(!this.ok)return;const pv=()=>{const all=speechSynthesis.getVoices();this.n=all.length;this.ar=all.find(v=>/^ar[-_]SA/i.test(v.lang))||all.find(v=>/^ar/i.test(v.lang))||null;const es=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));this.en=es.find(v=>/en[-_]GB/i.test(v.lang))||es.find(v=>/en[-_]US/i.test(v.lang))||es[0]||null;const vs=speechSynthesis.getVoices().filter(v=>/^fr/i.test(v.lang));this.v=vs.find(v=>/fr[-_]FR/i.test(v.lang)&&/google|amélie|amelie|audrey|thomas|marie|hortense|denise|julie/i.test(v.name))||vs.find(v=>/fr[-_]FR/i.test(v.lang))||vs[0]||null;};pv();try{speechSynthesis.addEventListener?speechSynthesis.addEventListener('voiceschanged',pv):(speechSynthesis.onvoiceschanged=pv);}catch(e){}},
   unlock(){Rec.unlock();if(!this.ok||this.warm)return;this.warm=true;try{const u=new SpeechSynthesisUtterance(' ');u.lang='fr-FR';u.volume=0;speechSynthesis.speak(u);}catch(e){}},
   busy(){try{return this.ok&&(speechSynthesis.speaking||speechSynthesis.pending);}catch(e){return false;}},
-  speak(text,o){if(!this.ok||!text)return;o=o||{};try{const u=new SpeechSynthesisUtterance(text);const isAr=/^ar/i.test(o.lang||'');if(isAr&&!this.ar&&this.n)return;u.lang=o.lang||'fr-FR';const vv=isAr?this.ar:o.lang?this.en:this.v;if(vv)u.voice=vv;u.rate=o.rate||.9;u.pitch=1.05;u.volume=1;this.cur=u;if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(u);}catch(e){}},
-  hush(){clearTimeout(this.t);try{if(this.busy())speechSynthesis.cancel();}catch(e){}},
+  speak(text,o){o=o||{};if(text&&/^ar/i.test(o.lang||'')){ArAudio.play(text);return;}this.native(text,o);},
+  native(text,o){if(!this.ok||!text)return;o=o||{};try{const u=new SpeechSynthesisUtterance(text);const isAr=/^ar/i.test(o.lang||'');if(isAr&&!this.ar&&this.n)return;u.lang=o.lang||'fr-FR';const vv=isAr?this.ar:o.lang?this.en:this.v;if(vv)u.voice=vv;u.rate=o.rate||.9;u.pitch=1.05;u.volume=1;this.cur=u;if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(u);}catch(e){}},
+  hush(){clearTimeout(this.t);ArAudio.stop();try{if(this.busy())speechSynthesis.cancel();}catch(e){}},
   // Annuler puis parler immédiatement fait taire certains navigateurs : on laisse 90 ms entre les deux
-  say(text,o){Chain.stop();Rec.stopPlay();if(!this.ok||!text)return;const b=this.busy();this.hush();if(b)this.t=setTimeout(()=>this.speak(text,o),90);else this.speak(text,o);},
+  say(text,o){Chain.stop();Rec.stopPlay();if(text&&o&&/^ar/i.test(o.lang||'')){this.hush();ArAudio.play(text);return;}if(!this.ok||!text)return;const b=this.busy();this.hush();if(b)this.t=setTimeout(()=>this.speak(text,o),90);else this.speak(text,o);},
   stop(){Chain.stop();this.hush();Rec.stopPlay();},
   label(){if(!this.ok)return '❌ Voix non disponible sur ce navigateur';const v=window.MLANG==='en'?this.en:this.v;return v?`✅ Voix : ${v.name}`:'⚠️ Pas de voix française trouvée';}
 };
@@ -2056,7 +2073,7 @@ const estMs=(t,r)=>Math.round((320+String(t).length*72)/(r||.9));
 // Enchaîne voix, sons enregistrés et effets visuels (ex. « s… e… se »)
 const Chain={t:[],
   run(steps,done){Voice.stop();let at=Voice.busy()?120:30;const add=(fn,d)=>this.t.push(setTimeout(fn,d));
-    (steps||[]).forEach(st=>{if(!st)return;if(st.fn)add(st.fn,at);else if(st.say){const tx=st.say,r=st.rate,lg=st.lang;add(()=>Voice.speak(tx,{rate:r,lang:lg}),at);at+=estMs(tx,r);}else if(st.rec){const k=st.rec;add(()=>Rec.play(k),at);at+=1050;}else if(st.wait)at+=st.wait;});
+    (steps||[]).forEach(st=>{if(!st)return;if(st.fn)add(st.fn,at);else if(st.say){const tx=st.say,r=st.rate,lg=st.lang;add(()=>Voice.speak(tx,{rate:r,lang:lg}),at);const ad=/^ar/i.test(lg||'')?ArAudio.dur(tx):0;at+=ad?Math.round(ad*1000)+250:estMs(tx,r);}else if(st.rec){const k=st.rec;add(()=>Rec.play(k),at);at+=1050;}else if(st.wait)at+=st.wait;});
     if(done)add(done,at);return at;},
   stop(){this.t.forEach(clearTimeout);this.t=[];}
 };
@@ -2175,6 +2192,7 @@ function nextQ(){
 const keypadHTML=(act)=>`<div class="keypad">${[1,2,3,4,5,6,7,8,9].map(d=>`<button class="key" data-act="${act}" data-arg="${d}">${d}</button>`).join('')}<button class="key del" data-act="${act}" data-arg="del" aria-label="Effacer">⌫</button><button class="key" data-act="${act}" data-arg="0">0</button>${act==='key'?`<button class="key ok" data-act="${act}" data-arg="ok" aria-label="Valider">✓</button>`:'<span></span>'}</div>`;
 function drawQ(){
   const {q,qi}=G.cur,card=$('#qcard'),ans=$('#answers');if(!card)return;
+  if(G.sub==='arabe')ArAudio.preload([q.afterLang?q.afterSay:'',...(q.chain||[]).concat(q.fixChain||[]).filter(c=>c&&/^ar/.test(c.lang||'')).map(c=>c.say)]);
   let h=qi.kind==='retry'?'<div class="retry">À toi ! 💪</div>':qi.kind==='review'?'<div class="retry rev">On revoit 🔁</div>':'';
   if(q.type==='math'){h+=`<div class="q">${fQ(q.f,'<span class="slot" id="slot">?</span>')}</div>`;if(G.mode!=='sprint')h+='<div class="tbar"><i id="tbar"></i></div>';}
   else{
@@ -2186,10 +2204,8 @@ function drawQ(){
     else if(q.type==='wread')h+=sylHTML(q.word.sy)+'<button class="helpbtn" data-act="sylhelp">👂 Aide : syllabe par syllabe</button>';
     else if(q.type==='sent')h+=`<div class="sentence read">${esc(q.show)}</div>`;
     if(q.lesson)h+=`<button class="helpbtn" data-act="arlesson" data-arg="${q.lesson}">📘 Revoir la leçon</button>`;
-    const noAr=Voice.ok&&Voice.n&&!Voice.ar&&(q.chain||[]).some(c=>c&&/^ar/.test(c.lang||''));
-    if(noAr)h+='<div class="nosound">🔇 Pas de voix arabe sur cet appareil : lis la prononciation.</div>';
-    else if(q.say||q.chain)h+='<button class="speaker" data-act="replay" aria-label="Réécouter">🔊</button>';
-    if(!Voice.ok&&(q.say||q.chain))h+='<div class="nosound">🔇 Ce navigateur ne sait pas parler. Ouvrez l’appli dans Safari ou Chrome.</div>';
+    if(q.say||q.chain)h+='<button class="speaker" data-act="replay" aria-label="Réécouter">🔊</button>';
+    if(!Voice.ok&&(q.say||(q.chain||[]).some(c=>c&&c.say&&!/^ar/.test(c.lang||''))))h+='<div class="nosound">🔇 Ce navigateur ne sait pas parler. Ouvrez l’appli dans Safari ou Chrome.</div>';
   }
   card.className='qcard';card.innerHTML=h;restart(card,'in');
   if(q.type==='math')ans.innerHTML=S.settings.mode==='keys'?keypadHTML('key'):`<div class="choices">${q.choices.map(v=>`<button class="choice" data-act="choose" data-arg="${v}">${v}</button>`).join('')}</div>`;
@@ -2434,8 +2450,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.59';
+const VERSION='1.60';
 const VERSIONS=[
+ ['1.60','21/11/2026 12:15','Arabe : sons enregistrés pour toutes les lettres et tous les mots'],
  ['1.59','21/11/2026 12:45','Lecture : 9 mondes « lire et comprendre » après Petites phrases'],
  ['1.58','21/11/2026 12:00','Arabe pour débutants : leçon obligatoire, alphabet par petits groupes'],
  ['1.57','21/11/2026 11:20','Malino en anglais (interface, maths, 7 jeux), sélecteur de langue'],
@@ -2443,7 +2460,6 @@ const VERSIONS=[
  ['1.55','20/11/2026 22:10','Guide parents et admin mis à jour avec les 2 nouveaux jeux'],
  ['1.54','20/11/2026 22:00','Nouveaux jeux : Qui a changé ? et Chiffres éclair'],
  ['1.53','20/11/2026 21:30','Cheveux longs visibles et gratuits : le profil fille s’affiche enfin'],
- ['1.52','20/11/2026 21:05','Choix garçon / fille à la création et sur chaque profil'],
 ];
 const noFr=h=>window.MLANG==='fr'?h:h.replace(/<section class="acard"><h3>(?:📖 Lecture|🎙️ Sons des lettres)<\/h3>[\s\S]*?<\/section>/g,'').replace(/<li>Lecture \(méthode syllabique\)[^<]*<\/li>/,'');
 function renderAdmin(){
@@ -2632,7 +2648,7 @@ const ACT={
   onbnext(){Onb.next();},onbprev(){Onb.prev();},onbskip(){Onb.skip();},onbset(a){Onb.set(a);},onbinvite(){Onb.done();setTimeout(()=>Offre.invite(),300);},onbstart(){Onb.start();},invsend(){Offre.inviteSend();},
   openlogin(){Acct.show('login');},authclose(){Acct.hide();},authsend(a){Acct.send(a==='again');},authverify(){Acct.verify();},
   who(){Famille.who(true);},
-  arlesson(g){ArLesson.open(g,null,true);},arlesnext(){ArLesson.next();},arlesprev(){ArLesson.prev();},arlesx(){nextModal();},arsay(c){ArLesson.say(c);},archk(c){ArLesson.check(c);},arlesend(){ArLesson.end();},
+  arlesson(g){ArLesson.open(g,null,true);},arlesnext(){ArLesson.next();},arlesprev(){ArLesson.prev();},arlesx(){nextModal();},arsay(c){ArLesson.say(c);},arword(w){Voice.say(w,{lang:AR});},archk(c){ArLesson.check(c);},arlesend(){ArLesson.end();},
   setlang(l){if(l===(window.MLANG||'fr'))return;if(window.I18N)I18N.set(l);},
   newgenre(g){Acct.newG=g;const v=($('#newprof')||{}).value||'';keepScroll(render);const e=$('#newprof');if(e)e.value=v;},
   setgenre(g){S.genre=g;S.avatar=Object.assign({},S.avatar,g==='f'?{hair:'hair_long',shirt:'sh_rouge'}:{hair:'hair_court',shirt:'sh_bleu'});save();toast(g==='f'?'Profil : fille 👧':'Profil : garçon 👦');keepScroll(render);},

@@ -1,0 +1,4 @@
+Sons arabes (lettres et mots) générés hors ligne avec Piper (synthèse vocale libre)
+et la voix « ar_JO-kareem-medium » (piper-voices, jeu de données arabicttstrain).
+Texte vocalisé à la main (voyelles écrites) pour une prononciation correcte.
+Nom de chaque fichier : empreinte FNV-1a 32 bits du mot arabe tel qu'écrit dans l'appli.
