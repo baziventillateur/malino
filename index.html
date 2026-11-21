@@ -9,6 +9,16 @@
 <meta name="apple-mobile-web-app-title" content="Malino">
 <title>Malino · Maths & Lecture</title>
 <meta name="description" content="Malino : l'appli de jeux de maths et de lecture pour les 5-8 ans. Calcul mental, syllabes, badges et récompenses !">
+<script>
+// Langue de l'appli : ?lang=en ou ?lang=fr, sinon le choix enregistré, sinon la langue du navigateur sur un appareil neuf
+(function(){var K='malino_lang',l=null;try{var q=new URLSearchParams(location.search).get('lang');
+  if(q==='fr'||q==='en'){l=q;localStorage.setItem(K,l);}else l=localStorage.getItem(K);
+  if(l!=='fr'&&l!=='en'){var known=false;for(var i=0;i<localStorage.length;i++){if(/^(supercerveau|malino|sb-)/.test(localStorage.key(i)||'')){known=true;break;}}
+    l=!known&&/^en/i.test(navigator.language||'')?'en':'fr';localStorage.setItem(K,l);}}catch(e){l=l||'fr';}
+  window.MLANG=l;
+  if(l!=='fr'){document.documentElement.lang=l;document.write('<script src="lang-'+l+'.js"><\/script>');}
+})();
+</script>
 <link rel="icon" type="image/svg+xml" href="logo.svg">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -574,6 +584,70 @@ h1,h2,h3,h4{font-weight:700}
 <div id="toast"></div>
 <noscript>Cette application a besoin de JavaScript.</noscript>
 <script>
+// ---------- Langues ----------
+// Le français est la langue du code. Une autre langue se pose par-dessus au moment de l'affichage :
+// chaque texte (ou phrase avec du gras) est cherché dans le dictionnaire de lang-xx.js ; s'il manque, il reste en français.
+// Les nombres sont remplacés par # dans les clés : « Niveau 12 » se cherche sous « Niveau # ».
+(function(){
+  var L=window.MALINO_LANG||null;
+  var I=window.I18N={lang:window.MLANG||'fr',on:!!L,D:L?L.D:{},R:L?L.R||[]:[],debug:false,miss:{},doneT:new WeakMap(),doneU:new WeakMap(),obs:null,
+    NUM:/\d+(?:[.,]\d+)?/g,EMO:/(?:[0-9#*]\uFE0F?\u20E3|[\u{1F1E6}-\u{1F1FF}]{2}|\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic}|[\u{1F3FB}-\u{1F3FF}])*)/gu,LET:/[A-Za-zÀ-ÖØ-öø-ÿŒœ]{2}/,
+    INL:{B:1,I:1,EM:1,STRONG:1,U:1,BR:1,SMALL:1,SUP:1,SUB:1},
+    norm:function(s){return String(s).replace(/[\u00a0\u202f]/g,' ').replace(/'/g,'\u2019').replace(/\s+/g,' ').trim();},
+    // traduction d'une chaîne ; null si elle n'est pas dans le dictionnaire
+    text:function(s,kind){
+      var n=this.norm(s);if(!n||n.length>1500)return null;
+      var t=this.D[n];if(t!==undefined)return t;
+      var nums=[],emo=[],key=n.replace(this.EMO,function(m){emo.push(m);return '¤';}).replace(this.NUM,function(m){nums.push(m);return '#';});
+      t=this.D[key];
+      if(t===undefined){
+        if(!this.LET.test(n))return null;
+        var r=this.rules(n);if(r!==null)return r;
+        // majuscule au début : « Le chat » se cherche aussi sous « le chat »
+        var c=n.charAt(0),lc=c.toLowerCase();
+        if(c!==lc){var x=this.text(lc+n.slice(1),'c');if(x!==null)return x.charAt(0).toUpperCase()+x.slice(1);}
+        if(this.debug&&kind!=='c'){var e=this.miss[key]||(this.miss[key]={n:0,k:kind||'t',s:this.src||''});e.n++;}
+        return null;}
+      var k=0,j=0;return t.replace(/#(\d)?/g,function(_,d){var v=d?nums[d-1]:nums[k++];return v===undefined?'':v;}).replace(/¤(\d)?/g,function(_,d){var v=d?emo[d-1]:emo[j++];return v===undefined?'':v;});},
+    // règles : $1 recopie le morceau trouvé, %1 le traduit (s'il est inconnu, la règle ne s'applique pas), ~1 le traduit s'il est connu
+    rules:function(n){var self=this;for(var i=0;i<this.R.length;i++){var r=this.R[i],m=r[0].exec(n);if(!m)continue;var ok=true;
+        var out=r[1].replace(/%(\d)|\$(\d)|~(\d)/g,function(_,a,b,c){var g=m[a||b||c];if(g===undefined)g='';if(a||c){var x=self.text(g,'r');if(x===null){if(a&&self.LET.test(g))ok=false;return g;}return x;}return g;});
+        if(ok)return out;}
+      return null;},
+    tr:function(s){var t=this.on?this.text(s,'js'):null;return t===null?s:t;},
+    SKIP:{SCRIPT:1,STYLE:1,TEXTAREA:1,NOSCRIPT:1},
+    node:function(n){var v=n.nodeValue;if(!v||v.length>1500||this.doneT.get(n)===v)return;var pe=n.parentNode;if(pe&&(this.SKIP[pe.nodeName]||(pe.closest&&pe.closest('[lang=ar],[data-noi18n],script,style'))))return;
+      var t=this.text(v,'t');if(t!==null){var a=/^\s*/.exec(v)[0],b=/\s*$/.exec(v)[0];t=a+t+b;if(t!==v)n.nodeValue=t;}
+      this.doneT.set(n,n.nodeValue);},
+    unit:function(el){var c=el.getElementsByTagName('*'),n=c.length;if(!n||n>10)return false;for(var i=0;i<n;i++){if(!this.INL[c[i].tagName]||c[i].attributes.length)return false;}return true;},
+    attrs:function(el){var A=['placeholder','title','aria-label'];for(var i=0;i<3;i++){var v=el.getAttribute(A[i]);if(v){var t=this.text(v,'a');if(t!==null&&t!==v)el.setAttribute(A[i],t);}}},
+    el:function(el){var ty=el.nodeType;if(ty===3)return this.node(el);if(ty!==1)return;
+      var tag=el.tagName;if(tag==='SCRIPT'||tag==='STYLE'||tag==='TEXTAREA'||tag==='svg'||tag==='CANVAS'||tag==='NOSCRIPT')return;
+      if(el.getAttribute('lang')==='ar'||el.hasAttribute('data-noi18n'))return;
+      if(el.attributes.length)this.attrs(el);
+      if(this.unit(el)){var h=el.innerHTML;if(this.doneU.get(el)===h)return;var x=this.LET.test(el.textContent)?this.text(h,'u'):null;
+        if(x!==null){if(x!==h)el.innerHTML=x;this.doneU.set(el,el.innerHTML);return;}}
+      for(var c=el.firstChild;c;c=c.nextSibling)this.el(c);},
+    run:function(root){if(!this.on)return;this.el(root||document.body);if(this.obs)this.obs.takeRecords();},
+    watch:function(){var self=this;this.obs=new MutationObserver(function(ms){
+        for(var i=0;i<ms.length;i++){var m=ms[i],p=m.target;
+          if(m.type==='attributes'){if(p.nodeType===1)self.attrs(p);}
+          else if(m.type==='characterData'){var q=p.parentNode;if(q&&q.nodeType===1&&self.unit(q))self.el(q);else self.el(p);}
+          else if(p.nodeType===1&&p.isConnected){if(self.unit(p))self.el(p);else for(var j=0;j<m.addedNodes.length;j++){var a=m.addedNodes[j];if(a.isConnected)self.el(a);}}}
+        self.obs.takeRecords();});
+      this.obs.observe(document.documentElement,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']});},
+    // voix, fenêtres de confirmation et titre de la page
+    hook:function(){if(!this.on||this.hooked)return;this.hooked=true;var self=this;
+      // la voix lit la traduction avec une voix anglaise ; un texte pas encore traduit n'est pas lu (plutôt le silence qu'une phrase en français)
+      try{var sp=Voice.speak;Voice.speak=function(text,o){if(text&&!(o&&o.lang)){var t=self.text(text,'v');if(t===null){if(self.LET.test(String(text)))return;}else text=t;o=Object.assign({},o,{lang:'en-GB'});}return sp.call(Voice,text,o);};}catch(e){}
+      ['confirm','alert','prompt'].forEach(function(f){var g=window[f];window[f]=function(m,d){return g.call(window,self.tr(m),d);};});
+      document.title=this.tr(document.title);},
+    set:function(l){try{localStorage.setItem('malino_lang',l);}catch(e){}var u=new URL(location.href);u.searchParams.delete('lang');location.replace(u.toString());}
+  };
+  if(I.on){I.watch();I.run(document.body);}
+})();
+</script>
+<script>
 'use strict';
 /* =========================================================
    Malino — maths & lecture pour les 5-8 ans
@@ -680,6 +754,7 @@ const FR_LEVELS=[
  {e:'🔎',n:'Les petits mots',type:'sight',items:SIGHT},
  {e:'💬',n:'Petites phrases',type:'sent',items:SENT},
 ];
+const LOC=window.MLANG==='en'?'en-GB':'fr-FR';
 const itemKey=x=>typeof x==='string'?x:(x.k||x.w||x.s);
 // Son d'une lettre : enregistrement des parents s'il existe, sinon voix (voyelles seulement)
 const snd=k=>Rec.has(k)?{rec:k}:(PHON[k]&&PHON[k].tts?{say:PHON[k].tts,rate:.8}:null);
@@ -1263,6 +1338,9 @@ Object.assign(THEMES,{
   {e:'💀',n:'Sept chiffres',t:9,items:digItems(80,7,16),q:qDig},
  ]},
 });
+// jeux propres au français (ou pas encore traduits) : retirés quand l'appli est dans une autre langue
+const LANG_OFF={en:['anglais','ortho','monde','probl','drapeaux','espace','arabe']};
+(LANG_OFF[window.MLANG]||[]).forEach(k=>{delete THEMES[k];});
 // déblocage avec le niveau du joueur
 const thUnlocked=k=>{const T=THEMES[k];return !T||!T.unlock||levelInfo(S.xp).level>=T.unlock;};
 function unlockCheck(){S.thUnl=S.thUnl||{};const lv=levelInfo(S.xp).level,neu=Object.keys(THEMES).filter(k=>THEMES[k].unlock&&lv>=THEMES[k].unlock&&!S.thUnl[k]);if(!neu.length)return;neu.forEach(k=>S.thUnl[k]=Date.now());save();
@@ -1494,7 +1572,9 @@ function levelInfo(xp){let L=1,r=xp;while(r>=needFor(L)){r-=needFor(L);L++;}retu
 function curStreak(){const t=dayKey(),y=dayKey(addDays(new Date(),-1));return (S.streak.last===t||S.streak.last===y)?S.streak.cur:0;}
 function updateStreak(d){if(S.streak.last===d)return;const y=dayKey(addDays(new Date(),-1));S.streak.cur=S.streak.last===y?S.streak.cur+1:1;S.streak.last=d;S.streak.best=Math.max(S.streak.best,S.streak.cur);}
 const today=()=>S.days[dayKey()]||{};
-const chestAvailable=()=>{const t=today();return !!t.math&&(!!t.fr||!S.settings.frOn)&&!t.chest;};
+// la lecture (méthode syllabique française) n'existe qu'en français
+const frOnNow=()=>S.settings.frOn&&window.MLANG==='fr';
+const chestAvailable=()=>{const t=today();return !!t.math&&(!!t.fr||!frOnNow())&&!t.chest;};
 function recordStat(store,key,ok,ms,fast){const s=store[key]||(store[key]={n:0,ok:0,st:0,err:0,ms:0});s.n++;s.last=Date.now();s.lo=ok?1:0;if(ok){s.ok++;s.ms=s.ms?Math.round(s.ms*.6+ms*.4):Math.round(ms);if(fast)s.st=Math.min(s.st+1,5);}else{s.err++;s.st=0;s.le=Date.now();}}
 function wOf(store,key){const s=store[key];if(!s||!s.n)return 3;let w=s.st>=3?.5:s.st===2?1.5:s.st===1?2.5:4;if(s.le&&Date.now()-s.le<3*864e5)w+=2;return w;}
 const factStatus=s=>!s||!s.n?'new':s.st>=3?'ok':(s.st>=1||s.lo)?'mid':'weak';
@@ -1780,7 +1860,7 @@ const Voice={v:null,ok:'speechSynthesis' in window,warm:false,t:0,cur:null,
   // Annuler puis parler immédiatement fait taire certains navigateurs : on laisse 90 ms entre les deux
   say(text,o){Chain.stop();Rec.stopPlay();if(!this.ok||!text)return;const b=this.busy();this.hush();if(b)this.t=setTimeout(()=>this.speak(text,o),90);else this.speak(text,o);},
   stop(){Chain.stop();this.hush();Rec.stopPlay();},
-  label(){if(!this.ok)return '❌ Voix non disponible sur ce navigateur';return this.v?`✅ Voix : ${this.v.name}`:'⚠️ Pas de voix française trouvée';}
+  label(){if(!this.ok)return '❌ Voix non disponible sur ce navigateur';const v=window.MLANG==='en'?this.en:this.v;return v?`✅ Voix : ${v.name}`:'⚠️ Pas de voix française trouvée';}
 };
 const estMs=(t,r)=>Math.round((320+String(t).length*72)/(r||.9));
 // Enchaîne voix, sons enregistrés et effets visuels (ex. « s… e… se »)
@@ -2087,18 +2167,18 @@ function render(){
   $('#app').innerHTML=(R[SCR]||renderHome)();
   if(SCR==='home'&&!modalOpen&&!(typeof Onb!=='undefined'&&Onb.should()))setTimeout(()=>{try{if(SCR==='home'&&!modalOpen)unlockCheck();}catch(e){}},350);
 }
-function weekHTML(){const now=new Date(),dow=(now.getDay()+6)%7,mon=addDays(now,-dow),t=dayKey();return ['L','M','M','J','V','S','D'].map((n,i)=>{const d=dayKey(addDays(mon,i)),st=S.days[d],done=dayDone(st);const cls=(done?'done ':d<t?'miss ':'')+(d===t?'today':'');return `<div class="day ${cls}">${n}<b>${done?'🔥':d===t?'⭐':''}</b></div>`;}).join('');}
+function weekHTML(){const now=new Date(),dow=(now.getDay()+6)%7,mon=addDays(now,-dow),t=dayKey();return (window.MLANG==='en'?['M','T','W','T','F','S','S']:['L','M','M','J','V','S','D']).map((n,i)=>{const d=dayKey(addDays(mon,i)),st=S.days[d],done=dayDone(st);const cls=(done?'done ':d<t?'miss ':'')+(d===t?'today':'');return `<div class="day ${cls}">${n}<b>${done?'🔥':d===t?'⭐':''}</b></div>`;}).join('');}
 function renderHome(){
   const li=levelInfo(S.xp),st=S.settings,t=today(),ml=MATH_LEVELS[st.mathLevel-1],mm=levelMastery('math',st.mathLevel),mf=mathFacts(st.mathLevel).length,fl=FR_LEVELS[st.frLevel-1];
   const sprintLocked=!t.math,frLocked=st.frAfterMath&&!t.math,best=S.stats.sprintBest[st.mathLevel]||0,reached=S.gifts.filter(g=>g.reached&&!g.given),nb=Object.keys(S.badges).length,ready=chestAvailable();
   return `<div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills"><span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">🔄 Changer</button>':''}</div></div>
   <div class="week card">${weekHTML()}</div>${Plan.banner()}
   
-  <div class="mission card"><div class="mtx"><h3>Mission du jour</h3><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${st.frOn?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'🎉':'🎁'}</button></div>
+  <div class="mission card"><div class="mtx"><h3>Mission du jour</h3><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${frOnNow()?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'🎉':'🎁'}</button></div>
   ${Coffre.slotsHTML()}
   <button class="play ${!t.math?'pulse':''}" style="--c:var(--b);--d:var(--bd)" data-act="startmath"><span class="ico">🔢</span><span class="tx"><span class="t1">Maths</span><span class="t2">Monde ${st.mathLevel} · ${ml.n}</span><span class="mbar"><i style="width:${Math.round(mm*100)}%"></i></span><span class="t3">${Math.round(mm*mf)} / ${mf} calculs maîtrisés${mm>=1?' · 🏆 Monde terminé !':mm>=.8?' · Le monde suivant arrive à la fin de la partie !':''}</span></span></button>
   <button class="play ${sprintLocked?'locked':''}" style="--c:var(--o);--d:var(--od)" data-act="startsprint"><span class="ico">⚡</span><span class="tx"><span class="t1">Défi éclair</span><span class="t2">${sprintLocked?'Après ton entraînement de maths':best?`Record : ${best} calculs en ${st.sprintSec} s`:`Le plus de calculs en ${st.sprintSec} s !`}</span></span>${sprintLocked?'<span class="lock">🔒</span>':''}</button>
-  ${st.frOn?`<button class="play ${frLocked?'locked':''} ${!frLocked&&!t.fr?'pulse':''}" style="--c:var(--p);--d:var(--pd)" data-act="startfr"><span class="ico">📖</span><span class="tx"><span class="t1">Lecture</span><span class="t2">${frLocked?'Après ton entraînement de maths':`Monde ${st.frLevel} · ${fl.n}`}</span></span>${frLocked?'<span class="lock">🔒</span>':''}</button>`:''}
+  ${frOnNow()?`<button class="play ${frLocked?'locked':''} ${!frLocked&&!t.fr?'pulse':''}" style="--c:var(--p);--d:var(--pd)" data-act="startfr"><span class="ico">📖</span><span class="tx"><span class="t1">Lecture</span><span class="t2">${frLocked?'Après ton entraînement de maths':`Monde ${st.frLevel} · ${fl.n}`}</span></span>${frLocked?'<span class="lock">🔒</span>':''}</button>`:''}
   ${themesHTML()}
   <div class="minis"><button class="mini" data-act="shop"><span>🎨</span>Mon perso</button><button class="mini" data-act="badges"><span>🏆</span>Badges ${nb}/${BADGES.length}</button><button class="mini ${S.gifts.some(g=>g.reached&&!g.given)?'blink':''}" data-act="gifts"><span>🎁</span>Cadeaux${S.gifts.some(g=>g.reached&&!g.given)?`<i class="dot">${S.gifts.filter(g=>g.reached&&!g.given).length}</i>`:''}</button></div>
   <div class="parentrow"><button class="parentbtn" data-act="parent">🔒 Espace parents</button><a class="parentbtn" href="aide.html" target="_blank" rel="noopener">💬 Aide</a>${Acct.user?'':'<button class="parentbtn" data-act="openlogin">🔑 Connexion</button>'}${Plan.pill()}<button class="parentbtn" data-act="offrir">🎁 Offrir</button></div>`;
@@ -2114,7 +2194,7 @@ function renderResult(){
   const t=today();let cmp='';
   if(G.prevAvg&&s.avgMs){const d=G.prevAvg-s.avgMs;cmp=d>150?`🚀 Plus rapide que la dernière fois !<br><small>${sec(G.prevAvg)} → ${sec(s.avgMs)} par réponse</small>`:d<-300?`🐢 Un peu plus lent que la dernière fois<br><small>${sec(G.prevAvg)} → ${sec(s.avgMs)} — on s’entraîne et ça va accélérer !</small>`:`⚖️ Même vitesse que la dernière fois<br><small>${sec(s.avgMs)} par réponse</small>`;}
   const title=s.stars===3?`Parfait ${nm()} !`:s.stars===2?`Bravo ${nm()} !`:`Bien joué ${nm()} !`;
-  const next=s.type==='math'&&S.settings.frOn&&!t.fr?`<button class="btn p block" data-act="gofr">📖 Maintenant, la lecture !</button><button class="btn w block" data-act="home">Accueil 🏠</button>`:'<button class="btn g block" data-act="home">Continuer ➜</button>';
+  const next=s.type==='math'&&frOnNow()&&!t.fr?`<button class="btn p block" data-act="gofr">📖 Maintenant, la lecture !</button><button class="btn w block" data-act="home">Accueil 🏠</button>`:'<button class="btn g block" data-act="home">Continuer ➜</button>';
   return `<div class="result"><div class="stars">${[1,2,3].map(i=>`<span class="st ${i<=s.stars?'on':''}" style="animation-delay:${i*.25}s">⭐</span>`).join('')}</div><h1>${title}</h1>
   <div class="rgrid"><div class="rtile"><b>${s.ok}/${s.n}</b><span>du premier coup</span></div><div class="rtile"><b>⚡ ${s.fast}</b><span>réponses rapides</span></div><div class="rtile"><b>${s.avgMs?sec(s.avgMs):'–'}</b><span>temps moyen</span></div><div class="rtile"><b>🔥 ${s.combo}</b><span>meilleur combo</span></div></div>
   ${cmp?`<div class="cmp">${cmp}</div>`:''}${chestAvailable()?'<div class="cmp">🎁 Mission du jour terminée ! Ton coffre t’attend à l’accueil.</div>':''}
@@ -2141,7 +2221,7 @@ function renderShop(){setTimeout(()=>{shopAnim=false;shopBought=null;},700);
   <div class="items ${shopAnim?'anim':''}">${body}</div>`;
 }
 function renderBadges(){const got=BADGES.filter(b=>S.badges[b.id]).length;return `<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>Mes badges</h2><span class="pill">${got}/${BADGES.length}</span></div>`+Object.entries(RARITY).map(([k,R])=>{const L=BADGES.filter(b=>b.r===k),g=L.filter(b=>S.badges[b.id]).length;return `<div class="rarsec"><h3 class="rarh" style="color:${R.col}">${R.n}<small>${g}/${L.length}</small></h3><div class="badges">${L.map(b=>{const ok=!!S.badges[b.id],pr=!ok&&b.p?b.p():null;return `<div class="badge r-${k} ${ok?'got':''}" style="--rc:${R.col}"><span class="be">${b.e}</span><b>${esc(b.n)}</b><small>${esc(b.d)}</small>${pr?`<span class="bp"><i style="width:${Math.round(pr[0]/pr[1]*100)}%"></i></span><em>${pr[0]}/${pr[1]}</em>`:''}</div>`;}).join('')}</div></div>`;}).join('');}
-const fdate=t=>t?new Date(t).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}):'';
+const fdate=t=>t?new Date(t).toLocaleDateString(LOC,{day:'numeric',month:'short',year:'numeric'}):'';
 function giftGiven(id){const g=S.gifts.find(x=>x.id===id);if(g&&!g.given){g.given=true;g.givenAt=Date.now();save();}pinBuf='';pinGift=null;toast('Cadeau remis ✅');go('gifts');}
 function renderGifts(){
   const show=S.gifts.filter(g=>!g.given),hist=S.gifts.filter(g=>g.given).sort((a,b)=>(b.givenAt||0)-(a.givenAt||0));
@@ -2162,8 +2242,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.56';
+const VERSION='1.57';
 const VERSIONS=[
+ ['1.57','21/11/2026 11:20','Malino en anglais (interface, maths, 7 jeux), sélecteur de langue'],
  ['1.56','21/11/2026 10:30','Nouveau jeu : Arabe (18 mondes, lettres, mots, chiffres)'],
  ['1.55','20/11/2026 22:10','Guide parents et admin mis à jour avec les 2 nouveaux jeux'],
  ['1.54','20/11/2026 22:00','Nouveaux jeux : Qui a changé ? et Chiffres éclair'],
@@ -2171,8 +2252,8 @@ const VERSIONS=[
  ['1.52','20/11/2026 21:05','Choix garçon / fille à la création et sur chaque profil'],
  ['1.51','20/11/2026 20:55','Écran « Qui joue ? » en grandes cartes + bouton Changer de profil'],
  ['1.50','19/11/2026 23:35','Sons du Drive : paliers, coffres, combos, avec fondu'],
- ['1.49','19/11/2026 22:15','Numéro de version dans l’Espace parents'],
 ];
+const noFr=h=>window.MLANG==='fr'?h:h.replace(/<section class="acard"><h3>(?:📖 Lecture|🎙️ Sons des lettres)<\/h3>[\s\S]*?<\/section>/g,'').replace(/<li>Lecture \(méthode syllabique\)[^<]*<\/li>/,'');
 function renderAdmin(){
   const adm=!!(Plan.info&&Plan.info.admin);
   if(adminTab==='admin'&&!adm)adminTab='compte';
@@ -2186,7 +2267,7 @@ function renderAdmin(){
   ${sw}
   <div class="tgrp"><span class="tlab">Pour ${esc(S.name||'l’enfant')}</span><div class="tabs">${tb(enf)}</div></div>
   <div class="tgrp"><span class="tlab">Commun à la famille</span><div class="tabs">${tb(com)}</div></div>
-  ${(P[adminTab]||P.compte)()}<button class="vtag" data-act="versions">Malino v${VERSION} · ${VERSIONS[0][1]}</button>`;
+  ${noFr((P[adminTab]||P.compte)())}<button class="vtag" data-act="versions">Malino v${VERSION} · ${VERSIONS[0][1]}</button>`;
 }
 
 function paneCompare(){
@@ -2209,6 +2290,7 @@ function paneSettings(){
   const rec=m>=.8&&st.mathLevel<MATH_LEVELS.length?`<div class="reco">✅ ${nm()} maîtrise ${pct(m)} du monde ${st.mathLevel}. Vous pouvez passer au suivant.<button class="btn g sm" data-act="setlvl" data-arg="${st.mathLevel+1}">Passer au monde ${st.mathLevel+1}</button></div>`:'';
   const frec=fm>=.8&&st.frLevel<FR_LEVELS.length?`<div class="reco">✅ ${pct(fm)} du monde ${st.frLevel} de lecture maîtrisé.<button class="btn g sm" data-act="setfr" data-arg="${st.frLevel+1}">Passer au monde ${st.frLevel+1}</button></div>`:'';
   return `<section class="acard"><h3>💡 La méthode</h3><ul class="tips"><li>10 minutes par jour suffisent : maths, puis lecture, puis le coffre du jour. Les autres jeux et les coffres magiques viennent en bonus.</li><li>Lecture (méthode syllabique) : le son des lettres → j’assemble (s + e = se) → mots de 2 syllabes → mots de 3 syllabes. Les syllabes sont en couleurs alternées, avec les lettres muettes en gris.</li><li>Chaque partie répète quelques questions plusieurs fois. Une erreur ? Correction à l’écran et à voix haute, il refait la question tout de suite, puis on la lui repose plus loin.</li><li>Un calcul est « maîtrisé » après 3 bonnes réponses rapides d’affilée.</li><li>Chaque jeu avance par <b>mondes</b>, du plus facile jusqu’à Expert, Épique, Ultra et Impossible. Passez au monde suivant au-delà de 80 % de maîtrise (ou laissez l’appli le faire seule). En maths, passez ensuite au clavier, puis baissez l’objectif de vitesse (8 s → 6 s → 4 s).</li><li>Le <b>niveau du joueur</b> monte avec tout ce qu’il fait et débloque de nouveaux jeux : l’heure, les formes, les problèmes, les drapeaux, les sciences, l’orthographe.</li><li>Une partie arrêtée avant la fin compte quand même : réponses, pièces et temps sont gardés.</li></ul><button class="btn sm o" data-act="guide">📖 Tout comprendre : coffres, cadeaux, objets…</button></section>
+  <section class="acard"><h3>🌐 Langue · Language</h3><div class="seg" data-noi18n>${[['fr','🇫🇷 Français'],['en','🇬🇧 English']].map(([c,l])=>`<button class="${(window.MLANG||'fr')===c?'on':''}" data-act="setlang" data-arg="${c}">${l}</button>`).join('')}</div><p class="hint">En anglais : maths et jeux visuels. La lecture et l’orthographe restent en français.</p></section>
   <section class="acard"><h3>👦 Enfant</h3><label class="fld">Prénom<input data-field="name" value="${esc(S.name)}" maxlength="20" autocomplete="off"></label><div class="seg" style="margin-top:8px"><button class="${S.genre==='g'?'on':''}" data-act="setgenre" data-arg="g">👦 Garçon</button><button class="${S.genre==='f'?'on':''}" data-act="setgenre" data-arg="f">👧 Fille</button></div></section>
   <section class="acard"><h3>🗝️ Coffres magiques</h3>${tog('coffres','Coffres à ouvrir après 12 h','Gagnés en jouant : 3 étoiles, nouveau niveau, mission du jour. Dedans : pièces, autocollants, objets… ou une farce !')}</section>
   <section class="acard"><h3>🔢 Maths : les mondes</h3>${rec}${lvlList('math',MATH_LEVELS,st.mathLevel,(L,i)=>{const n=i+1,mm=levelMastery('math',n);return `<button class="lvl ${n===st.mathLevel?'on':''}" data-act="setlvl" data-arg="${n}"><span class="le">${L.e}</span><span class="ln"><b>${n}. ${L.n}</b><small>${diffTxt(i,MATH_LEVELS)} · ${mathFacts(n).length} calculs · ${pct(mm)} maîtrisés</small><span class="mbar2"><i style="width:${mm*100}%"></i></span></span>${n===st.mathLevel?'<span class="cur">Actuel</span>':''}</button>`;})}${tog('mathAuto','Passer seul au monde suivant','Plus vite si tu réussis très bien, plus lent si tu as du mal')}</section>
@@ -2312,7 +2394,7 @@ const ACT={
     +sec('🎁 Cadeaux à gagner (les vrais)',['Dans l’onglet <b>Cadeaux</b>, vous fixez de vraies récompenses : une glace, une sortie, choisir le dessert…','Vous choisissez l’objectif (jours d’affilée, niveau, bonnes réponses, minutes de jeu…). L’enfant voit sa progression, et une fête s’affiche quand il l’atteint.','Conseil : récompensez la régularité plutôt que la durée.'])
     +sec('👨‍👩‍👧 Parents et famille',['Au lancement, l’écran <b>Qui joue ?</b> liste les enfants. L’Espace parents est protégé par un code.','Un second parent peut être invité (Famille et compte) : il voit les mêmes enfants et la même progression.','Les <b>rapports par e-mail</b> (nouveau niveau, récap de la semaine) se coupent d’une case dans Famille et compte.','L’onglet <b>Progrès</b> détaille la réussite, la vitesse, le temps de jeu et les calculs à retravailler. Une partie arrêtée avant la fin y est marquée ⏸️.'])
     +`</div><button class="btn y block" data-act="mclose">Fermer</button>`);},
-  versions(){queueModal(`<h2>Malino v${VERSION}</h2><div class="vlist">${VERSIONS.map(v=>`<div><b>v${v[0]}</b><small>${v[1]}</small><span>${v[2]}</span></div>`).join('')}</div><button class="btn y block" data-act="mclose">Fermer</button>`);},
+  versions(){queueModal(`<h2>Malino v${VERSION}</h2><div class="vlist">${VERSIONS.map(v=>`<div><b>v${v[0]}</b><small>${v[1]}</small>${window.MLANG==='fr'?`<span>${v[2]}</span>`:''}</div>`).join('')}</div><button class="btn y block" data-act="mclose">Fermer</button>`);},
   lvmore(id){LVOPEN[id]=!LVOPEN[id];keepScroll(render);},
   togth(k){S.settings.thOn[k]=S.settings.thOn[k]===false;save();keepScroll(render);},
   shop(){shopPrev=null;shopSeen=S.shopSeen||1;S.shopSeen=levelInfo(S.xp).level;save();shopAnim=true;go('shop');},badges(){go('badges');},gifts(){go('gifts');},
@@ -2358,6 +2440,7 @@ const ACT={
   onbnext(){Onb.next();},onbprev(){Onb.prev();},onbskip(){Onb.skip();},onbset(a){Onb.set(a);},onbinvite(){Onb.done();setTimeout(()=>Offre.invite(),300);},onbstart(){Onb.start();},invsend(){Offre.inviteSend();},
   openlogin(){Acct.show('login');},authclose(){Acct.hide();},authsend(a){Acct.send(a==='again');},authverify(){Acct.verify();},
   who(){Famille.who(true);},
+  setlang(l){if(l===(window.MLANG||'fr'))return;if(window.I18N)I18N.set(l);},
   newgenre(g){Acct.newG=g;const v=($('#newprof')||{}).value||'';keepScroll(render);const e=$('#newprof');if(e)e.value=v;},
   setgenre(g){S.genre=g;S.avatar=Object.assign({},S.avatar,g==='f'?{hair:'hair_long',shirt:'sh_rouge'}:{hair:'hair_court',shirt:'sh_bleu'});save();toast(g==='f'?'Profil : fille 👧':'Profil : garçon 👦');keepScroll(render);},
   authview(v){Acct.view=v;Acct.draw();},authpw(){Acct.pwLogin();},authforgot(){Acct.forgotSend();},authpick(id){Acct.pick(id);},
@@ -2472,7 +2555,8 @@ const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:
     else if(v==='pick')body=`<p>Quel profil utiliser sur cet appareil ?</p>${this.list.map(r=>`<button class="btn sm o block" style="margin-bottom:8px" data-act="authpick" data-arg="${r.id}">${esc(r.nom)} · niv. ${levelInfo((r.data&&r.data.xp)||0).level}</button>`).join('')}<button class="btn sm block" data-act="authpick" data-arg="local">➕ Garder la progression de cet appareil (${esc(S.name||'Champion')}) comme nouveau profil</button>`;
     else body=`<p>Connexion en cours…</p>`;
     const close=w||v==='load'?'':`<button class="xbtn aclose" data-act="authclose" aria-label="Fermer">✕</button>`;
-    el.innerHTML=`<div class="abox">${close}${head}<div id="amsg" class="amsg"></div>${body}</div>`;
+    const lg=window.MLANG==='en'?['fr','Français']:['en','English'];
+    el.innerHTML=`<div class="abox">${close}${head}<div id="amsg" class="amsg"></div>${body}<button data-noi18n data-act="setlang" data-arg="${lg[0]}" style="display:block;margin:10px auto 0;border:0;background:none;font:inherit;font-size:12px;color:var(--ink2);text-decoration:underline">🌐 ${lg[1]}</button></div>`;
     clearInterval(this.tk);if(v==='code'&&this.wait>0)this.tk=setInterval(()=>{this.wait--;const b=$('#aResend');if(!b){clearInterval(this.tk);return;}if(this.wait<=0){clearInterval(this.tk);b.disabled=false;b.textContent='Renvoyer le code';}else b.textContent=`Renvoyer le code (${this.wait} s)`;},1000);
     const f=$('#aEmail')||$('#aCode');if(f&&v!=='load')setTimeout(()=>{try{f.focus();}catch(e){}},50);
   },
@@ -2640,7 +2724,7 @@ function timeSection(){
 // ---------- Malino+ : formules, essai, cadeaux, parrainage ----------
 const PAY={mensuel:'https://buy.stripe.com/7sYaEY00Ydx66rkgR61Jm02',annuel:'https://buy.stripe.com/aFa28s2962Ss5ng30g1Jm03',portail:'https://billing.stripe.com/p/login/00w00k3da8cM7vocAQ1Jm00'};
 const API=SB_URL+'/functions/v1/malino-api',FREE_TH=['money','logic'];
-const fmtDate=d=>new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+const fmtDate=d=>new Date(d).toLocaleDateString(LOC,{day:'numeric',month:'long',year:'numeric'});
 const Plan={info:null,
   load(){try{this.info=JSON.parse(localStorage.getItem('malino_plan')||'null');}catch(e){this.info=null;}},
   set(j){this.info=j;try{localStorage.setItem('malino_plan',JSON.stringify(j));}catch(e){}},
@@ -2898,6 +2982,7 @@ Rec.load();Pack.load();load();recoverPartial();Voice.init();Plan.load();Confetti
 if(S.refund){const r=S.refund;S.refund=0;save();queueModal(`<div class="bigemoji sm">🛍️</div><h2>Nouvelle boutique !</h2><p>Des objets en bois, cuivre, argent, or… jusqu’au <b>Plasma</b> !</p><p>Certains anciens objets sont partis : tu récupères <b>${fmtP(r)} 🪙</b>.</p><button class="btn y block" data-act="mclose">Super !</button>`);}
 if(!S.welcomed){S.welcomed=true;save();queueModal(`<div class="mav">${avatarSVG(S.avatar)}</div><h2>Salut ${nm()} ! 👋</h2>${S.name?'':'<label class="fld" style="text-align:left">Comment tu t’appelles ?<input id="wname" maxlength="20" autocomplete="off" placeholder="Ton prénom"></label>'}<p>Chaque jour :<br><b>1.</b> Entraîne-toi en maths 🔢<br><b>2.</b> Fais ta lecture 📖<br><b>3.</b> Ouvre ton coffre 🎁</p><p>Gagne des pièces 🪙 pour habiller ton personnage et débloquer des surprises !</p><button class="btn g block" data-act="wstart">C’est parti ! 🚀</button>`);}
 else checkGifts().forEach(giftModal);
+if(window.I18N)I18N.hook();
 </script>
 <script>
 // Plein écran au premier toucher : Chrome Android masque alors sa barre du haut (retour possible via les réglages du navigateur)

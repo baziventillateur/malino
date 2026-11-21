@@ -6,6 +6,7 @@ self.addEventListener('fetch',e=>{
   if(new URL(r.url).origin!==location.origin)return;
   e.respondWith(fetch(r).then(res=>{
     if(r.mode==='navigate'){const c=res.clone();caches.open(C).then(k=>k.put('./',c));}
+    else if(res.ok&&/\/lang-[a-z]+\.js$/.test(new URL(r.url).pathname)){const c=res.clone();caches.open(C).then(k=>k.put(r,c));} // dictionnaires de langue : disponibles hors ligne
     return res;
   }).catch(()=>caches.match(r).then(m=>m||caches.match('./'))));
 });
