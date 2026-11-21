@@ -43,6 +43,10 @@ details summary{cursor:pointer;font-weight:700;font-size:15px}
 .pred h2{flex-wrap:wrap}.pred h2 b{font-size:20px}.gauge{height:8px;border-radius:99px;background:#EEF0F5;overflow:hidden;margin:2px 0 8px}.gauge i{display:block;height:100%;border-radius:99px}
 .why{margin:0 0 6px;padding-left:18px;font-size:13px;color:var(--ink2)}.why li{margin:1px 0}.todo{margin:6px 0 8px;font-weight:600;font-size:13.5px;background:#F4F1FF;border-radius:10px;padding:7px 9px}
 .btnl{display:inline-block;background:var(--v);color:#fff;font-weight:600;border-radius:9px;padding:6px 10px;text-decoration:none}
+.dl{display:block;font-size:11.5px;font-weight:700;margin-top:2px}.dl.up{color:#16A34A}.dl.dn{color:#E03A45}.dl.eq{color:var(--ink2);font-weight:600}.kpi.hl .dl.up,.kpi.hl .dl.dn,.kpi.hl .dl.eq{color:#fff;opacity:.95}
+.evol .kpis{margin-bottom:0;grid-template-columns:repeat(3,1fr);gap:6px}.evol .kpi{padding:7px 8px}.evol .kpi b{font-size:17px}.evol .kpi small{font-size:11px}.evol .dl{font-size:10.5px}.nowh{font-size:14px;margin:4px 2px 6px;color:var(--ink2)}
+.rk{display:flex;align-items:center;gap:8px;padding:6px 2px;border-top:1px solid #F1EEFB;cursor:pointer}.rk:active{background:#FAF8FF}.rkn{width:26px;text-align:center;font-weight:800;color:var(--ink2);font-size:13px}.rkn.top{font-size:18px}
+.rkm{flex:1;min-width:0}.rkm b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rkm small{display:block;color:var(--ink2);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rkv{font-weight:800;font-size:13px;color:var(--v);white-space:nowrap}
 .kpis.k6{grid-template-columns:repeat(3,1fr)}.kpis.k4{grid-template-columns:repeat(4,1fr);gap:6px}.kpis.k4 .kpi{padding:6px 8px}.kpis.k4 .kpi b{font-size:17px}.kpis.k4 small{font-size:11px}.kpis.k6 .kpi b{font-size:17px}
 .bars{display:flex;align-items:flex-end;gap:2px;height:96px;padding:2px 0;border-bottom:1px solid #E6E3F2}.bc{flex:1;height:100%;display:flex;align-items:flex-end;border-radius:3px}.bc.acc{background:#F6F2FF}.bc i{display:block;width:100%;background:var(--v);border-radius:3px 3px 0 0}
 .barax{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:3px}.sw-acc{display:inline-block;width:10px;height:10px;border-radius:3px;background:#F6F2FF;border:1px solid #E3DAFF;vertical-align:-1px}
@@ -94,9 +98,9 @@ async function load(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session)return loginView('mail');
   app.innerHTML='<p class="mut">Chargement…</p>';
-  const {data,error}=await sb.rpc('admin_tableau');
+  const [{data,error},ser]=await Promise.all([sb.rpc('admin_tableau'),sb.rpc('admin_series').then(r=>r,()=>({data:null}))]);
   if(error){app.innerHTML=`<div class="card"><h2>Accès refusé</h2><p>Le compte <b>${esc(session.user.email)}</b> n’est pas administrateur.</p><button id="out" class="o">Changer de compte</button></div>`;$('#out').onclick=async()=>{await sb.auth.signOut({scope:'local'});loginView('mail');};return;}
-  D=data;$('#tabs').classList.remove('hidden');render();loadDev();bellCount();if(!load.t)load.t=setInterval(bellCount,60000);
+  D=data;D.series=ser&&ser.data||null;$('#tabs').classList.remove('hidden');render();loadDev();bellCount();if(!load.t)load.t=setInterval(bellCount,60000);
   if(location.hash==='#notifs'&&!load.nb){load.nb=1;openBell();}
 }
 
@@ -430,6 +434,32 @@ async function voirMail(mail){const ov=document.createElement('div');ov.id='fich
   m.innerHTML=`<div class="card"><div class="small mut">À : ${esc(mail)}</div><b>${esc(j.mail.sujet)}</b></div><iframe id="vFrame" sandbox="" style="width:100%;height:75vh;border:0;border-radius:14px;background:#fff"></iframe>`;
   $('#vFrame').srcdoc=j.mail.html;}
 
+// ---- Évolution par période (comparée à la période d'avant) et classement des familles ----
+const PERS=[[7,'7 jours'],[30,'1 mois'],[91,'3 mois'],[182,'6 mois'],[365,'1 an']];
+let PER=+(localStorage.getItem('adm_per')||7),RANK=localStorage.getItem('adm_rank')||'actif';
+const jourFam=f=>f._J||(f._J=(f.enfants||[]).reduce((J,k)=>{Object.entries(k.jours||{}).forEach(([d,s])=>J[d]=(J[d]||0)+s);return J;},{}));
+const fmtT=s=>{const m=Math.round((s||0)/60);return m<60?`${m} min`:`${Math.floor(m/60)} h ${String(m%60).padStart(2,'0')}`;};
+const ilya=t=>{if(!t)return '—';const m=Math.round((Date.now()-Date.parse(t))/6e4);return m<60?`${Math.max(1,m)} min`:m<1440?`${Math.round(m/60)} h`:`${Math.round(m/1440)} j`;};
+function periode(F,a,b,cur){const ka=dk(a),kb=dk(b),inR=t=>{t=Date.parse(t);return t>a&&t<=b;},S=D.series;let act=0,sec=0;
+  F.forEach(f=>{let s=0,j=0;for(const [k,v] of Object.entries(jourFam(f)))if(k>ka&&k<=kb){s+=v;if(v>=60)j++;}if(cur)f._r={sec:s,jours:j};if(j)act++;sec+=s;});
+  return {enc:S?S.paiements.filter(p=>inR(p.t)).reduce((x,p)=>x+p.m,0):D.paiements.filter(p=>p.statut==='paye'&&inR(p.cree_le)).reduce((x,p)=>x+p.montant,0),
+    nouv:F.filter(f=>inR(f.cree_le)).length,act,sec,moy:act?sec/act:0,abos:S?S.abonnes.filter(inR).length:null,codes:S?S.codes.filter(inR).length:null};}
+const delta=(c,p,fmt)=>{if(c==null||p==null)return '';fmt=fmt||(x=>x);const dv=Math.round((c-p)*100)/100;if(!dv)return '<span class="dl eq">= pareil</span>';const up=dv>0,pct=p?Math.round(Math.abs(dv)/p*100):null;
+  return `<span class="dl ${up?'up':'dn'}">${up?'▲ +':'▼ −'}${fmt(Math.abs(dv))}${pct!=null?`<br>${up?'+':'−'}${pct} %`:''}</span>`;};
+function evolHTML(F){const now=Date.now(),N=PER*DAY,c=periode(F,now-N,now,1),p=periode(F,now-2*N,now-N),lab=(PERS.find(x=>x[0]===PER)||PERS[0])[1];
+  const k=(v,l,dl,hl)=>`<div class="kpi ${hl?'hl':''}"><b>${v}</b><small>${l}</small>${dl}</div>`;
+  return `<div class="card evol"><div class="row" style="justify-content:space-between;align-items:center"><h2 style="margin:0">📈 Évolution</h2><div class="chips" style="margin:0">${PERS.map(([n,l])=>`<button class="chip ${PER===n?'on':''}" data-per="${n}">${l}</button>`).join('')}</div></div>
+    <p class="small mut" style="margin:4px 0 8px">Sur les ${lab} écoulés, comparé aux ${lab} d’avant.</p>
+    <div class="kpis">${k(eur(c.enc),'encaissé',delta(c.enc,p.enc,eur),1)}${k(c.nouv,'nouvelles familles',delta(c.nouv,p.nouv))}${k(c.act,'familles actives',delta(c.act,p.act))}${k(fmtT(c.sec),'de jeu au total',delta(c.sec,p.sec,fmtT))}${k(fmtT(c.moy),'par famille active',delta(c.moy,p.moy,fmtT))}${c.abos!=null?k(c.abos,'nouveaux abonnés',delta(c.abos,p.abos)):''}${c.codes!=null?k(c.codes,'codes utilisés',delta(c.codes,p.codes)):''}</div></div>`;}
+const RANKS={actif:['🔥 Plus actives',f=>f._r.jours,f=>`${f._r.jours} j de jeu`,f=>f._r.jours>0],temps:['⏱️ Plus de temps',f=>f._r.sec,f=>fmtT(f._r.sec),f=>f._r.sec>0],
+  vu:['🕐 Vues récemment',f=>Date.parse(f.derniere_activite)||0,f=>`il y a ${ilya(f.derniere_activite)}`,f=>!!f.derniere_activite],
+  inscrit:['🆕 Inscrites récemment',f=>Date.parse(f.cree_le)||0,f=>`le ${d(f.cree_le)}`,()=>true],
+  paye:['💳 Payantes',f=>f.total||0,f=>f.total?eur(f.total):'abonnée',f=>(f.total||0)>0||(f.abo_statut&&['active','trialing','past_due'].includes(f.abo_statut))]};
+function rangHTML(F){const lab=(PERS.find(x=>x[0]===PER)||PERS[0])[1];F.forEach(f=>f._r=f._r||{sec:0,jours:0});
+  const [,val,txt,keep]=RANKS[RANK]||RANKS.actif,L=F.filter(keep).sort((x,y)=>val(y)-val(x));
+  return `<div class="card" data-plier="8" data-plk="classement" data-plrow=":scope > .rk"><h2>🏆 Classement des familles</h2><div class="chips">${Object.entries(RANKS).map(([k,[l]])=>`<button class="chip ${RANK===k?'on':''}" data-rank="${k}">${l}</button>`).join('')}</div>
+    ${RANK==='actif'||RANK==='temps'?`<p class="small mut" style="margin:0 0 4px">Sur les ${lab} écoulés (bouton de période en haut).</p>`:''}
+    ${L.length?L.map((f,i)=>`<div class="rk" data-fiche="${f.user_id}"><span class="rkn ${i<3?'top':''}">${i<3?['🥇','🥈','🥉'][i]:i+1}</span><div class="rkm"><b>${esc(f.prenom||f.email)}</b><small>${esc((f.enfants||[]).map(k=>k.nom).join(', ')||'—')}${f.prenom?' · '+esc(f.email):''}</small></div><span class="rkv">${txt(f)}</span></div>`).join(''):'<p class="small mut" style="margin:0">Personne pour l’instant sur cette période.</p>'}</div>`;}
 function draw(){
   const F=D.familles,P=D.paiements,now=Date.now(),mois=new Date();mois.setDate(1);mois.setHours(0,0,0,0);
   const enfants=F.reduce((a,f)=>a+f.enfants.length,0),actifs=F.filter(f=>now-Date.parse(f.derniere_activite)<7*864e5).length;
@@ -442,10 +472,11 @@ function draw(){
   F.forEach(f=>f._p=predict(f));
   const flt=F.filter(f=>(!q||f.email.includes(q)||(f.prenom||'').toLowerCase().includes(q)||f.enfants.some(k=>(k.nom||'').toLowerCase().includes(q)))&&FILTRES[FLT][1](f._p));
   const st=f=>f.plan==='plus'?`<span class="tag t-plus">👑 ${f.abo_statut?'Abonné '+(f.abo_formule||''):'Offert → '+d(f.plus_jusqua)}</span>${f.abo_statut==='past_due'?' <span class="tag t-echec">impayé</span>':''}`:f.plan==='essai'?`<span class="tag t-essai">Essai · ${jours(f.essai_fin)} j</span>`:'<span class="tag t-gratuit">Gratuit</span>';
-  app.innerHTML=`
+  app.innerHTML=`${evolHTML(F)}
+  <h3 class="nowh">📌 En ce moment</h3>
   <div class="kpis">
-    <div class="kpi hl"><b>${eur(dumois)}</b><small>encaissé ce mois-ci</small></div>
-    <div class="kpi hl"><b>${eur(total)}</b><small>total encaissé</small></div>
+    <div class="kpi"><b>${eur(dumois)}</b><small>encaissé ce mois-ci</small></div>
+    <div class="kpi"><b>${eur(total)}</b><small>total encaissé</small></div>
     <div class="kpi"><b>${eur(Math.round(mrr))}</b><small>revenu mensuel récurrent</small></div>
     <div class="kpi"><b>${abos.length}</b><small>abonnés payants</small></div>
     <div class="kpi"><b>${plus.length-abos.length}</b><small>Malino+ offerts</small></div>
@@ -453,8 +484,6 @@ function draw(){
     <div class="kpi"><b>${F.length}</b><small>familles inscrites</small></div>
     <div class="kpi"><b>${D.codes.reduce((a,k)=>a+k.utilisations,0)}</b><small>codes utilisés</small></div>
     <div class="kpi"><b>${enfants}</b><small>enfants</small></div>
-    <div class="kpi"><b>${actifs}</b><small>actives sur 7 jours</small></div>
-    <div class="kpi"><b>${tmoy} min</b><small>de jeu par famille active (7 j)</small></div>
     <div class="kpi"><b>${D.parrainages.inscrits}/${D.parrainages.envoyes}</b><small>parrainages réussis</small></div>
   </div>
   <div class="card" data-plier="8" data-plk="alertes" data-plrow=":scope > .alert"><h2>🚨 À traiter <span class="tag ${alerts.length?'t-echec':'t-paye'}">${alerts.length}</span></h2>${alerts.length?alerts.slice(0,15).map(a=>`<div class="alert"><span class="mut small" style="min-width:76px">${dh(a.cree_le)}</span><span><b>${alertTypes[a.type]}</b> ${esc(a.email||'')}<br><span class="small mut">${esc(a.detail||'')}</span></span></div>`).join(''):'<p class="mut small" style="margin:0">Rien à signaler sur les 30 derniers jours ✅</p>'}</div>
@@ -464,13 +493,16 @@ function draw(){
     <div class="row" style="margin-top:6px"><input id="cCode" placeholder="Code (vide = automatique)" maxlength="24" style="width:170px;text-transform:uppercase"><select id="cJours"><option value="14">14 jours</option><option value="30" selected>30 jours</option><option value="45">45 jours</option><option value="60">60 jours</option></select><input id="cMax" type="number" min="0" placeholder="Limite (0 = illimité)" style="width:150px"><input id="cExp" type="date" title="Expire le (facultatif)"><button id="cGo">Créer</button></div><p class="msg" id="cRes"></p>
     <div class="scroll"><table data-plier="5" data-plk="codes"><tr><th>Code / lien</th><th>Où</th><th>Durée</th><th>Utilisé</th><th>En cours</th><th>Payants</th><th></th></tr>${D.codes.map(k=>`<tr><td><b>${esc(k.code)}</b><br><button class="o small" data-copy="${esc(k.code)}">Copier le lien</button></td><td>${esc(k.libelle)}<br><span class="small mut">créé le ${d(k.cree_le)}${k.dernier?' · dernier : '+d(k.dernier):''}${k.expire_le?' · expire le '+d(k.expire_le):''}</span></td><td>${k.jours} j</td><td><b>${k.utilisations}</b>${k.max_util?' / '+k.max_util:''}</td><td>${k.en_cours}</td><td>${k.payants}${k.utilisations?` <span class="small mut">(${Math.round(100*k.payants/k.utilisations)} %)</span>`:''}</td><td class="row"><button class="o small" data-cmax="${k.id}" data-max="${k.max_util||0}" data-exp="${k.expire_le||''}" data-act="${k.actif}">Limite</button><button class="${k.actif?'r':'o'} small" data-ctog="${k.id}" data-max="${k.max_util||0}" data-exp="${k.expire_le||''}" data-act="${k.actif}">${k.actif?'Désactiver':'Réactiver'}</button></td></tr>`).join('')||'<tr><td colspan="7" class="mut">Aucun code pour le moment</td></tr>'}</table></div></div>
   <div class="card"><h2>🎁 Offrir Malino+</h2><div class="row"><input type="email" id="gEmail" placeholder="e-mail de la famille"><select id="gMois"><option value="1">1 mois</option><option value="3">3 mois</option><option value="6">6 mois</option><option value="12">12 mois</option></select></div><div class="row" style="margin-top:6px"><input id="gMsg" placeholder="petit mot (facultatif)" maxlength="200" style="flex:1"><button id="gGo">Offrir et envoyer l’e-mail</button></div><p class="msg" id="gRes"></p></div>
-  <div class="card" data-plier="8" data-plk="familles" data-plrow=":scope > .fam"><h2>👨‍👩‍👧 Familles <span class="mut small">${F.length}</span></h2><div class="chips">${Object.entries(FILTRES).map(([k,[l,fn]])=>`<button class="chip ${FLT===k?'on':''}" data-flt="${k}">${l} <b>${F.filter(f=>fn(f._p)).length}</b></button>`).join('')}</div><input id="q" placeholder="Rechercher un e-mail ou un prénom" value="${esc(q)}" style="width:100%;margin-bottom:6px">${flt.map(f=>`<div class="fam" data-fiche="${f.user_id}"><div class="row" style="justify-content:space-between"><b style="word-break:break-all">${f.prenom?esc(f.prenom)+' · ':''}${esc(f.email)} <span class="go">›</span></b><span class="row">${st(f)}<button class="o small" data-gift="${esc(f.email)}">+1 mois</button></span></div><div class="row" style="margin:3px 0 2px"><span class="tag ${f._p.cls}">${f._p.tag}</span>${f._p.score!=null&&f._p.k!=='client'?`<span class="small mut">${f._p.score} % de chances</span>`:''}${f.offre_jusqua?`<span class="tag t-chaud">−30 % → ${d(f.offre_jusqua)}</span>`:''}</div><div class="small mut">Inscrit le ${d(f.cree_le)} · actif il y a ${ago(f.derniere_activite)}${f.total?` · payé ${eur(f.total)}`:''}${f.bonus_jours?` · +${f.bonus_jours} j parrainage`:''}${f.code?` · 🎟️ ${esc(f.code)}`:''}</div><div class="kids" style="margin-top:3px">${f.proprio?`<span class="small mut">👥 co-parent de ${esc(f.proprio)}</span>`:''}${f.enfants.map(k=>`<span class="kid">${esc(k.nom)} · niv. ${lvl(k.xp)} · ${k.seances} séances${k.t7>=60?` · ${Math.round(k.t7/60)} min/7 j`:''}</span>`).join('')||(f.proprio?'':'<span class="small mut">aucun enfant</span>')}</div></div>`).join('')||'<p class="mut small">Aucune famille</p>'}</div>
+  <div class="card" data-plier="8" data-plk="familles" data-plrow=":scope > .fam"><h2>👨‍👩‍👧 Familles <span class="mut small">${F.length}</span></h2><div class="chips">${Object.entries(FILTRES).map(([k,[l,fn]])=>`<button class="chip ${FLT===k?'on':''}" data-flt="${k}">${l} <b>${F.filter(f=>fn(f._p)).length}</b></button>`).join('')}</div><input id="q" placeholder="Rechercher un e-mail ou un prénom" value="${esc(q)}" style="width:100%;margin-bottom:6px">${flt.map(f=>`<div class="fam" data-fiche="${f.user_id}"><div class="row" style="justify-content:space-between"><b style="word-break:break-all">${f.prenom?esc(f.prenom)+' · ':''}${esc(f.email)} <span class="go">›</span></b><span class="row">${st(f)}<button class="o small" data-gift="${esc(f.email)}">+1 mois</button></span></div><div class="row" style="margin:3px 0 2px"><span class="tag ${f._p.cls}">${f._p.tag}</span>${f._p.score!=null&&f._p.k!=='client'?`<span class="small mut">${f._p.score} % de chances</span>`:''}${f.offre_jusqua?`<span class="tag t-chaud">−30 % → ${d(f.offre_jusqua)}</span>`:''}</div><div class="small mut">Inscrit le ${d(f.cree_le)} · actif il y a ${ilya(f.derniere_activite)}${f.total?` · payé ${eur(f.total)}`:''}${f.bonus_jours?` · +${f.bonus_jours} j parrainage`:''}${f.code?` · 🎟️ ${esc(f.code)}`:''}</div><div class="kids" style="margin-top:3px">${f.proprio?`<span class="small mut">👥 co-parent de ${esc(f.proprio)}</span>`:''}${f.enfants.map(k=>`<span class="kid">${esc(k.nom)} · niv. ${lvl(k.xp)} · ${k.seances} séances${k.t7>=60?` · ${Math.round(k.t7/60)} min/7 j`:''}</span>`).join('')||(f.proprio?'':'<span class="small mut">aucun enfant</span>')}</div></div>`).join('')||'<p class="mut small">Aucune famille</p>'}</div>
   <div class="card"><h2>💳 Paiements <span class="mut small">${P.length}</span></h2><div class="scroll"><table data-plier="5" data-plk="paiements"><tr><th>Date</th><th>E-mail</th><th>Type</th><th>Montant</th><th>Statut</th></tr>${P.map(p=>`<tr><td class="small">${dh(p.cree_le)}</td><td>${esc(p.email||'')}</td><td>${p.type==='cadeau'?'🎁 cadeau':'Abonnement'}</td><td>${eur(p.montant)}</td><td><span class="tag t-${p.statut}">${{paye:'payé',echec:'échec',rembourse:'remboursé'}[p.statut]||p.statut}</span></td></tr>`).join('')||'<tr><td colspan="5" class="mut">Aucun paiement pour le moment</td></tr>'}</table></div></div>
   <div class="card"><h2>🎁 Cadeaux</h2><div class="scroll"><table data-plier="5" data-plk="cadeaux"><tr><th>Date</th><th>De</th><th>Pour</th><th>Durée</th><th>Statut</th></tr>${D.cadeaux.map(g=>`<tr><td class="small">${d(g.cree_le)}</td><td>${esc(g.offrant_prenom||'')}<br><span class="small mut">${esc(g.offrant_email||'')}</span></td><td>${esc(g.dest_email)}</td><td>${g.mois} mois</td><td><span class="tag ${g.statut==='applique'?'t-paye':g.statut==='paye'?'t-essai':'t-gratuit'}">${{attente:'non payé',paye:'en attente de connexion',applique:'activé'}[g.statut]}</span></td></tr>`).join('')||'<tr><td colspan="5" class="mut">Aucun cadeau</td></tr>'}</table></div></div>
   <div id="devlink"></div>
   <div class="card"><details><summary>🛑 Demandes STOP (${D.stops.length})</summary><p class="small mut">Les adresses de cette liste ne reçoivent plus d’invitations ni de cadeaux par e-mail (les codes de connexion restent possibles).</p><div class="row"><input type="email" id="sEmail" placeholder="e-mail à bloquer"><button id="sAdd" class="r">Ajouter</button></div><table style="margin-top:6px" data-plier="5" data-plk="stops">${D.stops.map(s=>`<tr><td>${esc(s.email)}</td><td class="small mut">${d(s.cree_le)}</td><td><button class="o" data-unstop="${esc(s.email)}">Retirer</button></td></tr>`).join('')}</table></details></div>
   <div class="card"><details><summary>📜 Journal complet</summary><table data-plier="10" data-plk="journal">${D.journal.map(j=>`<tr><td class="small mut">${dh(j.cree_le)}</td><td>${esc(j.type)}</td><td>${esc(j.email||'')}</td><td class="small">${esc(j.detail||'')}</td></tr>`).join('')}</table></details></div>
+  ${rangHTML(F)}
   <p class="small mut" style="text-align:center">Mis à jour à ${dh(D.maintenant)} · Stripe : compte Pace, produit Malino+</p>`;
+  app.querySelectorAll('[data-per]').forEach(b=>b.onclick=()=>{PER=+b.dataset.per;localStorage.setItem('adm_per',PER);keepY(draw);});
+  app.querySelectorAll('[data-rank]').forEach(b=>b.onclick=()=>{RANK=b.dataset.rank;localStorage.setItem('adm_rank',RANK);keepY(draw);});
   $('#q').oninput=e=>{q=e.target.value.trim().toLowerCase();const p=e.target.selectionStart;draw();const n=$('#q');n.focus();n.setSelectionRange(p,p);};
   $('#cGo').onclick=async()=>{const r=$('#cRes'),e=$('#cExp').value;r.className='msg';
     const {data,error}=await sb.rpc('admin_code_creer',{p_code:$('#cCode').value,p_libelle:$('#cLib').value,p_jours:+$('#cJours').value,p_max:+($('#cMax').value||0),p_expire:e?new Date(e+'T23:59:59').toISOString():null});
@@ -489,6 +521,7 @@ function draw(){
   app.querySelectorAll('[data-unstop]').forEach(b=>b.onclick=async()=>{await sb.rpc('admin_stop',{mail:b.dataset.unstop,ajouter:false});load();});
 }
 
+function keepY(fn){const y=scrollY;fn();scrollTo(0,y);}
 async function offrir(mail,mois,message){
   const res=$('#gRes');mail=(mail||'').trim();if(!/^\S+@\S+\.\S+$/.test(mail)){res.className='msg';res.textContent='Vérifie l’e-mail';return;}
   res.className='msg ok';res.textContent='Envoi…';

@@ -2708,7 +2708,7 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.74';
+const VERSION='1.75';
 const VERSIONS=[
  ['1.65','21/11/2026 15:20','Espace parents : bouton Admin et cloche en haut'],
  ['1.64','21/11/2026 15:00','Voix des contributions : plusieurs voix par son, sons des lettres, cris, anglais'],
@@ -3179,7 +3179,7 @@ const TimeT={last:0,acc:{m:0,f:0,o:0},n:0,cont:0,lastAct:0,tipped:false,
     if(++this.n>=30)this.flush();
   },
   flush(){const a=this.acc;this.n=0;if(!(a.m+a.f+a.o))return;if(!S.time)S.time={};const k=dayKey(),d=S.time[k]||(S.time[k]={m:0,f:0,o:0});d.m=(d.m||0)+a.m;d.f=(d.f||0)+a.f;d.o=(d.o||0)+a.o;this.acc={m:0,f:0,o:0};
-    const ks=Object.keys(S.time).sort();while(ks.length>120)delete S.time[ks.shift()];save();},
+    const ks=Object.keys(S.time).sort();while(ks.length>800)delete S.time[ks.shift()];save();},
   init(){['pointerdown','keydown'].forEach(e=>document.addEventListener(e,()=>this.touch(),{passive:true,capture:true}));setInterval(()=>this.tick(),1000);
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible')this.flush();});window.addEventListener('pagehide',()=>this.flush());},
   limited(){const dl=+S.settings.dayLimit||0;return dl>0&&this.sec()>=dl*60;}
