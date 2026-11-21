@@ -23,6 +23,17 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <script>window.__bip=null;addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__bip=e;try{window.Install&&Install.maj();}catch(x){}});addEventListener('appinstalled',function(){window.__bip=null;try{localStorage.setItem('malino-installe','1');window.Install&&Install.maj();}catch(x){}});</script>
+<script>
+// Pas de zoom (pincement, double-tap, Ctrl+molette) : iPad/iPhone ignorent user-scalable=no
+(function(){var no=function(e){e.preventDefault();},o={passive:false},last=0;
+  ['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,no,o);});
+  document.addEventListener('touchmove',function(e){if(e.touches.length>1||(e.scale&&e.scale!==1))e.preventDefault();},o);
+  document.addEventListener('touchend',function(e){var n=Date.now(),t=e.target;
+    if(n-last<350&&e.touches.length===0&&!(t.closest&&t.closest('[data-act],[data-tip],button,a,input,select,textarea,label')))e.preventDefault();last=n;},o);
+  document.addEventListener('wheel',function(e){if(e.ctrlKey)e.preventDefault();},o);
+  document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&/^(\+|-|=|0)$/.test(e.key))e.preventDefault();});
+})();
+</script>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Malino">
 <meta property="og:locale" content="fr_FR">
@@ -47,10 +58,10 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%;max-width:100%;overflow-x:hidden}
 *{box-sizing:border-box;min-width:0}
-html,body,button{touch-action:manipulation}
+html,body,*{touch-action:pan-x pan-y}
 button{font-size:inherit}
 html{background:#E9E0FF}
-body{font-family:'Fredoka',ui-rounded,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:var(--ink);background:linear-gradient(170deg,#BFE6FF 0%,#E3DAFF 55%,#FFE3F1 100%) fixed;touch-action:manipulation;-webkit-user-select:none;user-select:none;overflow-x:hidden}
+body{font-family:'Fredoka',ui-rounded,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:var(--ink);background:linear-gradient(170deg,#BFE6FF 0%,#E3DAFF 55%,#FFE3F1 100%) fixed;-webkit-user-select:none;user-select:none;overflow-x:hidden}
 input,select,textarea{font-family:inherit;-webkit-user-select:text;user-select:text}
 button{font-family:inherit;cursor:pointer;border:none;color:inherit;background:none;padding:0;font-size:inherit}
 #app{max-width:560px;margin:0 auto;padding:12px 14px calc(28px + env(safe-area-inset-bottom))}
@@ -2757,8 +2768,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.80';
+const VERSION='1.81';
 const VERSIONS=[
+ ['1.81','21/11/2026 22:40','Zoom bloqué sur tablette et téléphone (pincement, double-tap)'],
  ['1.65','21/11/2026 15:20','Espace parents : bouton Admin et cloche en haut'],
  ['1.64','21/11/2026 15:00','Voix des contributions : plusieurs voix par son, sons des lettres, cris, anglais'],
  ['1.63','21/11/2026 14:10','Page « Contributions » pour aider Malino (voix, idées)'],
