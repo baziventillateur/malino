@@ -87,6 +87,9 @@ textarea{font:inherit;border:1px solid #D9D3F3;border-radius:9px;padding:6px 8px
 @media (prefers-reduced-motion:reduce){.live.on,.live.on::after{animation:none}}
 .lieu{display:none}.lieu.on{display:inline-flex;align-items:center;gap:4px;margin:2px 0 4px;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700;background:#DCFCE7;color:#166534}
 .lieu.jeu{background:linear-gradient(90deg,#BBF7D0,#DCFCE7);box-shadow:0 0 10px rgba(34,197,94,.35)}.lieu.parents{background:#EDE9FE;color:#5B21B6}.lieu.accueil{background:#E0F2FE;color:#075985}
+.nsons{border-top:1px solid #F3F1FA;margin-top:6px;padding-top:6px}.nsons h3{font-size:14px;margin:2px 0 6px}
+.nsr{display:flex;align-items:center;gap:6px;padding:3px 0}.nsr .nsn{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nsadd{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:4px}.nsadd input{height:32px;padding:0 8px;font-size:13px}
 </style>
 </head>
 <body>
@@ -134,7 +137,7 @@ async function load(){
   const [{data,error},ser,jeu]=await Promise.all([sb.rpc('admin_tableau'),sb.rpc('admin_series').then(r=>r,()=>({data:null})),sb.rpc('malino_jeu').then(r=>r,()=>({data:null}))]);
   JEU=Object.assign({},JEU0,(jeu&&jeu.data)||{});
   if(error){app.innerHTML=`<div class="card"><h2>Accès refusé</h2><p>Le compte <b>${esc(session.user.email)}</b> n’est pas administrateur.</p><button id="out" class="o">Changer de compte</button></div>`;$('#out').onclick=async()=>{await sb.auth.signOut({scope:'local'});loginView('mail');};return;}
-  D=data;D.series=ser&&ser.data||null;$('#tabs').classList.remove('hidden');render();loadDev();bellCount();LIVE.maj();if(!load.t)load.t=setInterval(bellCount,60000);
+  D=data;D.series=ser&&ser.data||null;$('#tabs').classList.remove('hidden');render();loadDev();bellCount();LIVE.maj();PushA.fn({mode:'prefs'}).then(j=>{if(j&&Array.isArray(j.perso))NSONS_P=j.perso;});if(!load.t)load.t=setInterval(bellCount,60000);
   if(location.hash==='#notifs'&&!load.nb){load.nb=1;openBell();}
 }
 
@@ -165,7 +168,8 @@ const LIVE={ids:new Set(),info:new Map(),t:0,async maj(){if(document.visibilityS
     const n=$('#liveN');if(n){const k=document.querySelectorAll('.fam .live.on').length||this.ids.size;n.innerHTML=k?`<span class="live on"></span>${k} en ligne`:'';n.classList.toggle('on',!!k);}}};
 setInterval(()=>LIVE.maj(),20000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')LIVE.maj();});
 let lvT=0;new MutationObserver(()=>{if(lvT)return;lvT=requestAnimationFrame(()=>{lvT=0;if(document.querySelector('[data-live]:not([data-lvok]),[data-lieu]:not([data-lvok])')){document.querySelectorAll('[data-live]:not([data-lvok]),[data-lieu]:not([data-lvok])').forEach(e=>e.setAttribute('data-lvok',''));LIVE.app();}});}).observe(document.body,{childList:true,subtree:true});
-const NSon={a:{},jouer(k){if(!k||k==='silence')return;try{const x=this.a[k]||(this.a[k]=new Audio('sons/notif/'+k+'.mp3'));x.currentTime=0;x.play().catch(()=>{});}catch(e){}}};
+let NSONS_P=[];const sonsTous=()=>NSONS.concat(NSONS_P.map(p=>[p.k,p.e||'🔔',p.nom]));
+const NSon={a:{},jouer(k){if(!k||k==='silence')return;try{const p=NSONS_P.find(x=>x.k===k),x=this.a[k]||(this.a[k]=new Audio(p?p.url:'sons/notif/'+k+'.mp3'));x.currentTime=0;x.play().catch(()=>{});}catch(e){}}};
 if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.malinoSon){NSon.jouer(d.malinoSon);try{bellCount();}catch(x){}}});
 const PUSHPUB='BFLJzcDWvgan1IMMnPf51wZb-fSJOCpnpv5yd-CBrMAjsNzUSDMy0iCBp5NzzjojAtClpyiH9nYpxdxe_fFPUCQ';
 async function bellCount(){const {data,error}=await sb.rpc('admin_notifs_compte');if(error)return;const b=$('#bellN');if(b)b.textContent=data?(data>99?'99+':data):'';}
@@ -205,13 +209,33 @@ async function openBell(){if($('#bellov'))return;const ov=document.createElement
   const lu=$('#nLu');if(lu)lu.onclick=async()=>{lu.disabled=true;await sb.rpc('admin_notifs_vu');m.querySelectorAll('.nit.new').forEach(x=>x.classList.remove('new'));const r=$('#nLuR');if(r)r.remove();bellCount();};
   pc();
   // choix des notifications reçues en push (la cloche garde tout)
-  const np=async()=>{const el=$('#nprefs');if(!el)return;const j=await PushA.fn({mode:'prefs'}),P=(j&&j.prefs)||{},S=(j&&j.sons)||{};let ouvert='';
-    const nomSon=k=>{const x=NSONS.find(z=>z[0]===(k||''))||NSONS[0];return x[1]+' '+x[2];};
-    const draw=()=>{el.innerHTML=`<h2 style="margin-bottom:4px">📲 Mes notifications push</h2><p class="small mut" style="margin:0 0 6px">Touche un type pour choisir son son. ▶ envoie un essai.</p><div data-plier="3" data-plk="nprefs" data-plrow=":scope > div">`+NGROUPES.map(([k,ic,l])=>`<div style="border-top:1px solid #F3F1FA"><div class="row" style="justify-content:space-between;padding:5px 0"><button class="nsel" data-nson="${k}" style="flex:1;text-align:left;background:none;padding:0;color:inherit;font:inherit;min-width:0"><span>${ic} ${l}</span><br><span class="small mut">${nomSon(S[k])} ${ouvert===k?'▴':'▾'}</span></button><span class="row"><button class="o small" data-ness="${k}" title="Envoyer un essai">▶</button><button class="sw ${P[k]!==false?'on':''}" data-npref="${k}" aria-label="Activer ou couper"></button></span></div>${ouvert===k?`<div class="row" style="flex-wrap:wrap;gap:5px;padding:0 0 8px">${NSONS.map(([sk,si,sl])=>`<button class="small ${(S[k]||'')===sk?'':'o'}" data-nsk="${k}|${sk}">${si} ${sl}</button>`).join('')}</div>`:''}</div>`).join('')+`</div><details style="margin-top:6px"><summary class="small mut">🔊 À savoir sur les sons</summary><p class="small mut" style="margin:6px 0 0">Le son choisi joue quand l’admin est ouverte à l’écran. Téléphone verrouillé : le téléphone joue son son de notification (sauf 🔕 Silencieux). Pour mettre un de ces sons à la place, télécharge-le : ${NSONS.slice(2).map(([sk,si,sl])=>`<a href="sons/notif/${sk}.mp3" download="malino-${sk}.mp3">${si} ${sl}</a>`).join(' · ')}, puis appui long sur une notif Malino → ⚙️ → Son.</p></details>`;
+  const np=async()=>{const el=$('#nprefs');if(!el)return;const j=await PushA.fn({mode:'prefs'}),P=(j&&j.prefs)||{},S=(j&&j.sons)||{};let ouvert='',ajout=null;if(j&&Array.isArray(j.perso))NSONS_P=j.perso;
+    const nomSon=k=>{const x=sonsTous().find(z=>z[0]===(k||''))||NSONS[0];return x[1]+' '+x[2];};
+    const draw=()=>{el.innerHTML=`<h2 style="margin-bottom:4px">📲 Mes notifications push</h2><p class="small mut" style="margin:0 0 6px">Touche un type pour choisir son son. ▶ envoie un essai.</p><div data-plier="3" data-plk="nprefs" data-plrow=":scope > div">`+NGROUPES.map(([k,ic,l])=>`<div style="border-top:1px solid #F3F1FA"><div class="row" style="justify-content:space-between;padding:5px 0"><button class="nsel" data-nson="${k}" style="flex:1;text-align:left;background:none;padding:0;color:inherit;font:inherit;min-width:0"><span>${ic} ${l}</span><br><span class="small mut">${nomSon(S[k])} ${ouvert===k?'▴':'▾'}</span></button><span class="row"><button class="o small" data-ness="${k}" title="Envoyer un essai">▶</button><button class="sw ${P[k]!==false?'on':''}" data-npref="${k}" aria-label="Activer ou couper"></button></span></div>${ouvert===k?`<div class="row" style="flex-wrap:wrap;gap:5px;padding:0 0 8px">${sonsTous().map(([sk,si,sl])=>`<button class="small ${(S[k]||'')===sk?'':'o'}" data-nsk="${k}|${sk}">${si} ${sl}</button>`).join('')}</div>`:''}</div>`).join('')+`</div><div class="nsons"><h3>🎵 Mes sons <span class="mut small">${NSONS_P.length}</span></h3>`+(NSONS_P.length?`<div data-plier="5" data-plk="nsons" data-plrow=":scope > .nsr">${NSONS_P.map(p=>`<div class="nsr"><span class="nsn">${esc(p.e||'🔔')} ${esc(p.nom)}</span><button class="o small" data-nsplay="${esc(p.k)}" aria-label="Écouter">🔊</button><button class="o small" data-nsdel="${esc(p.k)}" aria-label="Supprimer">🗑</button></div>`).join('')}</div>`:'<p class="small mut" style="margin:0 0 6px">Aucun son ajouté pour l’instant.</p>')
+      +`<div class="nsadd"><input type="file" id="nsF" accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac" class="hidden"><button class="o small" id="nsPick">${ajout?'🔁 Changer':'➕ Ajouter un son'}</button>${ajout?`<button class="o small" id="nsPrev" aria-label="Écouter">🔊</button><input id="nsE" value="${esc(ajout.e)}" maxlength="4" aria-label="Emoji" style="width:44px;text-align:center"><input id="nsNom" value="${esc(ajout.nom)}" maxlength="30" placeholder="Nom du son" style="flex:1;min-width:110px"><button class="small" id="nsGo">Enregistrer</button>`:''}</div><p class="small mut" id="nsMsg" style="margin:4px 0 0">MP3 ou M4A, 1 Mo maximum, idéalement 1 à 3 secondes.</p></div>`
+      +`<details style="margin-top:6px"><summary class="small mut">🔊 À savoir sur les sons</summary><p class="small mut" style="margin:6px 0 0">Le son choisi joue quand l’admin est ouverte à l’écran. Téléphone verrouillé : le téléphone joue son son de notification (sauf 🔕 Silencieux). Pour mettre un de ces sons à la place, télécharge-le : ${NSONS.slice(2).map(([sk,si,sl])=>`<a href="sons/notif/${sk}.mp3" download="malino-${sk}.mp3">${si} ${sl}</a>`).concat(NSONS_P.map(p=>`<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.e||'🔔')} ${esc(p.nom)}</a>`)).join(' · ')}, puis appui long sur une notif Malino → ⚙️ → Son.</p></details>`;
       el.querySelectorAll('[data-nson]').forEach(b=>b.onclick=()=>{ouvert=ouvert===b.dataset.nson?'':b.dataset.nson;draw();});
       el.querySelectorAll('[data-nsk]').forEach(b=>b.onclick=async()=>{const [g,sk]=b.dataset.nsk.split('|'),av=S[g];S[g]=sk;NSon.jouer(sk);draw();const r=await PushA.fn({mode:'son_set',groupe:g,son:sk});if(!r||!r.ok){S[g]=av;draw();}});
       el.querySelectorAll('[data-npref]').forEach(b=>b.onclick=async()=>{const on=!b.classList.contains('on');b.classList.toggle('on',on);P[b.dataset.npref]=on;const r=await PushA.fn({mode:'prefs_set',groupe:b.dataset.npref,actif:on});if(!r||!r.ok){b.classList.toggle('on',!on);P[b.dataset.npref]=!on;}});
-      el.querySelectorAll('[data-ness]').forEach(b=>b.onclick=async()=>{b.textContent='…';const r=await PushA.tester(b.dataset.ness);b.textContent=r&&r.sent?'✓':'✕';setTimeout(()=>{b.textContent='▶';},2500);});};
+      el.querySelectorAll('[data-ness]').forEach(b=>b.onclick=async()=>{b.textContent='…';const r=await PushA.tester(b.dataset.ness);b.textContent=r&&r.sent?'✓':'✕';setTimeout(()=>{b.textContent='▶';},2500);});
+      el.querySelectorAll('[data-nsplay]').forEach(b=>b.onclick=()=>NSon.jouer(b.dataset.nsplay));
+      el.querySelectorAll('[data-nsdel]').forEach(b=>b.onclick=async()=>{const p=NSONS_P.find(x=>x.k===b.dataset.nsdel);if(!p||!confirm(`Supprimer le son « ${p.nom} » ? Les types qui l’utilisent reprendront le son du téléphone.`))return;b.disabled=true;const r=await PushA.fn({mode:'son_suppr',k:p.k});if(r&&r.ok){NSONS_P=r.perso||[];Object.assign(S,r.sons||{});delete NSon.a[p.k];}draw();});
+      const pick=$('#nsPick',el),fin=$('#nsF',el),msg=$('#nsMsg',el);
+      if(pick)pick.onclick=()=>{fin.value='';fin.click();};
+      if(fin)fin.onchange=()=>{const f=fin.files[0];if(!f)return;
+        const ext=(f.name.split('.').pop()||'').toLowerCase(),mime=f.type||{mp3:'audio/mpeg',m4a:'audio/mp4',aac:'audio/aac',wav:'audio/wav',ogg:'audio/ogg'}[ext]||'';
+        if(!/^audio\//.test(mime)){msg.textContent='⚠️ Choisis un fichier audio (MP3, M4A…).';return;}
+        if(f.size>1048576){msg.textContent=`⚠️ Fichier trop lourd (${(f.size/1048576).toFixed(1)} Mo) : 1 Mo maximum.`;return;}
+        if(ajout&&ajout.url)URL.revokeObjectURL(ajout.url);
+        ajout={f,mime,url:URL.createObjectURL(f),e:'🔔',nom:f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').slice(0,30)};draw();
+        try{const a=new Audio(ajout.url);a.play().catch(()=>{});a.onloadedmetadata=()=>{const m=$('#nsMsg',el);if(m&&a.duration>8)m.textContent=`⏱️ ${Math.round(a.duration)} s : un son court (1 à 3 s) est plus agréable pour une notification.`;};}catch(e){}};
+      const pv=$('#nsPrev',el);if(pv)pv.onclick=()=>{try{new Audio(ajout.url).play().catch(()=>{});}catch(e){}};
+      const go=$('#nsGo',el);if(go)go.onclick=async()=>{const nom=($('#nsNom',el).value||'').trim(),e=($('#nsE',el).value||'').trim()||'🔔';if(!nom){msg.textContent='Donne un nom au son.';return;}
+        go.disabled=true;go.textContent='Envoi…';
+        const data=await new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]||'');r.onerror=ko;r.readAsDataURL(ajout.f);}).catch(()=>'');
+        const r=await PushA.fn({mode:'son_ajout',nom,e,mime:ajout.mime,data});
+        if(r&&r.ok){NSONS_P=r.perso||[];URL.revokeObjectURL(ajout.url);ajout=null;draw();const m=$('#nsMsg',el);if(m)m.textContent='✅ Son ajouté : touche un type au-dessus pour le choisir.';}
+        else{go.disabled=false;go.textContent='Enregistrer';msg.textContent='⚠️ '+({format:'Format non pris en charge (MP3, M4A, WAV, OGG).',taille:'Fichier trop lourd : 1 Mo maximum.',nom:'Donne un nom au son.',trop:'40 sons maximum : supprimes-en un.'}[r&&r.error]||'Envoi impossible, réessaie.');}};};
     draw();};
   np();
   m.querySelectorAll('[data-nt]').forEach(el=>el.onclick=()=>{const t=el.dataset.nt,e=el.dataset.ne;
