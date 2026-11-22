@@ -2770,8 +2770,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.84';
+const VERSION='1.85';
 const VERSIONS=[
+ ['1.85','22/11/2026 21:45','Admin : point vert lumineux pour les familles en ligne, notification à chaque visite avec son réglable'],
  ['1.84','22/11/2026 16:45','Admin : objectif d’essai dans la fiche famille (temps de jeu et jours visés, avec projection)'],
  ['1.83','22/11/2026 15:30','Admin : dates du classement avec l’heure (il y a 10 min, hier à 18:42…)'],
  ['1.82','21/11/2026 22:55','Objets offerts : 1 par partie au maximum (réglable dans l’admin)'],
@@ -3059,6 +3060,9 @@ document.addEventListener('keydown',e=>{
 
 // ---------- Compte parent (Supabase) : on joue d'abord en invité, on se connecte ensuite ----------
 const SB_URL='https://fcfkfuqzgsmckkxqfwuo.supabase.co',SB_KEY='sb_publishable_a3SNrQOSCH20T5sKsJxuAA_s7H4yCSR';
+// Présence : signale à l'admin que l'appli est ouverte à l'écran (une fois par minute)
+const Presence={t:0,ping(force){try{if(document.visibilityState!=='visible'||!Acct.user||!Acct.sb)return;const n=Date.now();if(!force&&n-this.t<45000)return;this.t=n;Acct.sb.rpc('malino_ping').then(()=>{},()=>{});}catch(e){}}};
+setInterval(()=>Presence.ping(),60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Presence.ping();});
 const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:'email',email:'',forgot:false,wait:0,_l:null,note:'',
   guestN(){return S.sessions.length-(S.gs0||0);},
   wall(){return !this.user&&this.guestN()>=CFG.wall;},
@@ -3276,7 +3280,7 @@ const Plan={info:null,
   async refresh(quiet){
     if(!Acct.user||!Acct.sb)return null;
     const {data,error}=await Acct.sb.rpc('mon_compte');if(error||!data)return null;
-    const before=this.kind();this.set(data);
+    const before=this.kind();this.set(data);Presence.ping(true);
     if(data.prenom){Offre.gp=Offre.gp||data.prenom;Offre.ip=Offre.ip||data.prenom;}
     try{const k='malino_src_sent_'+Acct.user.id;if(!localStorage.getItem(k))Acct.sb.rpc('maj_source',{p_source:localStorage.getItem('malino_src')||'direct'}).then(r=>{if(!r.error)localStorage.setItem(k,'1');});}catch(e){}
     Famille.afterRefresh();
