@@ -2770,8 +2770,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.85';
+const VERSION='1.86';
 const VERSIONS=[
+ ['1.86','22/11/2026 21:55','Admin : rond gris vide hors ligne, vert lumineux en ligne (comptes admin compris)'],
  ['1.85','22/11/2026 21:45','Admin : point vert lumineux pour les familles en ligne, notification à chaque visite avec son réglable'],
  ['1.84','22/11/2026 16:45','Admin : objectif d’essai dans la fiche famille (temps de jeu et jours visés, avec projection)'],
  ['1.83','22/11/2026 15:30','Admin : dates du classement avec l’heure (il y a 10 min, hier à 18:42…)'],
