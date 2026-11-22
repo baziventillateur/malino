@@ -451,6 +451,11 @@ let PER=+(localStorage.getItem('adm_per')||7),RANK=localStorage.getItem('adm_ran
 const jourFam=f=>f._J||(f._J=(f.enfants||[]).reduce((J,k)=>{Object.entries(k.jours||{}).forEach(([d,s])=>J[d]=(J[d]||0)+s);return J;},{}));
 const fmtT=s=>{const m=Math.round((s||0)/60);return m<60?`${m} min`:`${Math.floor(m/60)} h ${String(m%60).padStart(2,'0')}`;};
 const ilya=t=>{if(!t)return '—';const m=Math.round((Date.now()-Date.parse(t))/6e4);return m<60?`${Math.max(1,m)} min`:m<1440?`${Math.round(m/60)} h`:`${Math.round(m/1440)} j`;};
+// Date lisible : relatif si récent (il y a 10 min / 3 h, avec l'heure), sinon date + heure
+const quand=t=>{if(!t)return '—';const x=new Date(t),m=(Date.now()-x)/6e4,h=x.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  if(m<1)return 'à l’instant';if(m<60)return `il y a ${Math.round(m)} min · ${h}`;if(m<1440)return `il y a ${Math.round(m/60)} h · ${h}`;
+  const hier=new Date();hier.setHours(0,0,0,0);hier.setDate(hier.getDate()-1);if(x>=hier)return `hier à ${h}`;
+  return `le ${x.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'})} à ${h}`;};
 function periode(F,a,b,cur){const ka=dk(a),kb=dk(b),inR=t=>{t=Date.parse(t);return t>a&&t<=b;},S=D.series;let act=0,sec=0;
   F.forEach(f=>{let s=0,j=0;for(const [k,v] of Object.entries(jourFam(f)))if(k>ka&&k<=kb){s+=v;if(v>=60)j++;}if(cur)f._r={sec:s,jours:j};if(j)act++;sec+=s;});
   return {enc:S?S.paiements.filter(p=>inR(p.t)).reduce((x,p)=>x+p.m,0):D.paiements.filter(p=>p.statut==='paye'&&inR(p.cree_le)).reduce((x,p)=>x+p.montant,0),
@@ -463,8 +468,8 @@ function evolHTML(F){const now=Date.now(),N=PER*DAY,c=periode(F,now-N,now,1),p=p
     <p class="small mut" style="margin:4px 0 8px">Sur les ${lab} écoulés, comparé aux ${lab} d’avant.</p>
     <div class="kpis">${k(eur(c.enc),'encaissé',delta(c.enc,p.enc,eur),1)}${k(c.nouv,'nouvelles familles',delta(c.nouv,p.nouv))}${k(c.act,'familles actives',delta(c.act,p.act))}${k(fmtT(c.sec),'de jeu au total',delta(c.sec,p.sec,fmtT))}${k(fmtT(c.moy),'par famille active',delta(c.moy,p.moy,fmtT))}${c.abos!=null?k(c.abos,'nouveaux abonnés',delta(c.abos,p.abos)):''}${c.codes!=null?k(c.codes,'codes utilisés',delta(c.codes,p.codes)):''}</div></div>`;}
 const RANKS={actif:['🔥 Plus actives',f=>f._r.jours,f=>`${f._r.jours} j de jeu`,f=>f._r.jours>0],temps:['⏱️ Plus de temps',f=>f._r.sec,f=>fmtT(f._r.sec),f=>f._r.sec>0],
-  vu:['🕐 Vues récemment',f=>Date.parse(f.derniere_activite)||0,f=>`il y a ${ilya(f.derniere_activite)}`,f=>!!f.derniere_activite],
-  inscrit:['🆕 Inscrites récemment',f=>Date.parse(f.cree_le)||0,f=>`le ${d(f.cree_le)}`,()=>true],
+  vu:['🕐 Vues récemment',f=>Date.parse(f.derniere_activite)||0,f=>quand(f.derniere_activite),f=>!!f.derniere_activite],
+  inscrit:['🆕 Inscrites récemment',f=>Date.parse(f.cree_le)||0,f=>quand(f.cree_le),()=>true],
   paye:['💳 Payantes',f=>f.total||0,f=>f.total?eur(f.total):'abonnée',f=>(f.total||0)>0||(f.abo_statut&&['active','trialing','past_due'].includes(f.abo_statut))]};
 function rangHTML(F){const lab=(PERS.find(x=>x[0]===PER)||PERS[0])[1];F.forEach(f=>f._r=f._r||{sec:0,jours:0});
   const [,val,txt,keep]=RANKS[RANK]||RANKS.actif,L=F.filter(keep).sort((x,y)=>val(y)-val(x));
