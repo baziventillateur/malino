@@ -41,6 +41,19 @@ details summary{cursor:pointer;font-weight:700;font-size:15px}
 /* listes repliées */.plh{display:none!important}.plb{display:block;margin:8px auto 2px;font-size:13px}
 #fiche{position:fixed;inset:0;z-index:20;background:var(--bg);overflow:auto}#fiche .fbar{position:sticky;top:0;z-index:2;background:#fff;padding:8px 12px;box-shadow:0 1px 0 #E3DEF8}
 .pred h2{flex-wrap:wrap}.pred h2 b{font-size:20px}.gauge{height:8px;border-radius:99px;background:#EEF0F5;overflow:hidden;margin:2px 0 8px}.gauge i{display:block;height:100%;border-radius:99px}
+.obj{margin:2px 0 10px;padding:8px 10px 7px;border:1px solid #ECEAF6;border-radius:12px;background:#FCFBFF}
+.obj .oh{display:flex;align-items:baseline;gap:6px;font-size:12.5px;color:var(--ink2)}.obj .oh b{color:var(--ink)}.obj .oh .ov{margin-left:auto;font-size:13px;color:var(--ink);font-weight:800;white-space:nowrap}
+.obj .oi{border:0;background:#EEEAFB;color:var(--vd);width:17px;height:17px;border-radius:50%;font:700 11px/17px system-ui;padding:0;cursor:pointer;flex:none}
+.bul{position:relative;height:14px;margin:21px 0 4px;border-radius:7px;overflow:visible;background:linear-gradient(90deg,#EEF0F5 0 var(--z1),#FBEFD0 var(--z1) var(--z2),#DDF5E4 var(--z2) 100%)}
+.bul>i{position:absolute;left:0;top:4px;height:6px;border-radius:3px;transition:width .5s ease}
+.bul>em{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--ink);border-radius:1px}
+.bul>em:after{content:'🎯';position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:12px;font-style:normal}
+.obj .ozones{position:relative;height:13px;font-size:10px;color:var(--mut);margin-bottom:5px}
+.obj .ozones span{position:absolute;top:0;white-space:nowrap}.obj .ozones span:nth-child(2){left:calc((var(--z1) + var(--z2)) / 2);transform:translateX(-50%)}.obj .ozones span:last-child{right:0}
+.obj .od{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12px;color:var(--ink2)}
+.dots{display:inline-flex;gap:3px}.dots i{width:9px;height:9px;border-radius:50%;background:#E4E1F0}.dots i.on{background:var(--v)}
+.obj .op{margin-left:auto}.obj .op.ok{color:var(--g);font-weight:700}.obj .op.ko{color:var(--y);font-weight:700}
+.obj .oexp{font-size:11.5px;color:var(--ink2);background:#F4F1FF;border-radius:8px;padding:6px 8px;margin-top:6px}
 .why{margin:0 0 6px;padding-left:18px;font-size:13px;color:var(--ink2)}.why li{margin:1px 0}.todo{margin:6px 0 8px;font-weight:600;font-size:13.5px;background:#F4F1FF;border-radius:10px;padding:7px 9px}
 .btnl{display:inline-block;background:var(--v);color:#fff;font-weight:600;border-radius:9px;padding:6px 10px;text-decoration:none}
 .dl{display:block;font-size:11.5px;font-weight:700;margin-top:2px}.dl.up{color:#16A34A}.dl.dn{color:#E03A45}.dl.eq{color:var(--ink2);font-weight:600}.kpi.hl .dl.up,.kpi.hl .dl.dn,.kpi.hl .dl.eq{color:#fff;opacity:.95}
@@ -378,6 +391,40 @@ function mailTo(c,kids,P){const k=kids&&kids[0],kid=k?k.nom:'votre enfant',niv=k
   else if(P.k==='impaye'){s='Malino+ : un souci avec votre paiement';b=`${bj}\n\nLe dernier paiement de Malino+ n’a pas pu passer. Pour que ${kid} garde tous ses jeux, il suffit de mettre à jour votre carte depuis l’Espace parents de l’appli.\n\nMerci !`;}
   else {s=`Les progrès de ${kid} sur Malino`;b=`${bj}\n\n${kid} a joué ${P.a.days.length} jour${P.a.days.length>1?'s':''} sur Malino et a atteint le niveau ${niv} 🎉\n\n${accessEnd(c)>Date.now()?`Votre accès se termine le ${d(accessEnd(c))}. `:''}Pour continuer sans interruption, Malino+ est à 3,99 € par mois (ou 29,99 € par an) :\n${url}\n\nUne question ? Répondez simplement à ce mail.`;}
   return `mailto:${encodeURIComponent(c.email)}?subject=${encodeURIComponent(s)}&body=${encodeURIComponent(b+sig)}`;}
+// ---------- Objectif d'essai : le temps de jeu qui annonce un futur abonné ----------
+// Hypothèse de départ (aucun abonné payant pour l'instant) : le rythme conseillé par Malino, 10 à 15 min par jour,
+// 5 jours sur 7 pendant les 14 jours d'essai ≈ 2 h 30 de jeu, réparties sur au moins 6 jours (l'habitude compte autant que la durée).
+// Dès 5 abonnés payants, la cible devient la médiane de LEUR temps de jeu et de LEURS jours de jeu avant le premier paiement.
+const OBJ0={min:150,jours:6};
+function cibleEssai(){
+  const base=Object.assign({src:'base',n:0},OBJ0);if(!D||!D.familles||!D.paiements)return base;
+  const pay={};D.paiements.filter(p=>p.statut==='paye'&&p.type!=='cadeau').forEach(p=>{const k=String(p.email||'').toLowerCase(),t=Date.parse(p.cree_le);if(k&&(!pay[k]||t<pay[k]))pay[k]=t;});
+  const v=[];D.familles.forEach(f=>{const t=pay[String(f.email||'').toLowerCase()];if(!t||f.proprio)return;const a=actOf(f.enfants),lim=dk(t),ds=a.days.filter(x=>x<=lim);v.push({min:Math.round(ds.reduce((s,x)=>s+a.J[x],0)/60),jours:ds.length});});
+  base.n=v.length;if(v.length<5)return base;
+  const med=l=>{const t=l.slice().sort((x,y)=>x-y),m=t.length>>1;return t.length%2?t[m]:Math.round((t[m-1]+t[m])/2);};
+  return {src:'clients',n:v.length,min:Math.max(20,med(v.map(x=>x.min))),jours:Math.max(2,med(v.map(x=>x.jours)))};}
+const hm=m=>m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+String(m%60).padStart(2,'0'):'');
+function objectifHTML(c,a){
+  const O=cibleEssai(),start=dk(Date.parse(c.cree_le)),end=accessEnd(c),endK=end?dk(end):null,ended=end&&end<Date.now();
+  const ds=a.days.filter(x=>x>=start&&(!ended||!endK||x<=endK)),min=Math.round(ds.reduce((s,x)=>s+a.J[x],0)/60),nj=ds.length;
+  const pct=Math.round(min/O.min*100),max=Math.max(O.min*1.25,min*1.04),w=v=>Math.min(100,v/max*100).toFixed(1)+'%';
+  const col=pct>=100?'#16A34A':pct>=50?'#E9A800':'#8E93AE';
+  // date à laquelle l'objectif a été atteint, sinon projection au rythme actuel
+  let projet='',cls='';
+  if(min>=O.min&&nj>=O.jours){let cum=0,quand=null;ds.forEach(x=>{cum+=a.J[x]/60;if(!quand&&cum>=O.min)quand=x;});projet=`🎯 Atteint${quand?' le '+quand.slice(8,10)+'/'+quand.slice(5,7):''}`;cls='ok';}
+  else if(!ended){const ecoules=Math.max(1,Math.round((Date.parse(dk(Date.now()))-Date.parse(start))/DAY)+1),rythme=min/ecoules;
+    if(rythme<=0)projet='Pas encore de rythme';
+    else{// il faut à la fois les minutes et les jours de jeu : on prend la plus lointaine des deux échéances
+      const rMin=Math.ceil(Math.max((O.min-min)/rythme,0)),rJ=nj>=O.jours?0:Math.ceil((O.jours-nj)/Math.max(nj/ecoules,.01));
+      const reste=Math.max(rMin,rJ),t=Date.now()+reste*DAY,avant=!end||t<=end;
+      projet=`À ce rythme : ${new Date(t).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})}${end?(avant?' ✓ avant la fin':' ✗ après la fin'):''}`;cls=avant?'':'ko';}}
+  else projet=`Accès terminé à ${pct} %`;
+  const nDots=Math.max(O.jours,Math.min(nj,10));
+  return `<div class="obj"><div class="oh"><span>🎯 Objectif : <b>${hm(O.min)}</b> sur <b>${O.jours} jours</b></span><button type="button" class="oi" id="oInfo" aria-label="Comment la cible est calculée">?</button><span class="ov">${hm(min)} · ${pct} %</span></div>
+    <div class="bul" style="--z1:${w(O.min*.5)};--z2:${w(O.min)}" role="meter" aria-valuemin="0" aria-valuemax="${O.min}" aria-valuenow="${min}" aria-label="Temps de jeu pendant l’essai"><i style="width:${w(min)};background:${col}"></i><em style="left:${w(O.min)}"></em></div>
+    <div class="ozones" style="--z1:${w(O.min*.5)};--z2:${w(O.min)}"><span>découverte</span><span>l’habitude se prend</span><span>prêt à payer</span></div>
+    <div class="od"><span class="dots" aria-hidden="true">${Array.from({length:nDots},(_,i)=>`<i class="${i<nj?'on':''}"></i>`).join('')}</span><span>${nj>=O.jours?nj+' jours de jeu ✓':nj+'/'+O.jours+' jours de jeu'}</span><span class="op ${cls}">${projet}</span></div>
+    <div class="oexp hidden" id="oExp">${O.src==='clients'?`Cible calculée sur tes <b>${O.n} abonnés payants</b> : temps de jeu médian et nombre de jours médian avant leur premier paiement.`:`Cible de départ, en attendant de vrais abonnés : <b>10 à 15 min par jour, 5 jours sur 7</b> pendant les 14 jours d’essai, soit environ ${hm(O.min)} sur ${O.jours} jours. Les enfants qui jouent souvent, même peu à la fois, sont ceux qui gardent l’habitude. Dès 5 abonnés payants (${O.n} pour l’instant), la cible se recalcule toute seule avec leur temps de jeu réel avant de payer.`}</div></div>`;}
 function barsHTML(J,c){const n=28,today=Date.now(),start=dk(Date.parse(c.cree_le)),end=accessEnd(c),endK=end?dk(end):'',cols=[];let mx=10;
   for(let i=n-1;i>=0;i--){const t=today-i*DAY,k=dk(t),m=Math.round((J[k]||0)/60);mx=Math.max(mx,m);cols.push({k,m,t,acc:k>=start&&(!endK||k<=endK)});}
   return `<div class="bars">${cols.map(x=>`<div class="bc${x.acc?' acc':''}" title="${new Date(x.t).toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit',month:'2-digit'})} : ${x.m} min"><i style="height:${x.m?Math.max(3,Math.round(x.m/mx*100)):0}%"></i></div>`).join('')}</div>
@@ -394,6 +441,7 @@ async function openFiche(uid){const ov=document.createElement('div');ov.id='fich
     <div class="small mut" style="margin-top:4px">Inscrit le ${d(c.cree_le)} · dernière connexion ${c.connexion?'il y a '+ago(c.connexion):'—'} · activité il y a ${ago(c.derniere_activite)}${F.proprio?` · 👥 co-parent de ${esc(F.proprio)}`:''}${F.coparent?` · 👥 avec ${esc(F.coparent)}`:''}${F.parrainages&&F.parrainages.envoyes?` · parrainages ${F.parrainages.inscrits}/${F.parrainages.envoyes}`:''}${c.rapports===false?' · 🔕 rapports coupés':''}</div></div>
    <div class="card pred"><h2><span class="tag ${P.cls}" style="font-size:13px">${P.tag}</span>${P.score!=null?`<span class="mut small" style="margin-left:auto">chance d’achat estimée</span><b>${P.score} %</b>`:''}</h2>
     ${P.score!=null?`<div class="gauge"><i style="width:${P.score}%;background:${P.score>=60?'#16A34A':P.score>=30?'#E9A800':'#B8BCCB'}"></i></div>`:''}
+    ${F.proprio?'':objectifHTML(c,a)}
     <ul class="why">${P.why.map(w=>`<li>${w}</li>`).join('')}</ul><p class="todo">👉 ${P.act}</p>
     <div class="row">${F.proprio?'':`<button class="${P.k==='decroche'?'':'o'}" id="fDoux" title="E-mail automatique avec les progrès de l’enfant">💌 Relance douce</button><a class="btnl" href="${mailTo(c,kids,P)}">✉️ Écrire un e-mail</a><button class="o" id="fGift">🎁 Offrir 1 mois</button>${c.abo_statut&&['active','trialing'].includes(c.abo_statut)?'':`<button class="o" id="fPromo">🏷️ Proposer −30 %</button><button class="o" id="fProl">⏳ Proposer une prolongation</button>`}`}</div>${c.offre_jusqua?`<p class="small" style="margin:6px 0 0">🏷️ Offre −30 % en cours jusqu’au <b>${d(c.offre_jusqua)}</b></p>`:''}<p class="msg" id="fRes"></p>
     <p class="small mut" style="margin:6px 0 0">Estimation simple à partir de l’activité de jeu et de la date de fin d’accès : un repère, pas une certitude.</p></div>
@@ -402,6 +450,7 @@ async function openFiche(uid){const ov=document.createElement('div');ov.id='fich
    ${kids.map(k=>`<div class="card"><h2 style="margin-bottom:2px">🧒 ${esc(k.nom)}</h2><p class="small mut" style="margin:0 0 6px">Niveau ${lvl(k.xp)} · maths monde ${k.math||1} · lecture monde ${k.fr||1}${k.serie&&k.serie.best?` · série record ${k.serie.best} j`:''} · ${k.badges} badges</p>
      ${(k.sessions||[]).length?`<div class="scroll"><table data-plier="5" data-plk="seances"><tr><th>Quand</th><th>Jeu</th><th>Résultat</th><th>Durée</th></tr>${k.sessions.slice(0,12).map(s=>`<tr><td class="small">${s.t?dh(s.t):d(s.d)}</td><td>${JEUX[s.type]||esc(s.type)} <span class="small mut">m.${s.lvl||1}</span></td><td>${s.type==='sprint'?(s.score||0)+' justes':`${s.ok||0}/${s.n||0}`}${s.p?' ⏸️':''}</td><td class="small">${s.dur?Math.max(1,Math.round(s.dur/60))+' min':'—'}</td></tr>`).join('')}</table></div>`:'<p class="small mut" style="margin:0">Aucune partie</p>'}</div>`).join('')||'<div class="card"><p class="small mut" style="margin:0">Aucun enfant</p></div>'}
    <div class="card" data-plier="8" data-plk="histo" data-plrow=":scope > .alert"><h2>🕓 Historique</h2>${tl.slice(0,30).map(x=>`<div class="alert"><span class="mut small" style="min-width:76px">${dh(x.t)}</span><span>${x.e} ${x.x}</span></div>`).join('')}</div>`;
+  const oi=$('#oInfo');if(oi)oi.onclick=()=>$('#oExp').classList.toggle('hidden');
   $('#fCopy').onclick=async()=>{try{await navigator.clipboard.writeText(c.email);$('#fCopy').textContent='Copié ✅';}catch(e){prompt('E-mail :',c.email);}};
   const pr=$('#fPromo');if(pr)pr.onclick=async()=>{if(!confirm(`Envoyer à ${c.email} l’e-mail « −30 % pendant 3 mois », valable 7 jours ?`))return;pr.disabled=true;const j=await fnRapports({force:'auto_offre',only:c.email}),r=$('#fRes');
     if(j&&j.envoyes){r.className='msg ok';r.textContent='✅ Offre envoyée, valable 7 jours';load();}else{r.className='msg';r.textContent='Non envoyé'+(j&&j.raison?' : '+j.raison:'');pr.disabled=false;}};

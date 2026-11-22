@@ -2770,8 +2770,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.83';
+const VERSION='1.84';
 const VERSIONS=[
+ ['1.84','22/11/2026 16:45','Admin : objectif d’essai dans la fiche famille (temps de jeu et jours visés, avec projection)'],
  ['1.83','22/11/2026 15:30','Admin : dates du classement avec l’heure (il y a 10 min, hier à 18:42…)'],
  ['1.82','21/11/2026 22:55','Objets offerts : 1 par partie au maximum (réglable dans l’admin)'],
  ['1.81','21/11/2026 22:40','Zoom bloqué sur tablette et téléphone (pincement, double-tap)'],
@@ -2779,10 +2780,6 @@ const VERSIONS=[
  ['1.64','21/11/2026 15:00','Voix des contributions : plusieurs voix par son, sons des lettres, cris, anglais'],
  ['1.63','21/11/2026 14:10','Page « Contributions » pour aider Malino (voix, idées)'],
  ['1.62','21/11/2026 13:30','Arabe : 136 mots avec la voix d’un arabophone'],
- ['1.61','21/11/2026 13:20','Arabe : les 28 lettres enregistrées par un arabophone'],
- ['1.60','21/11/2026 12:15','Arabe : sons enregistrés pour toutes les lettres et tous les mots'],
- ['1.59','21/11/2026 12:45','Lecture : 9 mondes « lire et comprendre » après Petites phrases'],
- ['1.58','21/11/2026 12:00','Arabe pour débutants : leçon obligatoire, alphabet par petits groupes']
 ];
 const noFr=h=>window.MLANG==='fr'?h:h.replace(/<section class="acard"><h3>(?:📖 Lecture|🎙️ Sons des lettres)<\/h3>[\s\S]*?<\/section>/g,'').replace(/<li>Lecture \(méthode syllabique\)[^<]*<\/li>/,'');
 function renderAdmin(){
