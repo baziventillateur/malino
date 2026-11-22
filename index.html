@@ -2692,6 +2692,7 @@ function render(){
   const R={home:renderHome,game:renderGame,result:renderResult,shop:renderShop,badges:renderBadges,album:renderAlbum,gifts:renderGifts,pin:renderPin,admin:()=>adminOk?renderAdmin():renderPin()};
   const ap=$('#app');ap.className='scr-'+SCR;ap.innerHTML=(R[SCR]||renderHome)();
   try{Install.maj();}catch(e){}
+  try{Presence.maj();}catch(e){}
   if(SCR==='home'&&!modalOpen&&!(typeof Onb!=='undefined'&&Onb.should()))setTimeout(()=>{try{if(SCR==='home'&&!modalOpen)unlockCheck();}catch(e){}},350);
 }
 function weekHTML(){const now=new Date(),dow=(now.getDay()+6)%7,mon=addDays(now,-dow),t=dayKey();return (window.MLANG==='en'?['M','T','W','T','F','S','S']:['L','M','M','J','V','S','D']).map((n,i)=>{const d=dayKey(addDays(mon,i)),st=S.days[d],done=dayDone(st);const cls=(done?'done ':d<t?'miss ':'')+(d===t?'today':'');return `<div class="day ${cls}">${n}<b>${done?'🔥':d===t?'⭐':''}</b></div>`;}).join('');}
@@ -2770,8 +2771,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.86';
+const VERSION='1.87';
 const VERSIONS=[
+ ['1.87','22/11/2026 22:05','Admin : où est la famille en ligne (enfant et jeu en cours, accueil ou espace parents) et depuis quand'],
  ['1.86','22/11/2026 21:55','Admin : rond gris vide hors ligne, vert lumineux en ligne (comptes admin compris)'],
  ['1.85','22/11/2026 21:45','Admin : point vert lumineux pour les familles en ligne, notification à chaque visite avec son réglable'],
  ['1.84','22/11/2026 16:45','Admin : objectif d’essai dans la fiche famille (temps de jeu et jours visés, avec projection)'],
@@ -3061,8 +3063,13 @@ document.addEventListener('keydown',e=>{
 
 // ---------- Compte parent (Supabase) : on joue d'abord en invité, on se connecte ensuite ----------
 const SB_URL='https://fcfkfuqzgsmckkxqfwuo.supabase.co',SB_KEY='sb_publishable_a3SNrQOSCH20T5sKsJxuAA_s7H4yCSR';
-// Présence : signale à l'admin que l'appli est ouverte à l'écran (une fois par minute)
-const Presence={t:0,ping(force){try{if(document.visibilityState!=='visible'||!Acct.user||!Acct.sb)return;const n=Date.now();if(!force&&n-this.t<45000)return;this.t=n;Acct.sb.rpc('malino_ping').then(()=>{},()=>{});}catch(e){}}};
+// Présence : signale à l'admin que l'appli est ouverte à l'écran (une fois par minute) et où est la famille
+const Presence={t:0,last:'',tm:0,
+  lieu(){try{if(SCR==='admin'||SCR==='pin')return ['parents',''];const nm=(S&&S.name)||'';
+    if(SCR==='game'||SCR==='result'){let th='';try{if(G)th=G.mode==='sprint'?'Défi éclair':G.sub==='math'?'Maths':G.sub==='fr'?'Lecture':((THEMES[G.sub]&&THEMES[G.sub].n)||'');}catch(e){}return ['jeu',[nm,th].filter(Boolean).join(' · ')];}
+    return ['accueil',nm];}catch(e){return ['accueil',''];}},
+  ping(force){try{if(document.visibilityState!=='visible'||!Acct.user||!Acct.sb)return;const [l,d]=this.lieu(),k=l+'|'+d,n=Date.now();if(!force&&k===this.last&&n-this.t<45000)return;this.t=n;this.last=k;Acct.sb.rpc('malino_ping',{p_lieu:l,p_detail:d}).then(()=>{},()=>{});}catch(e){}},
+  maj(){clearTimeout(this.tm);this.tm=setTimeout(()=>{try{const [l,d]=this.lieu();if(l+'|'+d!==this.last)this.ping();}catch(e){}},1500);}};
 setInterval(()=>Presence.ping(),60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Presence.ping();});
 const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:'email',email:'',forgot:false,wait:0,_l:null,note:'',
   guestN(){return S.sessions.length-(S.gs0||0);},
