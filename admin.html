@@ -159,9 +159,36 @@ function loginView(step,msg){
   };
 }
 
+// ---------- Code parent : l'admin ne s'ouvre pas sur la tablette d'un enfant ----------
+// Même code que l'Espace parents de Malino (commun à la famille). Un appareil d'adulte est retenu 30 jours ;
+// l'appareil personnel d'un enfant demande le code à chaque fois.
+const pinH=p=>{let h=2166136261;for(const c of 'malino-pin:'+p){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return (h>>>0).toString(36);};
+const Garde={k:'malino-adm-ok',passe:false,
+  enfant(){try{const x=JSON.parse(localStorage.getItem('malino-appareil-st')||'{}');return !!(x.lie&&!x.partage);}catch(e){return false;}},
+  ok(){if(this.passe)return true;if(this.enfant())return false;try{return +localStorage.getItem(this.k)>Date.now();}catch(e){return false;}},
+  async ouvrir(suite){let h=null,err=false;try{const r=await sb.rpc('parent_pin');if(r.error)err=true;else h=r.data&&r.data.h;}catch(e){err=true;}
+    if(err){this.reussi(suite);return;}   // ancien serveur : pas de code commun
+    let buf='',pre='';const creer=!h;
+    const dessin=(m)=>{const tb=document.getElementById('tabs');if(tb)tb.classList.add('hidden');app.innerHTML=`<div id="login" class="card"><img src="logo.svg" width="56" height="56" style="border-radius:14px"><h2 style="justify-content:center">🔒 ${creer?(pre?'Confirmez le code parent':'Créez le code parent'):'Code parent'}</h2>
+      <p class="small mut" style="text-align:center">${creer?'4 chiffres, le même que dans l’Espace parents de Malino.':'Espace réservé aux parents.'}</p>
+      <div style="display:flex;gap:10px;justify-content:center;margin:10px 0">${[0,1,2,3].map(i=>`<i style="width:16px;height:16px;border-radius:50%;display:block;background:${i<buf.length?'#7B5CFF':'#E4E1F2'}"></i>`).join('')}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,64px);gap:8px;justify-content:center">${[1,2,3,4,5,6,7,8,9,'⌫',0,'✓'].map(k=>`<button class="o" data-k="${k}" style="height:52px;font-size:22px">${k}</button>`).join('')}</div>
+      <p class="msg" id="msg">${m||''}</p></div>`;
+      app.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>tape(b.dataset.k));};
+    const tape=async k=>{if(k==='⌫'){buf=buf.slice(0,-1);return dessin();}if(k==='✓')return;if(buf.length>=4)return;buf+=k;dessin();if(buf.length<4)return;
+      if(!creer){if(pinH(buf)===h)return this.reussi(suite);buf='';return dessin('Code incorrect');}
+      if(!pre){pre=buf;buf='';return dessin();}
+      if(buf!==pre){pre='';buf='';return dessin('Les deux codes sont différents');}
+      const r=await sb.rpc('parent_pin_definir',{p_h:pinH(buf)});if(r.error||(r.data&&r.data.erreur)){buf='';pre='';return dessin('Enregistrement impossible');}this.reussi(suite);};
+    dessin();},
+  reussi(suite){this.passe=true;if(!this.enfant())try{localStorage.setItem(this.k,String(Date.now()+30*864e5));}catch(e){}
+    // cet appareil est celui d'un adulte : il peut recevoir les alertes admin
+    if(!this.enfant())PushA.lier().catch(()=>{});suite();}};
+
 async function load(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session)return loginView('mail');
+  if(!Garde.ok())return Garde.ouvrir(load);
   app.innerHTML='<p class="mut">Chargement…</p>';
   const [{data,error},ser,jeu]=await Promise.all([sb.rpc('admin_tableau'),sb.rpc('admin_series').then(r=>r,()=>({data:null})),sb.rpc('malino_jeu').then(r=>r,()=>({data:null}))]);
   JEU=Object.assign({},JEU0,(jeu&&jeu.data)||{});
@@ -220,13 +247,16 @@ const PUSHPUB='BFLJzcDWvgan1IMMnPf51wZb-fSJOCpnpv5yd-CBrMAjsNzUSDMy0iCBp5NzzjojA
 async function bellCount(){const {data,error}=await sb.rpc('admin_notifs_compte');if(error)return;const b=$('#bellN');if(b)b.textContent=data?(data>99?'99+':data):'';}
 const PushA={
   sup(){return 'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;},
+  app(){try{const v=localStorage.getItem('malino-appareil');return /^[0-9a-f-]{36}$/i.test(v||'')?v:null;}catch(e){return null;}},
+  // déjà abonné sur cet appareil d'adulte : il reçoit aussi les alertes admin
+  async lier(){if(!this.sup()||Notification.permission!=='granted')return;const r=await navigator.serviceWorker.getRegistration();const s=r&&await r.pushManager.getSubscription();if(!s)return;const j=s.toJSON();await sb.rpc('malino_push_abonner',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_appareil:this.app(),p_admin:true});},
   ios(){return /iphone|ipad|ipod/i.test(navigator.userAgent)&&!(navigator.standalone||matchMedia('(display-mode: standalone)').matches);},
   async reg(){try{return (await navigator.serviceWorker.getRegistration())||(await navigator.serviceWorker.register('sw.js'));}catch(e){return null;}},
   async etat(){if(!this.sup())return 'nosup';if(Notification.permission==='denied')return 'denied';const r=await this.reg();const s=r&&await r.pushManager.getSubscription();return s&&Notification.permission==='granted'?'on':'off';},
   async activer(){if(!this.sup())return 'nosup';const p=await Notification.requestPermission();if(p!=='granted')return 'denied';
     const r=await this.reg();await navigator.serviceWorker.ready;let s=await r.pushManager.getSubscription();
     if(!s){const k=atob(PUSHPUB.replace(/-/g,'+').replace(/_/g,'/'));s=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:Uint8Array.from(k,c=>c.charCodeAt(0))});}
-    const j=s.toJSON(),{error}=await sb.rpc('malino_push_abonner',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_ua:navigator.userAgent.slice(0,200)});if(error)throw error;
+    const j=s.toJSON(),{error}=await sb.rpc('malino_push_abonner',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_ua:navigator.userAgent.slice(0,200),p_appareil:PushA.app(),p_admin:true});if(error)throw error;
     await this.tester();return 'on';},
   async fn(body){const {data:{session}}=await sb.auth.getSession();return fetch(SB_URL+'/functions/v1/malino-notif',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+session.access_token},body:JSON.stringify(body)}).then(r=>r.json()).catch(()=>({}));},
   tester(groupe){return this.fn(groupe?{test:true,groupe}:{test:true});},

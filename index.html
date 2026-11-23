@@ -2442,12 +2442,12 @@ BADGES.push(
 const Push={pub:'BFLJzcDWvgan1IMMnPf51wZb-fSJOCpnpv5yd-CBrMAjsNzUSDMy0iCBp5NzzjojAtClpyiH9nYpxdxe_fFPUCQ',st:null,
   sup(){return 'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;},
   ios(){return /iphone|ipad|ipod/i.test(navigator.userAgent)&&!(window.navigator.standalone||matchMedia('(display-mode: standalone)').matches);},
-  async check(){let st='off';try{if(!this.sup())st='nosup';else{const r=await navigator.serviceWorker.ready,s=await r.pushManager.getSubscription();st=s&&Notification.permission==='granted'?'on':Notification.permission==='denied'?'denied':'off';}}catch(e){}const ch=st!==this.st;this.st=st;if(ch&&(SCR==='admin'||SCR==='home'))keepScroll(render);if(ch&&typeof Onb!=='undefined'&&Onb.on)Onb.draw();return st;},
+  async check(){let st='off';try{if(!this.sup())st='nosup';else{const r=await navigator.serviceWorker.ready,s=await r.pushManager.getSubscription();st=s&&Notification.permission==='granted'?'on':Notification.permission==='denied'?'denied':'off';if(st==='on'&&!this.lie&&Acct.user&&Acct.sb){this.lie=1;const j=s.toJSON();Acct.sb.rpc('malino_push_abonner',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_appareil:Dev.id()}).then(()=>{},()=>{this.lie=0;});}}}catch(e){}const ch=st!==this.st;this.st=st;if(ch&&(SCR==='admin'||SCR==='home'))keepScroll(render);if(ch&&typeof Onb!=='undefined'&&Onb.on)Onb.draw();return st;},
   key(){const b=atob(this.pub.replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(b,c=>c.charCodeAt(0));},
   async enable(){if(!this.sup())return toast(this.ios()?'Sur iPhone, ajoutez d’abord Malino à l’écran d’accueil':'Notifications impossibles sur ce navigateur');if(!Acct.user||!Acct.sb)return toast('Connectez-vous d’abord');
     try{const p=await Notification.requestPermission();if(p!=='granted'){toast('Notifications refusées');return this.check();}
       const r=await navigator.serviceWorker.ready;let s=await r.pushManager.getSubscription();if(!s)s=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:this.key()});const j=s.toJSON();
-      const {error}=await Acct.sb.rpc('malino_push_abonner',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_ua:navigator.userAgent.slice(0,200)});if(error)throw error;
+      const {error}=await Acct.sb.rpc('malino_push_abonner',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_ua:navigator.userAgent.slice(0,200),p_appareil:Dev.id()});if(error)throw error;
       toast('🔔 Notifications activées');this.test();}catch(e){console.warn('push',e);toast('Activation impossible, réessayez');}this.check();},
   async test(){try{const {data}=await Acct.sb.auth.getSession(),tk=data&&data.session&&data.session.access_token;if(!tk)return;const r=await fetch(SB_URL+'/functions/v1/malino-push',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk,apikey:SB_KEY},body:JSON.stringify({test_moi:true})});const j=await r.json().catch(()=>({}));if(!j.sent)toast('Notification de test non reçue : réessayez');}catch(e){}},
   async disable(){try{const r=await navigator.serviceWorker.ready,s=await r.pushManager.getSubscription();if(s){if(Acct.sb)await Acct.sb.rpc('malino_push_desabonner',{p_endpoint:s.endpoint});await s.unsubscribe();}}catch(e){}toast('Notifications désactivées');this.check();},
@@ -2927,7 +2927,19 @@ const Sons={buf:{},cur:null,tk:0,
 
 // ---------- Écrans ----------
 let shopSeen=1,shopAnim=false,shopBought=null;
-let pinGift=null;
+let pinGift=null,pinChange=false;
+// Code parent : le même pour toute la famille (rangé sur le compte), pour tous les enfants et tous les appareils.
+// On garde son empreinte ; sans compte, il reste propre à l'appareil (S.pin).
+const pinH=p=>{let h=2166136261;for(const c of 'malino-pin:'+p){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return (h>>>0).toString(36);};
+const PinFam={h:null,ok:false,u:null,
+  cache(){try{const c=JSON.parse(localStorage.getItem('malino-pinfam')||'null');if(c&&Acct.user&&c.u===Acct.user.id){this.h=c.h||null;this.ok=true;this.u=c.u;}}catch(e){}},
+  garder(){try{localStorage.setItem('malino-pinfam',JSON.stringify({u:Acct.user&&Acct.user.id,h:this.h}));}catch(e){}},
+  async charger(){if(!Acct.user||!Acct.sb||this.enCours)return;this.enCours=1;let fait=false;try{const {data,error}=await Acct.sb.rpc('parent_pin');if(!error&&data){this.h=data.h||null;this.u=Acct.user.id;this.garder();fait=true;}}catch(e){}
+    this.enCours=0;if(!fait&&!this.ok){this.u=Acct.user.id;this.h=null;}this.ok=true;if(SCR==='pin')render();},
+  actif(){if(!Acct.user)return false;if(this.u!==Acct.user.id){this.h=null;this.ok=false;this.cache();}return this.ok;},
+  async definir(h,ancien){if(!Acct.user||!Acct.sb)return false;try{const {data,error}=await Acct.sb.rpc('parent_pin_definir',{p_h:h,p_ancien:ancien||null});if(error||!data||data.erreur)return false;this.h=h;this.ok=true;this.u=Acct.user.id;this.garder();return true;}catch(e){return false;}}};
+// la bonne référence pour l'écran du code : celle de la famille, sinon l'ancien code de l'appareil
+function pinRef(){if(pinChange)return null;if(PinFam.actif()&&PinFam.h)return {h:PinFam.h};if(S.pin)return {pin:S.pin};return null;}
 let SCR='home',shopCat='obj',shopPrev=null,adminOk=false,adminTab='reglages',pinBuf='',pinStage='enter',pinFirst='',mapLevel=0,gateAns=0;
 function go(s){SCR=s;render();window.scrollTo(0,0);}
 function keepScroll(fn){const y=window.scrollY;fn();window.scrollTo(0,y);}
@@ -3326,6 +3338,20 @@ function renderShop(){setTimeout(()=>{shopAnim=false;shopBought=null;},700);
 }
 function renderBadges(){const got=BADGES.filter(b=>S.badges[b.id]).length;return `<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>Mes badges</h2><span class="pill">${got}/${BADGES.length}</span></div>`+Object.entries(RARITY).map(([k,R])=>{const L=BADGES.filter(b=>b.r===k),g=L.filter(b=>S.badges[b.id]).length;return `<div class="rarsec"><h3 class="rarh" style="color:${R.col}">${R.n}<small>${g}/${L.length}</small></h3><div class="badges">${L.map(b=>{const ok=!!S.badges[b.id],pr=!ok&&b.p?b.p():null;return `<div class="badge r-${k} ${ok?'got':''}" style="--rc:${R.col}"><span class="be">${b.e}</span><b>${esc(b.n)}</b><small>${esc(b.d)}</small>${pr?`<span class="bp"><i style="width:${Math.round(pr[0]/pr[1]*100)}%"></i></span><em>${pr[0]}/${pr[1]}</em>`:''}</div>`;}).join('')}</div></div>`;}).join('');}
 const fdate=t=>t?new Date(t).toLocaleDateString(LOC,{day:'numeric',month:'short',year:'numeric'}):'';
+// Code oublié (avec un compte) : un code est envoyé à l'e-mail du parent ; une fois vérifié, on choisit un nouveau code
+const PinOubli={
+  masque(e){const [a,b]=String(e).split('@');return (a||'').slice(0,2)+'•••@'+(b||'');},
+  ouvrir(){queueModal(`<div class="bigemoji sm">🔑</div><h2>Code oublié</h2><p>Nous envoyons un code à l’adresse du parent :<br><b>${esc(this.masque(Acct.user.email))}</b></p><div id="poZ"><button class="btn p block" data-act="pinoubli1">Recevoir le code ✉️</button></div><button class="alink" data-act="mclose">Annuler</button>`);},
+  async envoyer(){const z=$('#poZ');if(z)z.innerHTML='<p class="hint">Envoi…</p>';
+    try{const r=await fetch(SB_URL+'/functions/v1/code-connexion',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY},body:JSON.stringify({email:Acct.user.email})});const j=await r.json().catch(()=>({}));
+      if(!(r.ok&&j.ok)&&j.error!=='trop_vite'){if(z)z.innerHTML='<p class="hint">Envoi impossible pour le moment. Réessayez dans un instant.</p>';return;}}catch(e){if(z)z.innerHTML='<p class="hint">Pas de connexion internet.</p>';return;}
+    const z2=$('#poZ');if(z2)z2.innerHTML=`<label class="fld">Code reçu par e-mail<input id="poC" class="acode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="········"></label><button class="btn p block" style="margin-top:8px" data-act="pinoubli2">Valider</button>`;},
+  async verifier(){const code=(($('#poC')||{}).value||'').replace(/\D/g,'');if(code.length<6)return toast('Saisissez le code reçu');
+    let r={error:1};try{for(const t of ['email','magiclink','signup']){r=await Acct.sb.auth.verifyOtp({email:Acct.user.email,token:code,type:t});if(!r.error)break;}}catch(e){}
+    if(r.error||!r.data||!r.data.session)return toast('Code incorrect ou expiré');
+    Acct.user=r.data.session.user;await PinFam.definir(null);S.pin=null;save();pinChange=true;pinStage='enter';pinBuf='';closeAllModals();go('pin');toast('Choisissez un nouveau code parent');}};
+// code bon : l'espace parents s'ouvre, puis ce qui était demandé (lien d'une notification)
+function pinOk(){adminOk=true;pinBuf='';pinStage='enter';go('admin');const f=window.__apresPin;window.__apresPin=null;if(f)setTimeout(f,350);}
 function giftGiven(id){const g=S.gifts.find(x=>x.id===id);if(g&&!g.given){g.given=true;g.givenAt=Date.now();save();}pinBuf='';pinGift=null;toast('Cadeau remis ✅');go('gifts');}
 function renderGifts(){Dem.sync();
   const show=S.gifts.filter(g=>!g.given),hist=S.gifts.filter(g=>g.given).sort((a,b)=>(b.givenAt||0)-(a.givenAt||0));
@@ -3340,15 +3366,17 @@ function renderGifts(){Dem.sync();
 
 // ---------- Espace parents ----------
 function renderPin(){
-  const creating=!S.pin,title=creating?(pinStage==='confirm'?'Confirmez le code':'Créez un code parent'):'Code parent';
-  return `<div class="pinscr"><button class="xbtn" data-act="home" aria-label="Retour">←</button><div class="card pincard"><div class="bigemoji sm">🔒</div><h2>${title}</h2><p>${creating?'4 chiffres, pour que seuls les parents changent les réglages.':(pinGift?'Papa ou maman : entrez le code pour valider que le cadeau est remis.':'Espace réservé aux parents.')}</p><div class="pindots">${[0,1,2,3].map(i=>`<i class="${i<pinBuf.length?'on':''}"></i>`).join('')}</div>${keypadHTML('pin')}${S.pin?'<button class="link" data-act="pinforgot">Code oublié ?</button>':''}</div></div>`;
+  if(Acct.user&&!PinFam.actif()&&!S.pin){PinFam.charger();return `<div class="pinscr"><button class="xbtn" data-act="home" aria-label="Retour">←</button><div class="card pincard"><div class="bigemoji sm">🔒</div><h2>Code parent</h2><p>Chargement…</p></div></div>`;}
+  const creating=!pinRef(),title=creating?(pinStage==='confirm'?'Confirmez le code':'Créez un code parent'):'Code parent';
+  return `<div class="pinscr"><button class="xbtn" data-act="home" aria-label="Retour">←</button><div class="card pincard"><div class="bigemoji sm">🔒</div><h2>${title}</h2><p>${creating?'4 chiffres, pour que seuls les parents changent les réglages.':(pinGift?'Papa ou maman : entrez le code pour valider que le cadeau est remis.':'Espace réservé aux parents.')}</p><div class="pindots">${[0,1,2,3].map(i=>`<i class="${i<pinBuf.length?'on':''}"></i>`).join('')}</div>${keypadHTML('pin')}${!creating?'<button class="link" data-act="pinforgot">Code oublié ?</button>':''}</div></div>`;
 }
 function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class="${S.settings[k]==v?'on':''}" data-act="set" data-arg="${k}|${v}">${l}</button>`).join('')}</div>`;}
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.11';
+const VERSION='2.12';
 const VERSIONS=[
+ ['2.12','24/11/2026 00:25','Notifications au bon appareil : celles d’un enfant vont sur sa tablette (sinon sur le dernier appareil utilisé), les alertes admin jamais sur l’appareil d’un enfant ; code parent commun à toute la famille, demandé aussi depuis une notification et dans l’admin ; code oublié : code envoyé par e-mail au parent ; vibration et son différents pour l’enfant et pour les parents'],
  ['2.11','24/11/2026 00:10','Entre amis : une partie a une fin (à l’objectif, la partie s’arrête et la victoire s’affiche), récompense puis « Nouvelle partie », salle d’attente et invitation « Je rejoins la partie », notifications « X t’attend »'],
  ['2.10','23/11/2026 23:55','Tableau de bord des parents : score de calcul et de lecture sur 1000 avec le niveau repère (CP, CE1, CE2), vitesse comparée aux repères du programme, calculs sus par cœur, réussite du premier coup, et l’évolution mois par mois'],
  ['2.09','23/11/2026 23:30','Connexion simplifiée : ajouter une tablette avec un code à 6 chiffres affiché sur le téléphone du parent ; « Cet appareil est pour… » (l’invité rejoint l’enfant choisi, sans doublon) ; appareil personnel ou partagé ; page « 📱 Appareils » pour voir, régler et retirer chaque appareil'],
@@ -3634,7 +3662,7 @@ const ACT={
     +sec('⭐ Récompenses',['Les bonnes réponses font monter le <b>niveau du joueur</b>. Les <b>pièces 🪙</b> achètent des objets pour le personnage (jamais d’argent réel).','La <b>série 🔥</b> compte les jours joués de suite. La mission du jour ouvre le <b>coffre du jour</b>.',`Les <b>coffres magiques</b> se gagnent en jouant et s’ouvrent après ${CFG.cofH} h : pièces, autocollants pour l’album, objets… ou une farce.`])
     +sec('🎁 Vrais cadeaux',['Dans l’onglet <b>Cadeaux</b>, fixez une vraie récompense (une glace, une sortie…) et l’objectif pour l’obtenir.','L’enfant voit sa progression, et une fête s’affiche quand il l’atteint.'])
     +sec('👫 Entre amis',['L’enfant joue en équipe avec un copain grâce à un <b>code à 6 chiffres</b>. Ils voient le prénom et l’avatar de l’autre.','<b>1 bonne réponse = 1 point</b> dans une jauge commune. À 100 points, la <b>partie est gagnée</b> et s’arrête : une récompense chacun.','Pour rejouer : <b>Nouvelle partie</b>. Le copain reçoit l’invitation et touche « Je rejoins » : la partie commence quand ils sont deux.','<b>Défi</b> : 10 questions chacun à son niveau, le meilleur gagne une étoile.','Messages tout faits lus par une voix rigolote : aucun message libre. Un salon se retire dans Famille et compte.'])
-    +sec('👨‍👩‍👧 Parents et famille',['Chaque tablette s’ouvre sur son enfant. Pour en ajouter une : <b>📱 Appareils → Ajouter un appareil</b>, puis taper le code sur la tablette (« Se connecter » → « J’ai un code »).','Sur un appareil <b>partagé</b>, on passe à un frère ou une sœur avec <b>Changer</b>, en restant appuyé.','Invitez un second parent dans Famille et compte : il voit les mêmes enfants.','L’onglet <b>Progrès</b> ouvre sur le tableau de bord : un score sur 1000 avec le niveau repère (CP, CE1, CE2), la vitesse, les calculs sus par cœur et la réussite, mois par mois. Les rapports par e-mail se coupent dans Famille et compte.'])
+    +sec('👨‍👩‍👧 Parents et famille',['Chaque tablette s’ouvre sur son enfant. Pour en ajouter une : <b>📱 Appareils → Ajouter un appareil</b>, puis taper le code sur la tablette (« Se connecter » → « J’ai un code »).','Sur un appareil <b>partagé</b>, on passe à un frère ou une sœur avec <b>Changer</b>, en restant appuyé.','Le <b>code parent</b> est le même pour toute la famille, sur tous les appareils. Code oublié : un code est envoyé par e-mail au parent.','Invitez un second parent dans Famille et compte : il voit les mêmes enfants.','L’onglet <b>Progrès</b> ouvre sur le tableau de bord : un score sur 1000 avec le niveau repère (CP, CE1, CE2), la vitesse, les calculs sus par cœur et la réussite, mois par mois. Les rapports par e-mail se coupent dans Famille et compte.'])
     +sec('🔄 Mises à jour',['Malino vérifie seul les nouvelles versions : un bandeau propose « Mettre à jour ».','Le numéro de version est en bas de l’accueil : touchez-le pour voir les nouveautés ou vérifier.'])
     +`</div><button class="btn y block" data-act="mclose">Fermer</button>`);},
   majcheck(a,el){Maj.manuel(el);},majgo(){Maj.go();},
@@ -3646,7 +3674,9 @@ const ACT={
   codego(){Offre.codeGo();},
   giftcard(id){const g=S.gifts.find(x=>x.id===id);if(!g)return;queueModal(`<div class="bigemoji">${esc(g.emoji)}</div><h2>${esc(g.title)}</h2><p><b>Présente-la à papa et maman</b></p><p class="small mut">Gagné le ${fdate(g.reached)}</p><div class="stack"><button class="btn p block" data-act="giftpin" data-arg="${g.id}">Papa ou maman : valider</button><button class="btn w block" data-act="mclose">Plus tard</button></div>`);},
   giftpin(id){closeAllModals();pinGift=id;pinBuf='';pinStage='enter';go('pin');},
-  parent(){pinBuf='';pinGift=null;pinStage='enter';go(adminOk?'admin':'pin');},
+  parent(){pinBuf='';pinGift=null;pinStage='enter';pinChange=false;go(adminOk?'admin':'pin');},
+  // une action réservée aux parents (depuis une notification) : le code d'abord
+  parentPuis(f){if(adminOk)return f();window.__apresPin=f;ACT.parent();},
   key(a){if(!G||!G.cur||G.cur.done||G.cur.q.type!=='math')return;
     if(a==='del')G.input=G.input.slice(0,-1);
     else if(a==='ok'){if(G.input!=='')submit(parseInt(G.input,10));return;}
@@ -3711,16 +3741,18 @@ const ACT={
     if(a==='del'){pinBuf=pinBuf.slice(0,-1);render();return;}
     if(pinBuf.length>=4)return;pinBuf+=a;render();if(pinBuf.length<4)return;
     setTimeout(()=>{
-      if(!S.pin){
+      const ref=pinRef();
+      if(!ref){
         if(pinStage==='enter'){pinFirst=pinBuf;pinStage='confirm';pinBuf='';render();}
-        else if(pinBuf===pinFirst){S.pin=pinBuf;save();adminOk=true;pinBuf='';pinStage='enter';adminTab='reglages';go('admin');toast('Code enregistré ✅');}
+        else if(pinBuf===pinFirst){const ancien=PinFam.h;S.pin=pinBuf;save();if(Acct.user)PinFam.definir(pinH(pinBuf),ancien).then(ok=>{if(!ok)toast('Code enregistré sur cet appareil seulement');});pinChange=false;pinOk();adminTab='reglages';toast('Code enregistré ✅');}
         else{pinStage='enter';pinBuf='';render();toast('Les deux codes sont différents, recommencez');}
-      }else if(pinBuf===S.pin){if(pinGift){giftGiven(pinGift);return;}adminOk=true;pinBuf='';go('admin');}
-      else{pinBuf='';render();toast('Code incorrect');}
+      }else if(ref.h?pinH(pinBuf)===ref.h:pinBuf===ref.pin){if(!ref.h&&Acct.user)PinFam.definir(pinH(pinBuf));if(pinGift){giftGiven(pinGift);return;}pinOk();}
+      else{pinBuf='';render();toast('Code incorrect');try{Sound.play('bad');}catch(e){}}
     },150);
   },
-  pinforgot(){const a=rand(6,9),b=rand(6,9);gateAns=a*b;queueModal(`<h2>Code oublié</h2><p>Question pour les parents :<br><b>Combien font ${a} × ${b} ?</b></p><input id="gateIn" class="ginput" inputmode="numeric" style="text-align:center;max-width:140px"><div class="row2"><button class="btn w" data-act="mclose">Annuler</button><button class="btn g" data-act="gateok">Valider</button></div>`);},
-  gateok(){const v=parseInt(($('#gateIn')||{}).value,10);if(v===gateAns){S.pin=null;save();pinStage='enter';pinBuf='';closeAllModals();render();toast('Créez un nouveau code');}else toast('Ce n’est pas la bonne réponse');},
+  pinforgot(){if(Acct.user&&Acct.user.email)return PinOubli.ouvrir();const a=rand(23,89),b=rand(6,9);gateAns=a*b;queueModal(`<h2>Code oublié</h2><p>Question pour les parents :<br><b>Combien font ${a} × ${b} ?</b></p><input id="gateIn" class="ginput" inputmode="numeric" style="text-align:center;max-width:140px"><div class="row2"><button class="btn w" data-act="mclose">Annuler</button><button class="btn g" data-act="gateok">Valider</button></div>`);},
+  gateok(){const v=parseInt(($('#gateIn')||{}).value,10);if(v===gateAns){S.pin=null;save();pinChange=true;pinStage='enter';pinBuf='';closeAllModals();render();toast('Créez un nouveau code');}else toast('Ce n’est pas la bonne réponse');},
+  pinoubli1(){PinOubli.envoyer();},pinoubli2(){PinOubli.verifier();},
   leaveadmin(){adminOk=false;go('home');},
   tab(t){adminTab=t;render();window.scrollTo(0,0);},
   astc2(){AstuceCo.etape2();},astcgo(){AstuceCo.aller();},astcx(){closeAllModals();},
@@ -3729,7 +3761,7 @@ const ACT={
   setlvl(n){S.settings.mathLevel=+n;save();toast(`Maths : monde ${n} · ${MATH_LEVELS[n-1].n}`);keepScroll(render);},
   setfr(n){S.settings.frLevel=+n;save();toast(`Lecture : monde ${n} · ${FR_LEVELS[n-1].n}`);keepScroll(render);},
   testvoice(){Voice.say(`Bonjour ${S.name||''} ! Deux plus deux égale quatre.`);},
-  changepin(){S.pin=null;save();pinStage='enter';pinBuf='';adminOk=false;go('pin');},
+  changepin(){pinChange=true;pinStage='enter';pinBuf='';adminOk=false;go('pin');},
   maplvl(n){mapLevel=+n;keepScroll(render);},
   giftadd(){const e=$('#gEmoji').value.trim()||'🎁',t=$('#gTitle').value.trim(),ty=$('#gType').value,n=parseInt($('#gTarget').value,10);if(!t||!n||n<1)return toast('Indiquez un cadeau et un nombre à atteindre');S.gifts.push({id:'g'+Date.now(),emoji:e,title:t,type:ty,target:ty==='tdays'?Math.min(7,n):n,reached:null,given:false});save();toast('Cadeau ajouté 🎁');keepScroll(render);},
   giftgiven(id){const g=S.gifts.find(x=>x.id===id);if(g){g.given=true;g.givenAt=Date.now();save();}keepScroll(render);},
@@ -3776,7 +3808,10 @@ const Presence={t:0,last:'',tm:0,
     if(/Windows/i.test(u))return 'windows:ordi';if(/CrOS|Linux/i.test(u))return 'linux:ordi';}catch(e){}return 'autre:ordi';},
   ping(force){try{if(document.visibilityState!=='visible'||!Acct.user||!Acct.sb)return;const [l,d,inst,ps]=this.cle(),k=[l,d,inst,ps].join('|'),n=Date.now();if(!force&&k===this.last&&n-this.t<45000)return;this.t=n;this.last=k;Acct.sb.rpc('malino_ping',{p_lieu:l,p_detail:d,p_installe:inst,p_push:ps,p_app:this.app()}).then(()=>{},()=>{});}catch(e){}},
   maj(){clearTimeout(this.tm);this.tm=setTimeout(()=>{try{if(this.cle().join('|')!==this.last)this.ping();}catch(e){}},1500);}};
-setInterval(()=>Presence.ping(),60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Presence.ping();});
+setInterval(()=>Presence.ping(),60000);
+if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(!d.malinoNotif)return;
+  try{if(d.malinoNotif==='enfant'){Sound.play('epic');setTimeout(()=>Amis.maj&&(Amis.t=0,Amis.maj()),300);}else Sound.play('tick');}catch(x){}
+  if(d.titre)toast((d.malinoNotif==='enfant'?'':'👨‍👩‍👧 ')+d.titre);});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Presence.ping();});
 // ---------- Appareils : chaque tablette ou téléphone est relié au compte parent et, sauf s'il est partagé, à un enfant ----------
 const Dev={
   id(){let v=null;try{v=localStorage.getItem('malino-appareil');}catch(e){}
@@ -4166,12 +4201,12 @@ const Plan={info:null,
   async refresh(quiet){
     if(!Acct.user||!Acct.sb)return null;
     const {data,error}=await Acct.sb.rpc('mon_compte');if(error||!data)return null;
-    const before=this.kind();this.set(data);Presence.ping(true);
+    const before=this.kind();this.set(data);Presence.ping(true);PinFam.charger();
     if(data.prenom){Offre.gp=Offre.gp||data.prenom;Offre.ip=Offre.ip||data.prenom;}
     try{const k='malino_src_sent_'+Acct.user.id;if(!localStorage.getItem(k))Acct.sb.rpc('maj_source',{p_source:localStorage.getItem('malino_src')||'direct'}).then(r=>{if(!r.error)localStorage.setItem(k,'1');});}catch(e){}
     Famille.afterRefresh();
     if(Onb.should()&&SCR!=='game')setTimeout(()=>{if(Onb.should())Onb.start();},500);
-    try{const g=new URLSearchParams(location.search).get('go');if(g&&!Plan._go){Plan._go=1;setTimeout(()=>{if(SCR==='game'||Onb.should())return;if(g==='offre')ACT.offre('mail');else if(g==='inviter')ACT.parrain();else if(g==='cadeaux'){adminTab='cadeaux';ACT.parent();}else if(g==='amis'){const pp=new URLSearchParams(location.search).get('p');if(pp&&pp!==Acct.pid&&Acct.list.some(r=>r.id===pp))Famille.transition(pp,()=>ACT.amis());else ACT.amis();}else if(g==='progres'||g==='famille'||g==='jeux'||g==='reglages'){adminTab=g==='famille'?'compte':g;ACT.parent();}},1200);}}catch(e){}
+    try{const g=new URLSearchParams(location.search).get('go');if(g&&!Plan._go){Plan._go=1;setTimeout(()=>{if(SCR==='game'||Onb.should())return;if(g==='offre')ACT.parentPuis(()=>ACT.offre('mail'));else if(g==='inviter')ACT.parentPuis(()=>ACT.parrain());else if(g==='cadeaux'){adminTab='cadeaux';ACT.parent();}else if(g==='amis'){const pp=new URLSearchParams(location.search).get('p');if(pp&&pp!==Acct.pid&&Acct.list.some(r=>r.id===pp))Famille.transition(pp,()=>ACT.amis());else ACT.amis();}else if(g==='progres'||g==='famille'||g==='jeux'||g==='reglages'){adminTab=g==='famille'?'compte':g;ACT.parent();}},1200);}}catch(e){}
     if(data.cadeaux>0&&!quiet)queueModal(`<div class="bigemoji sm">🎁</div><h2>Cadeau activé !</h2><p>Malino+ est débloqué jusqu’au <b>${fmtDate(data.plus_jusqua)}</b>.</p><button class="btn g block" data-act="mclose">Génial ! 🎉</button>`,()=>Confetti.burst(140));
     if(before!==this.kind()&&SCR!=='game')render();
     return data;
