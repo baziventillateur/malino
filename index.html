@@ -3296,7 +3296,19 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
   async code2(v){if(this.kpBusy)return;this.kpBusy=1;let data,error;try{({data,error}=await Acct.sb.rpc('salon_rejoindre',{p_profil:Acct.pid,p_code:v}));}catch(e){error=e;}this.kpBusy=0;
     if(error||!data)return toast('Réessaie dans un instant');
     if(data.erreur){toast({code:'Ce code n’existe pas. Vérifie-le !',deja:'Tu es déjà dans ce salon',complet:'Ce salon est déjà complet',trop:'3 copains au maximum',trop_essais:'Trop d’essais : réessaie dans une heure'}[data.erreur]||'Impossible de rejoindre');this.kp='';this.kpMaj(true);try{Sound.play('bad');}catch(e){}return;}
-    closeAllModals();await this.charger();render();const x=(this.frais()||{salons:[]}).salons.find(s=>s.id===data.id),c=x&&x.copain;
+    closeAllModals();await this.charger();render();this.bravo(data.id);},
+  // invitation reçue par lien (mail, message) : l'enfant visé rejoint l'équipe sans taper le code
+  depuisLien(){const q=new URLSearchParams(location.search),pp=q.get('p'),sc=(q.get('salon')||'').replace(/\D/g,'').slice(0,6);
+    try{if(q.has('salon')){q.delete('salon');history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:''));}}catch(e){}
+    const mien=!!pp&&Acct.list.some(r=>r.id===pp),suite=()=>{ACT.amis();if(sc.length===6&&mien)setTimeout(()=>this.lien(sc),700);};
+    if(mien&&pp!==Acct.pid)Famille.transition(pp,suite);else suite();
+    if(pp&&!mien&&sc)toast('Cette invitation est pour un autre compte Malino');},
+  async lien(code){let r;try{r=await Acct.sb.rpc('salon_rejoindre',{p_profil:Acct.pid,p_code:code});}catch(e){r={error:e};}
+    const d=r&&r.data;if(!r||r.error||!d)return toast('Invitation : réessaie dans un instant');
+    if(d.erreur==='deja')return toast('Tu es déjà dans cette équipe ✅');
+    if(d.erreur)return toast({code:'Cette invitation n’existe plus',complet:'Cette équipe est déjà complète',trop:'3 copains au maximum',trop_essais:'Trop d’essais : réessaie dans une heure'}[d.erreur]||'Impossible de rejoindre');
+    closeAllModals();await this.charger();if(SCR==='amis')render();this.bravo(d.id);},
+  bravo(id){const x=(this.frais()||{salons:[]}).salons.find(s=>s.id===id),c=x&&x.copain;
     queueModal(`<div class="hero-duo">${this.av(this.moi(),'lg')}<span class="hx">+</span>${c?this.av(c,'lg'):'<span class="amav lg q">?</span>'}</div><h2>Tu es dans l’équipe${c?` de ${esc(this.nom(c))}`:''} ! 🎉</h2><p>Vos bonnes réponses vont s’additionner. À toi de jouer !</p><button class="btn g block am-go" data-act="mclose">C’est parti !${this.main()}</button>`,()=>{try{Confetti.burst(90);Amis.son('badge');}catch(e){}});},
   motModal(id){this.sid=id;const d=this.frais(),x=d&&d.salons.find(s=>s.id===id),c=x&&x.copain;
     queueModal(`${c?`<div class="hero-duo">${this.av(c,'lg')}</div>`:'<div class="bigemoji sm">💬</div>'}<h2>Encourager ${c?esc(this.nom(c)):''}</h2><div class="amis-mots gm">${this.court(Object.entries(AMIS_MOTS),this.mot,4,'gm',(k,[e,t],x)=>`<button class="${this.mot===k?'on':''} ${x}" data-act="amismotc" data-arg="${k}"><span>${e}</span>${esc(t)}</button>`)}</div>
@@ -3448,8 +3460,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.16';
+const VERSION='2.17';
 const VERSIONS=[
+ ['2.17','23/11/2026 23:59','Entre amis : un lien d’invitation (reçu par mail ou message) ouvre Malino sur le bon enfant et le fait rejoindre l’équipe de son copain, sans taper le code'],
  ['2.16','23/11/2026 23:40','Espace parents : avancer son enfant est limité à 2 mondes après celui qu’il a atteint seul, dans chaque jeu, et à 3 mondes d’avance au total ; les mondes trop loin sont marqués 🔒 et la suite se débloque quand l’enfant réussit'],
  ['2.15','23/11/2026 23:15','Entre amis : à gagner ensemble, un coffre en diamant animé (rayons, halo, cristaux, diamants en orbite), affiché au bout de la jauge ; à la victoire, on le secoue et il s’ouvre tout de suite dans une pluie de diamants, pour une grosse récompense'],
  ['2.14','24/11/2026 00:45','Entre amis : le mode Défi est retiré (plus de bouton « Défier », plus de défis ni d’étoiles) ; on joue seulement en équipe, partie après partie'],
@@ -4284,7 +4297,7 @@ const Plan={info:null,
     try{const k='malino_src_sent_'+Acct.user.id;if(!localStorage.getItem(k))Acct.sb.rpc('maj_source',{p_source:localStorage.getItem('malino_src')||'direct'}).then(r=>{if(!r.error)localStorage.setItem(k,'1');});}catch(e){}
     Famille.afterRefresh();
     if(Onb.should()&&SCR!=='game')setTimeout(()=>{if(Onb.should())Onb.start();},500);
-    try{const g=new URLSearchParams(location.search).get('go');if(g&&!Plan._go){Plan._go=1;setTimeout(()=>{if(SCR==='game'||Onb.should())return;if(g==='offre')ACT.parentPuis(()=>ACT.offre('mail'));else if(g==='inviter')ACT.parentPuis(()=>ACT.parrain());else if(g==='cadeaux'){adminTab='cadeaux';ACT.parent();}else if(g==='amis'){const pp=new URLSearchParams(location.search).get('p');if(pp&&pp!==Acct.pid&&Acct.list.some(r=>r.id===pp))Famille.transition(pp,()=>ACT.amis());else ACT.amis();}else if(g==='progres'||g==='famille'||g==='jeux'||g==='reglages'){adminTab=g==='famille'?'compte':g;ACT.parent();}},1200);}}catch(e){}
+    try{const g=new URLSearchParams(location.search).get('go');if(g&&!Plan._go){Plan._go=1;setTimeout(()=>{if(SCR==='game'||Onb.should())return;if(g==='offre')ACT.parentPuis(()=>ACT.offre('mail'));else if(g==='inviter')ACT.parentPuis(()=>ACT.parrain());else if(g==='cadeaux'){adminTab='cadeaux';ACT.parent();}else if(g==='amis')Amis.depuisLien();else if(g==='progres'||g==='famille'||g==='jeux'||g==='reglages'){adminTab=g==='famille'?'compte':g;ACT.parent();}},1200);}}catch(e){}
     if(data.cadeaux>0&&!quiet)queueModal(`<div class="bigemoji sm">🎁</div><h2>Cadeau activé !</h2><p>Malino+ est débloqué jusqu’au <b>${fmtDate(data.plus_jusqua)}</b>.</p><button class="btn g block" data-act="mclose">Génial ! 🎉</button>`,()=>Confetti.burst(140));
     if(before!==this.kind()&&SCR!=='game')render();
     return data;
