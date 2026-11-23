@@ -276,6 +276,13 @@ h1,h2,h3,h4{font-weight:700}
 .trec-att{min-height:220px;display:grid;place-items:center;color:var(--ink2)}
 .trec-tot small:first-child{font-size:12px}.trec-p b{margin-top:7px}.trec-p.pm .trec-g{color:var(--cmd)}.trec-p.pl .trec-g{color:var(--cld)}.trec-p .amav{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--cm)}.trec-p.pl .amav{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--cl)}
 #trJ{margin:10px 0 6px}
+.swc{display:flex;align-items:center;justify-content:center;gap:10px;margin:4px 0 6px}.swa{font-size:26px;font-weight:900;color:#7B5CFF;animation:amBob 1s infinite}
+.swhold{position:relative;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none}.swhold span{position:relative;z-index:1}.swfill{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,255,255,.35)}.swhold.hold .swfill{width:100%;transition:width 1.3s linear}
+.swtr{position:fixed;inset:0;z-index:120;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:radial-gradient(circle at 50% 40%,#9B8CFF,#4A36E0);color:#fff;animation:swIn .35s ease-out}
+.swtr.out{opacity:0;transition:opacity .5s}.swtr b{font-size:30px;font-weight:900;text-shadow:0 3px 0 rgba(0,0,0,.2);animation:coachIn .6s .9s both}
+.swo,.swn{width:130px;height:130px;border-radius:50%;overflow:hidden;background:#fff;box-shadow:0 0 0 6px rgba(255,255,255,.6),0 14px 30px rgba(0,0,0,.3)}.swo svg,.swn svg{width:100%;height:100%;display:block}
+.swo{position:absolute;animation:swOut .8s ease-in forwards}.swn{transform:scale(0);animation:swNew .7s .65s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes swIn{from{opacity:0}to{opacity:1}}@keyframes swOut{0%{transform:scale(1) rotate(0)}100%{transform:translateX(-120vw) scale(.4) rotate(-40deg)}}@keyframes swNew{to{transform:scale(1)}}
 .count.cgo{font-size:34px;display:flex;align-items:center;justify-content:center;gap:10px;color:#12B886}
 .amisico.on{box-shadow:0 0 0 3px #7CF5C8,0 0 0 2px rgba(255,255,255,.7)}
 @media (prefers-reduced-motion:reduce){.am-go,.am-hand,.am-ic,.duo-x,.rd,.coach-i,.abon::before{animation:none!important}}
@@ -2879,13 +2886,19 @@ const AMIS_VOIX={normale:['🙂','Normale',1,1],robot:['🤖','Robot',.2,.85],so
 const amisTh=()=>Object.assign({math:{n:'Maths',e:'🔢',c:'#3B82F6'},fr:{n:'Lecture',e:'📖',c:'#EC4899'}},Object.fromEntries(Object.entries(THEMES).map(([k,T])=>[k,{n:T.n,e:T.e,c:T.c}])));
 const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:'math',obj:100,kp:'',
   ok(){return !!(Acct.user&&Acct.pid&&Acct.sb);},
+  sq:[],son(n){const now=Date.now();if(this.sonT&&now<this.sonT){if(this.sq.length<2&&!this.sq.includes(n))this.sq.push(n);if(!this.sqT)this.sqT=setTimeout(()=>this.sonSuite(),this.sonT-now);return;}this.sonT=now+700;try{Sound.play(n);}catch(e){}},
+  sonSuite(){this.sqT=0;const n=this.sq.shift();if(!n)return;this.sonT=0;this.son(n);if(this.sq.length)this.sqT=setTimeout(()=>this.sonSuite(),700);},
   // sélection sur place dans la fenêtre ouverte (sans la fermer ni la rouvrir)
   sel(act,v){document.querySelectorAll(`#modal [data-act="${act}"]`).forEach(b=>b.classList.toggle('on',b.dataset.arg===String(v)));},
   // liste courte + bouton « Plus » ; le choix en cours reste toujours visible
   court(items,cur,nb,g,fn){return items.map(([k,v],i)=>fn(k,v,i>=nb&&k!==cur?'xtra':'')).join('')+(items.length>nb?`<button class="amplus" data-act="amisplus" data-arg="${g}">＋ Plus</button>`:'');},
   async charger(lieu){if(!this.ok())return null;const pid=Acct.pid;const {data,error}=await Acct.sb.rpc('amis_moi',lieu?{p_profil:pid,p_lieu:lieu}:{p_profil:pid});if(error||!data||pid!==Acct.pid)return null;this.d=data;this.d.pid=pid;this.t=Date.now();return data;},
   frais(){return this.d&&this.d.pid===Acct.pid?this.d:null;},
-  maj(){if(!this.ok()||this.load||Date.now()-this.t<45000)return;const avant=JSON.stringify(this.frais());this.load=this.charger('accueil').finally(()=>{this.load=null;if(SCR!=='home')return;this.nouveaux();if(!modalOpen&&JSON.stringify(this.frais())!==avant)render();});},
+  maj(){if(!this.ok()||this.load||Date.now()-this.t<45000)return;const avant=JSON.stringify(this.frais());this.load=this.charger('accueil').finally(()=>{this.load=null;if(SCR!=='home')return;this.nouveaux();if(!modalOpen&&JSON.stringify(this.frais())!==avant)render();setTimeout(()=>this.recoModal(),900);});},
+  // objectif d'équipe atteint : on le dit dès l'accueil (une fois par salon et par semaine)
+  recoModal(){const d=this.frais();if(!d||SCR!=='home'||modalOpen)return;const x=d.salons.find(s=>this.actif(s)&&s.moi+s.lui>=s.objectif&&!s.recompense_prise);if(!x)return;
+    const k=x.id+'|'+d.semaine,vu=this.lsGet('amis-reco-')||{};if(vu[k])return;vu[k]=1;this.lsSet('amis-reco-',vu);
+    queueModal(`<div style="${this.cols(x.createur)}"><div class="hero-duo">${this.av(this.moi(),'lg')}<span class="hx">🏆</span>${this.av(x.copain,'lg')}</div></div><h2>Objectif d’équipe atteint !</h2><p>Bravo à toi et ${esc(this.nom(x.copain))} : ${x.moi+x.lui} bonnes réponses ensemble. Ta récompense t’attend !</p><button class="btn y block am-go" data-act="amisreco" data-arg="${x.id}"><span class="am-ic">🎁</span> Récupérer ma récompense${this.main()}</button><button class="alink" data-act="mclose">Plus tard</button>`,()=>{try{Confetti.burst(120);}catch(e){}this.son('level');});},
   // ----- en direct : ce qui s'est passé, présence, petit guide -----
   lsGet(k){try{return JSON.parse(localStorage.getItem(k+Acct.pid)||'null');}catch(e){return null;}},
   lsSet(k,o){try{localStorage.setItem(k+Acct.pid,JSON.stringify(o));}catch(e){}},
@@ -2904,7 +2917,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     let b=document.getElementById('amnot');if(!b){b=document.createElement('div');b.id='amnot';b.className='amnot';document.body.appendChild(b);b.onclick=()=>{b.classList.remove('on');if(SCR!=='amis'&&SCR!=='game')ACT.amis();};}
     b.innerHTML=`${e.type==='objectif'?'<span class="amnic">🏆</span>':this.av(x.copain,'sm')}<p>${t}</p><span class="amnic am-ic">${ic}</span>`;
     b.classList.remove('on');void b.offsetWidth;b.classList.add('on');
-    try{const snd={rejoint:'badge',partie:'coin',defi:'epic',defi_joue:'tick',objectif:'level',mot:'coin'}[e.type];if(snd)Sound.play(snd);}catch(z){}
+    try{const snd={rejoint:'badge',partie:'coin',defi:'epic',defi_joue:'tick',objectif:'level',mot:'coin'}[e.type];if(snd)Amis.son(snd);}catch(z){}
     if(e.type==='mot'){const m=(x.mots||[]).find(w=>w.mot===e.detail);setTimeout(()=>this.dire(e.detail,m?m.voix:'robot'),350);}
     else{const n=this.nom(x.copain),dit={rejoint:`${n} est là !`,partie:`Bravo ${n} !`,defi:`${n} te défie !`,defi_joue:`${n} a joué le défi !`,objectif:'Objectif atteint !'}[e.type];if(dit)setTimeout(()=>this.direTexte(dit),350);}
     if(e.type==='objectif'||e.type==='rejoint')try{Confetti.burst(90);}catch(z){}
@@ -2933,7 +2946,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
   jauge(moi,lui,o,id){const w=v=>Math.min(100,v/o*100),pm=w(moi),pl=Math.min(100-pm,w(lui)),t=moi+lui;
     return `<div class="jg"><div class="amisg big"><i class="m" ${id?`id="${id}M"`:''} style="width:${pm}%"></i><i class="l" ${id?`id="${id}L"`:''} style="width:${pl}%"></i></div>${[25,50,75].map(f=>`<i class="jgp ${t>=o*f/100?'on':''}" style="left:${f}%">⭐</i>`).join('')}<span class="jgt ${t>=o?'on':''}">🏆</span></div>`;},
   // une phrase courte avec une voix rigolote (au hasard parmi 5)
-  direTexte(t,v){const V=AMIS_VOIX[v||['robot','souris','geant','rigolo','normale'][Math.floor(Math.random()*5)]];if(!Voice.ok||!t)return;try{Voice.hush();setTimeout(()=>{const u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';if(Voice.v)u.voice=Voice.v;u.pitch=V[2];u.rate=V[3];speechSynthesis.speak(u);},120);}catch(e){}},
+  direTexte(t,v){const V=AMIS_VOIX[v||['robot','souris','geant','rigolo','normale'][Math.floor(Math.random()*5)]];if(!Voice.ok||!t)return;const w=Math.max(120,(this.sonT||0)-Date.now()+150);try{if(speechSynthesis.speaking)return;setTimeout(()=>{const u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';if(Voice.v)u.voice=Voice.v;u.pitch=V[2];u.rate=V[3];speechSynthesis.speak(u);},w);}catch(e){}},
   // l'un a beaucoup plus avancé que l'autre : on propose une pause pour que le copain rattrape
   deseq(m,l){return m>=2*l+15;},
   equipe(sub){const d=this.frais();if(!d||!this.ok())return null;const L=d.salons.filter(x=>this.actif(x)&&x.theme===sub).map(x=>({id:x.id,objectif:x.objectif,moi:x.moi,lui:x.lui,copain:x.copain,pend:0,last:this.maxEv(x),fete:x.moi+x.lui>=x.objectif,moi0:x.moi,lui0:x.lui,cre:x.createur,pal:Math.floor((x.moi+x.lui)/(x.objectif/4))}));return L.length?L:null;},
@@ -2950,7 +2963,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     if(!e.fete&&t>=o){e.fete=1;this.grand('🏆',`${o}`,'Objectif atteint !');}},
   // gros effet au milieu de l'écran (étape franchie, objectif, points du copain)
   grand(ic,t1,t2){let b=document.getElementById('tboom');if(!b){b=document.createElement('div');b.id='tboom';b.className='tboom';document.body.appendChild(b);}
-    b.innerHTML=`<span class="tbi">${ic}</span><div><b>${t2}</b><span>${t1}</span></div>`;b.setAttribute('style','--cl:#F59E0B;--cl2:#FFD23F;--cld:#B45309');restart(b,'on');try{Sound.play('level');Confetti.burst(120);}catch(z){}},
+    b.innerHTML=`<span class="tbi">${ic}</span><div><b>${t2}</b><span>${t1}</span></div>`;b.setAttribute('style','--cl:#F59E0B;--cl2:#FFD23F;--cld:#B45309');restart(b,'on');try{Amis.son('level');Confetti.burst(120);}catch(z){}},
   palier(v){this.grand('⭐',`${v}`,'Étape franchie !');this.direTexte('Étape franchie !');},
   jeuMsg(h){const b=$('#tbNote');if(!b)return;b.innerHTML=h;restart(b,'on');clearTimeout(this.tnT);this.tnT=setTimeout(()=>b.classList.remove('on'),3400);},
   plus1(){const E=G&&G.equipe;if(!E)return;E.forEach(e=>{e.moi++;e.pend++;});this.barMaj(true);if(E[0].pend>=6)this.jeuTick();},
@@ -2963,15 +2976,15 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
         ev.forEach(v=>{e.last=Math.max(e.last,v.id);if(!fin&&(!v.moi||v.type==='objectif'))this.jeuNote(e,v);});
         if(!fin&&e.lui>luiAv&&!ev.some(v=>!v.moi&&v.type==='partie'))this.luiPlus(e.lui-luiAv);
         if(!fin)this.barMaj();}catch(z){e.pend+=plus;}}},
-  luiPlus(n){const t=$('#eqbar');if(!t)return;const f=document.createElement('i');f.className='tluip';f.textContent='+'+n;t.appendChild(f);setTimeout(()=>f.remove(),1200);restart($('#eqL'),'pop');try{Sound.play('coin');}catch(z){}},
+  luiPlus(n){const t=$('#eqbar');if(!t)return;const f=document.createElement('i');f.className='tluip';f.textContent='+'+n;t.appendChild(f);setTimeout(()=>f.remove(),1200);restart($('#eqL'),'pop');try{Amis.son('coin');}catch(z){}},
   boom(e,v){let b=document.getElementById('tboom');if(!b){b=document.createElement('div');b.id='tboom';b.className='tboom';document.body.appendChild(b);}
-    b.innerHTML=`${this.av(e.copain,'lg')}<div><b>${esc(this.nom(e.copain))} a fini sa partie !</b><span>${v.valeur} ✅</span></div>`;b.setAttribute('style',this.cols(e.cre));restart(b,'on');try{Sound.play('epic');Confetti.burst(70);}catch(z){}this.direTexte(`Bravo ${this.nom(e.copain)} !`);},
+    b.innerHTML=`${this.av(e.copain,'lg')}<div><b>${esc(this.nom(e.copain))} a fini sa partie !</b><span>${v.valeur} ✅</span></div>`;b.setAttribute('style',this.cols(e.cre));restart(b,'on');try{Amis.son('epic');Confetti.burst(70);}catch(z){}this.direTexte(`Bravo ${this.nom(e.copain)} !`);},
   jeuNote(e,v){if(v.type==='partie'){this.boom(e,v);this.jeuMsg(`${this.av(e.copain,'xs')} <b>${esc(this.nom(e.copain))}</b> : ${v.valeur} bonnes réponses dans sa partie`);}
     else if(v.type==='objectif'){if(!e.fete){e.fete=1;this.grand('🏆',`${e.objectif}`,'Objectif atteint !');}}
     else{const [ic,t]=this.evTxt(v,e.copain);this.jeuMsg(`${ic} ${t}`);}},
   compte(){const card=$('#qcard'),E=G.equipe&&G.equipe[0];let n=3;$('#answers').innerHTML='';
-    const step=()=>{if(n>0){card.innerHTML=`<div class="count">${n}</div>`;restart(card,'in');Sound.play('tick');n--;later(step,750);}
-      else{card.innerHTML=`<div class="count cgo">${E?this.av(E.copain,'sm'):''}C’est parti ! 🤝</div>`;restart(card,'in');Sound.play('go');later(()=>nextQ(),750);}};
+    const step=()=>{if(n>0){card.innerHTML=`<div class="count">${n}</div>`;restart(card,'in');Amis.son('tick');n--;later(step,750);}
+      else{card.innerHTML=`<div class="count cgo">${E?this.av(E.copain,'sm'):''}C’est parti ! 🤝</div>`;restart(card,'in');Amis.son('go');later(()=>nextQ(),750);}};
     later(step,300);},
   moi(){return {prenom:S.name||'Moi',avatar:S.avatar,xp:S.xp||0,serie:(S.streak&&S.streak.cur)||0,badges:Object.keys(S.badges||{}).length};},
   nom(c){return (c&&(c.prenom||c.pseudo))||'ton copain';},
@@ -2980,11 +2993,11 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
   actif(x){return x.statut==='ok'&&x.copain&&x.copain.statut==='ok';},
   defiAFaire(x){const D=x.defi;return !!(this.actif(x)&&D&&(D.fini||D.expire||D.moi==null));},
   defiOuvert(x){const D=x.defi;return !!(D&&!D.fini&&!D.expire);},
-  nonLus(){const d=this.frais();return d?d.salons.reduce((a,x)=>a+this.nouvDuCopain(x).length+(this.defiAFaire(x)&&!(x.defi&&!x.defi.lanceur&&x.defi.moi==null)?1:0),0):0;},
+  nonLus(){const d=this.frais();return d?d.salons.reduce((a,x)=>a+(this.actif(x)&&x.moi+x.lui>=x.objectif&&!x.recompense_prise?1:0)+this.nouvDuCopain(x).length+(this.defiAFaire(x)&&!(x.defi&&!x.defi.lanceur&&x.defi.moi==null)?1:0),0):0;},
   tuile(){if(!Acct.user)return '';const d=this.frais(),n=this.nonLus(),act=d?d.salons.filter(x=>this.actif(x)):[],a=act[0],T=a&&amisTh()[a.theme];
     const df=act.find(x=>x.defi&&!x.defi.lanceur&&x.defi.moi==null&&!x.defi.expire);
-    const nv=act.map(x=>[x,this.nouvDuCopain(x)[0]]).find(z=>z[1]);
-    const sub=df?`⚔️ ${esc(this.nom(df.copain))} te défie !`:nv?this.evTxt(nv[1],nv[0].copain).join(' ').replace(/<[^>]+>/g,''):a?`${a.moi+a.lui} / ${a.objectif} avec ${esc(this.nom(a.copain))}${T?' · '+T.e:''}`:d&&d.salons.length?'Ton salon se prépare…':'Joue en équipe avec un copain';
+    const nv=act.map(x=>[x,this.nouvDuCopain(x)[0]]).find(z=>z[1]),rec=act.find(x=>x.moi+x.lui>=x.objectif&&!x.recompense_prise);
+    const sub=rec?'🎁 Votre récompense vous attend !':df?`⚔️ ${esc(this.nom(df.copain))} te défie !`:nv?this.evTxt(nv[1],nv[0].copain).join(' ').replace(/<[^>]+>/g,''):a?`${a.moi+a.lui} / ${a.objectif} avec ${esc(this.nom(a.copain))}${T?' · '+T.e:''}`:d&&d.salons.length?'Ton salon se prépare…':'Joue en équipe avec un copain';
     const ico=a?`<span class="ico amisico ${a.copain.en_ligne?'on':''}">${avatarSVG(a.copain.avatar)}</span>`:'<span class="ico am-ic">👫</span>';
     return `<button class="play amisb ${n?'pulse':''}" style="--c:#12B886;--d:#0B8A61" data-act="amis">${ico}<span class="tx"><span class="t1">Entre amis</span><span class="t2">${sub}</span></span>${n?`<i class="dot">${n}</i>`:''}</button>`;},
   dire(mot,voix){const m=AMIS_MOTS[mot],v=AMIS_VOIX[voix]||AMIS_VOIX.normale;if(!m||!Voice.ok)return;try{Voice.hush();setTimeout(()=>{const u=new SpeechSynthesisUtterance(m[1]);u.lang='fr-FR';if(Voice.v)u.voice=Voice.v;u.pitch=v[2];u.rate=v[3];u.volume=1;speechSynthesis.speak(u);},120);}catch(e){}},
@@ -3012,10 +3025,10 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     setTimeout(()=>{const pm=w(e.moi),m=$('#trM'),l=$('#trL');if(m)m.style.width=pm+'%';if(l)l.style.width=Math.min(100-pm,w(e.lui))+'%';
       document.querySelectorAll('#trJ .jgp').forEach((x,i)=>x.classList.toggle('on',b>=o*(i+1)/4));const tr=$('#trJ .jgt');if(tr)tr.classList.toggle('on',b>=o);},250);
     const step=t=>{const k=Math.min(1,(t-t0-250)/dur);if(k>=0)n.textContent=Math.round(a+(b-a)*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(step);else restart(n,'pop');};requestAnimationFrame(step);
-    if(b>a)try{Sound.play('coin');}catch(z){}
+    if(b>a)try{Amis.son('coin');}catch(z){}
     const passe=[1,2,3].some(i=>a<o*i/4&&b>=o*i/4);
-    if(b>=o&&a<o)setTimeout(()=>this.grand('🏆',`${o}`,'Objectif atteint !'),1600);else if(passe)setTimeout(()=>{try{Sound.play('level');Confetti.burst(90);}catch(z){}},1600);
-    const bz=$('#trB');if(bz)setTimeout(()=>{bz.classList.add('on');try{Sound.play('epic');Confetti.burst(70);}catch(z){}},1700);
+    if(b>=o&&a<o)setTimeout(()=>this.grand('🏆',`${o}`,'Objectif atteint !'),1600);else if(passe)setTimeout(()=>{try{Amis.son('level');Confetti.burst(90);}catch(z){}},1600);
+    const bz=$('#trB');if(bz)setTimeout(()=>{bz.classList.add('on');try{Amis.son('epic');Confetti.burst(70);}catch(z){}},1700);
     setTimeout(()=>this.direTexte(bz?`Bravo ${S.name||''} et ${this.nom(e.copain)} !`:`Bien joué ${S.name||''} !`),2300);},
   resHTML(){if(this.eqRes)return (this.dres?this.dresHTML():'')+this.recap();return this.dresHTML()+this.resPts();},
   dresHTML(){const r=this.dres,D=r&&r.defi,c=r&&r.copain;
@@ -3081,15 +3094,15 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     if(error||!data)return toast('Réessaie dans un instant');
     if(data.erreur){toast({code:'Ce code n’existe pas. Vérifie-le !',deja:'Tu es déjà dans ce salon',complet:'Ce salon est déjà complet',trop:'3 copains au maximum',trop_essais:'Trop d’essais : réessaie dans une heure'}[data.erreur]||'Impossible de rejoindre');this.kp='';this.kpMaj(true);try{Sound.play('bad');}catch(e){}return;}
     closeAllModals();await this.charger();render();const x=(this.frais()||{salons:[]}).salons.find(s=>s.id===data.id),c=x&&x.copain;
-    queueModal(`<div class="hero-duo">${this.av(this.moi(),'lg')}<span class="hx">+</span>${c?this.av(c,'lg'):'<span class="amav lg q">?</span>'}</div><h2>Tu es dans l’équipe${c?` de ${esc(this.nom(c))}`:''} ! 🎉</h2><p>Vos bonnes réponses vont s’additionner. À toi de jouer !</p><button class="btn g block am-go" data-act="mclose">C’est parti !${this.main()}</button>`,()=>{try{Confetti.burst(90);Sound.play('badge');}catch(e){}});},
+    queueModal(`<div class="hero-duo">${this.av(this.moi(),'lg')}<span class="hx">+</span>${c?this.av(c,'lg'):'<span class="amav lg q">?</span>'}</div><h2>Tu es dans l’équipe${c?` de ${esc(this.nom(c))}`:''} ! 🎉</h2><p>Vos bonnes réponses vont s’additionner. À toi de jouer !</p><button class="btn g block am-go" data-act="mclose">C’est parti !${this.main()}</button>`,()=>{try{Confetti.burst(90);Amis.son('badge');}catch(e){}});},
   motModal(id){this.sid=id;const d=this.frais(),x=d&&d.salons.find(s=>s.id===id),c=x&&x.copain;
     queueModal(`${c?`<div class="hero-duo">${this.av(c,'lg')}</div>`:'<div class="bigemoji sm">💬</div>'}<h2>Encourager ${c?esc(this.nom(c)):''}</h2><div class="amis-mots gm">${this.court(Object.entries(AMIS_MOTS),this.mot,4,'gm',(k,[e,t],x)=>`<button class="${this.mot===k?'on':''} ${x}" data-act="amismotc" data-arg="${k}"><span>${e}</span>${esc(t)}</button>`)}</div>
       <p style="margin:10px 0 6px">Avec quelle voix ?</p><div class="amis-voix gv">${this.court([['robot',AMIS_VOIX.robot],['souris',AMIS_VOIX.souris],['geant',AMIS_VOIX.geant],['rigolo',AMIS_VOIX.rigolo],['normale',AMIS_VOIX.normale]],this.voix,3,'gv',(k,[e,n],x)=>`<button class="${this.voix===k?'on':''} ${x}" data-act="amisvoix" data-arg="${k}"><span>${e}</span>${n}</button>`)}</div>
       <button class="btn g block" style="margin-top:12px" data-act="amisenvoi">Envoyer 🚀</button><button class="alink" data-act="mclose">Annuler</button>`);},
   async envoi(){const {data,error}=await Acct.sb.rpc('salon_mot',{p_salon:this.sid,p_profil:Acct.pid,p_mot:this.mot,p_voix:this.voix});nextModal();
     if(error||!data||data.erreur)return toast(data&&data.erreur==='trop'?'Assez de messages pour aujourd’hui 😉':'Message non envoyé');
-    Sound.play('coin');toast('Message envoyé ✅');},
-  async reco(id){const {data,error}=await Acct.sb.rpc('salon_recompense',{p_salon:id,p_profil:Acct.pid});
+    Amis.son('coin');toast('Message envoyé ✅');},
+  async reco(id){closeAllModals();const {data,error}=await Acct.sb.rpc('salon_recompense',{p_salon:id,p_profil:Acct.pid});
     if(error||!data||data.erreur)return toast(data&&data.erreur==='deja'?'Récompense déjà récupérée':'Pas encore : continuez !');
     S.coins+=150;const c=Coffre.gagne('epique','duo');save();await this.charger();render();
     queueModal(`<div class="bigemoji">🏆</div><h2>Objectif d’équipe atteint !</h2><p>Bravo à vous deux ! Tu gagnes <b>+150 🪙</b>${c?' et un <b>coffre épique</b>':''}.</p><button class="btn g block" data-act="mclose">Génial ! 🎉</button>`,()=>{try{Confetti.burst(140);}catch(e){}});},
@@ -3115,7 +3128,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     this.t=0;await this.charger();if(SCR==='amis')render();
     queueModal(`<div class="bigemoji">${tt[0]}</div><h2>${tt[1]}</h2>${D.expire?'':`<div class="defvs"><div class="${D.resultat!=='perdu'?'win':''}">${this.av(this.moi(),'sm')}<small>Toi</small><b>${D.moi} / ${D.n}</b></div><i>${T.e}</i><div class="${D.resultat!=='gagne'?'win':''}">${this.av(c,'sm')}<small>${esc(this.nom(c))}</small><b>${D.lui} / ${D.n}</b></div></div>`}
       <p>${tt[2]}${data.premiere&&gain?` · <b>+${gain} 🪙</b>`:''}</p>
-      ${!D.expire&&x?`<button class="btn o block" data-act="defibravo">💬 ${D.resultat==='perdu'?'Lui dire bravo':'Envoyer un petit mot'}</button>`:''}<button class="btn g block" data-act="mclose">OK</button>`,()=>{if(D.resultat==='gagne'||D.resultat==='egal')try{Confetti.burst(120);Sound.play('epic');}catch(e){}});},
+      ${!D.expire&&x?`<button class="btn o block" data-act="defibravo">💬 ${D.resultat==='perdu'?'Lui dire bravo':'Envoyer un petit mot'}</button>`:''}<button class="btn g block" data-act="mclose">OK</button>`,()=>{if(D.resultat==='gagne'||D.resultat==='egal')try{Confetti.burst(120);Amis.son('epic');}catch(e){}});},
   // Espace parents
   async parents(){const el=$('#amisP');if(!el||!Acct.sb)return;const {data,error}=await Acct.sb.rpc('amis_parents');if(!$('#amisP'))return;
     if(error){el.innerHTML='<p class="hint">Indisponible pour le moment.</p>';return;}
@@ -3140,15 +3153,16 @@ function renderAmis(){
 function renderHome(){Dem.sync();try{Amis.maj();}catch(e){}
   const li=levelInfo(S.xp),st=S.settings,t=today(),ml=MATH_LEVELS[st.mathLevel-1],mm=levelMastery('math',st.mathLevel),mf=mathFacts(st.mathLevel).length,fl=FR_LEVELS[st.frLevel-1];
   const sprintLocked=!t.math,frLocked=st.frAfterMath&&!t.math,best=S.stats.sprintBest[st.mathLevel]||0,reached=S.gifts.filter(g=>g.reached&&!g.given),nb=Object.keys(S.badges).length,ready=chestAvailable();
-  return `<div class="home"><div class="hcol"><div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills">${Acct.user?'':'<button class="loginbtn" data-act="openlogin"><b>Se connecter</b><small>💾 Garder mes progrès</small></button>'}<span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">🔄 Changer</button>':''}</div></div>
+  return `<div class="home"><div class="hcol"><div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills">${Acct.user||Acct.restoring?'':'<button class="loginbtn" data-act="openlogin"><b>Se connecter</b><small>💾 Garder mes progrès</small></button>'}<span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">🔄 Changer</button>':''}</div></div>
   ${Etapes.home()}<div class="week card">${weekHTML()}</div>${Plan.banner()}
   
   <div class="mission card"><div class="mtx"><h3>Mission du jour</h3><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${frOnNow()?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'🎉':'🎁'}</button></div>
   ${Coffre.slotsHTML()}
   <button class="play ${!t.math?'pulse':''}" style="--c:var(--b);--d:var(--bd)" data-act="startmath"><span class="ico">🔢</span><span class="tx"><span class="t1">Maths</span><span class="t2">Monde ${st.mathLevel} · ${ml.n}</span><span class="mbar"><i style="width:${Math.round(mm*100)}%"></i></span><span class="t3">${Math.round(mm*mf)} / ${mf} calculs maîtrisés${mm>=1?' · 🏆 Monde terminé !':mm>=.8?' · Le monde suivant arrive à la fin de la partie !':''}</span></span></button>
+  ${Amis.tuile()}
   <button class="play ${sprintLocked?'locked':''}" style="--c:var(--o);--d:var(--od)" data-act="startsprint"><span class="ico">⚡</span><span class="tx"><span class="t1">Défi éclair</span><span class="t2">${sprintLocked?'Après ton entraînement de maths':best?`Record : ${best} calculs en ${st.sprintSec} s`:`Le plus de calculs en ${st.sprintSec} s !`}</span></span>${sprintLocked?'<span class="lock">🔒</span>':''}</button>
   ${frOnNow()?`<button class="play ${frLocked?'locked':''} ${!frLocked&&!t.fr?'pulse':''}" style="--c:var(--p);--d:var(--pd)" data-act="startfr"><span class="ico">📖</span><span class="tx"><span class="t1">Lecture</span><span class="t2">${frLocked?'Après ton entraînement de maths':`Monde ${st.frLevel} · ${fl.n}`}</span></span>${frLocked?'<span class="lock">🔒</span>':''}</button>`:''}
-  </div><div class="hcol">${Amis.tuile()}${themesHTML()}
+  </div><div class="hcol">${themesHTML()}
   <div class="minis"><button class="mini" data-act="shop"><span>🎨</span>Mon perso</button><button class="mini" data-act="badges"><span>🏆</span>Badges ${nb}/${BADGES.length}</button><button class="mini ${S.gifts.some(g=>g.reached&&!g.given)||(Dem.dispo()&&!Dem.attente())?'blink':''}" data-act="gifts"><span>🎁</span>Cadeaux${S.gifts.some(g=>g.reached&&!g.given)?`<i class="dot">${S.gifts.filter(g=>g.reached&&!g.given).length}</i>`:Dem.dispo()&&!Dem.attente()?'<i class="dot">🔑</i>':''}</button></div>
   <div class="parentrow"><button class="parentbtn" data-act="parent">🔒 Espace parents</button><a class="parentbtn" href="aide.html" target="_blank" rel="noopener">💬 Aide</a>${Plan.pill()}<button class="parentbtn" data-act="offrir">🎁 Offrir</button></div></div></div>`;
 }
@@ -3216,8 +3230,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.05';
+const VERSION='2.06';
 const VERSIONS=[
+ ['2.06','23/11/2026 22:10','L’appareil garde l’enfant : plus de « Qui joue ? » ni de demande de connexion à chaque retour. Changer d’enfant se fait par « Changer », avec un appui long puis une animation. Entre amis plus haut sur l’accueil, récompense d’équipe annoncée, sons à la suite'],
  ['2.05','23/11/2026 22:00','Entre amis plus clair : chaque enfant garde sa couleur sur les deux téléphones, tableau d’équipe en partie (avatars, points de chacun, étapes ⭐), gros effet à chaque étape, fin de partie sur un seul écran et phrase courte avec une voix rigolote'],
  ['2.04','23/11/2026 21:40','Entre amis : notifications sur le téléphone quand le copain arrive, lance un défi, marque des points ou envoie un message ; toucher la notification ouvre directement le salon'],
  ['2.03','23/11/2026 21:45','Entre amis en direct : la chouette explique quoi faire, nouvelles animées du copain, présence en ligne, radar quand on attend, 3-2-1 au lancement, jauge d’équipe en haut de la partie. À la fin d’une partie d’équipe, un récap animé (la jauge monte, les points du copain arrivent en grand) et une pause proposée si l’un est loin devant. Plus besoin de l’accord des parents'],
@@ -3558,9 +3573,9 @@ const Presence={t:0,last:'',tm:0,
   ping(force){try{if(document.visibilityState!=='visible'||!Acct.user||!Acct.sb)return;const [l,d,inst,ps]=this.cle(),k=[l,d,inst,ps].join('|'),n=Date.now();if(!force&&k===this.last&&n-this.t<45000)return;this.t=n;this.last=k;Acct.sb.rpc('malino_ping',{p_lieu:l,p_detail:d,p_installe:inst,p_push:ps,p_app:this.app()}).then(()=>{},()=>{});}catch(e){}},
   maj(){clearTimeout(this.tm);this.tm=setTimeout(()=>{try{if(this.cle().join('|')!==this.last)this.ping();}catch(e){}},1500);}};
 setInterval(()=>Presence.ping(),60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Presence.ping();});
-const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:'email',email:'',forgot:false,wait:0,_l:null,note:'',
+const Acct={restoring:(()=>{try{return Object.keys(localStorage).some(k=>/^sb-.*-auth-token$/.test(k));}catch(e){return false;}})(),sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:'email',email:'',forgot:false,wait:0,_l:null,note:'',
   guestN(){return S.sessions.length-(S.gs0||0);},
-  wall(){return !this.user&&this.guestN()>=CFG.wall;},
+  wall(){return !this.user&&!this.restoring&&this.guestN()>=CFG.wall;},
   hasLocal(){return S.xp>0||S.sessions.length>0;},
   lib(){if(this.sb)return Promise.resolve(this.sb);
     return this._l||(this._l=new Promise((ok,ko)=>{
@@ -3572,7 +3587,8 @@ const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:
     if(S.gs0==null){S.gs0=S.sessions.length;save();}
     const qp=new URLSearchParams(location.search),th=qp.get('th'),ty=qp.get('ty');
     const has=Object.keys(localStorage).some(k=>/^sb-.*-auth-token$/.test(k));
-    if(!th&&!has)return;
+    if(!th&&!has){this.restoring=false;return;}
+    this.restoring=true;
     try{
       const sb=await this.lib();
       if(th){history.replaceState(null,'',location.pathname);this.mode='login';this.view='load';this.draw();
@@ -3581,7 +3597,7 @@ const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:
         this.user=r.data.session.user;await this.signedIn();return;}
       const {data}=await sb.auth.getSession();
       if(data&&data.session){this.user=data.session.user;await this.afterLogin(false);Plan.refresh();}
-    }catch(e){}
+    }catch(e){}finally{this.restoring=false;if(SCR==='home'&&!this.user)render();}
   },
   // ----- écran de connexion -----
   show(mode){this.mode=mode;this.view='email';this.forgot=false;this.draw();},
@@ -3863,7 +3879,7 @@ const Plan={info:null,
     try{const k='malino_src_sent_'+Acct.user.id;if(!localStorage.getItem(k))Acct.sb.rpc('maj_source',{p_source:localStorage.getItem('malino_src')||'direct'}).then(r=>{if(!r.error)localStorage.setItem(k,'1');});}catch(e){}
     Famille.afterRefresh();
     if(Onb.should()&&SCR!=='game')setTimeout(()=>{if(Onb.should())Onb.start();},500);
-    try{const g=new URLSearchParams(location.search).get('go');if(g&&!Plan._go){Plan._go=1;setTimeout(()=>{if(SCR==='game'||Onb.should())return;if(g==='offre')ACT.offre('mail');else if(g==='inviter')ACT.parrain();else if(g==='cadeaux'){adminTab='cadeaux';ACT.parent();}else if(g==='amis'){const pp=new URLSearchParams(location.search).get('p');if(pp&&pp!==Acct.pid&&Acct.list.some(r=>r.id===pp))Promise.resolve(Acct.switchTo(pp)).then(()=>setTimeout(()=>ACT.amis(),400));else ACT.amis();}else if(g==='progres'||g==='famille'||g==='jeux'||g==='reglages'){adminTab=g==='famille'?'compte':g;ACT.parent();}},1200);}}catch(e){}
+    try{const g=new URLSearchParams(location.search).get('go');if(g&&!Plan._go){Plan._go=1;setTimeout(()=>{if(SCR==='game'||Onb.should())return;if(g==='offre')ACT.offre('mail');else if(g==='inviter')ACT.parrain();else if(g==='cadeaux'){adminTab='cadeaux';ACT.parent();}else if(g==='amis'){const pp=new URLSearchParams(location.search).get('p');if(pp&&pp!==Acct.pid&&Acct.list.some(r=>r.id===pp))Famille.transition(pp,()=>ACT.amis());else ACT.amis();}else if(g==='progres'||g==='famille'||g==='jeux'||g==='reglages'){adminTab=g==='famille'?'compte':g;ACT.parent();}},1200);}}catch(e){}
     if(data.cadeaux>0&&!quiet)queueModal(`<div class="bigemoji sm">🎁</div><h2>Cadeau activé !</h2><p>Malino+ est débloqué jusqu’au <b>${fmtDate(data.plus_jusqua)}</b>.</p><button class="btn g block" data-act="mclose">Génial ! 🎉</button>`,()=>Confetti.burst(140));
     if(before!==this.kind()&&SCR!=='game')render();
     return data;
@@ -4104,10 +4120,20 @@ const Famille={
     e.innerHTML=`<style>.wcard{display:flex;align-items:center;gap:12px;width:100%;border:0;border-radius:20px;padding:10px 12px;color:#fff;text-align:left;box-shadow:0 6px 16px rgba(0,0,0,.22);margin-bottom:10px;font-family:inherit}.wcard:active{transform:scale(.98)}.wav{flex:none;width:68px;height:68px;border-radius:50%;background:rgba(255,255,255,.28);overflow:hidden;display:flex;align-items:center;justify-content:center}.wav svg{width:100%;height:100%}.wmid{flex:1;min-width:0}.wnm{font-size:20px;font-weight:800;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wlv{font-size:12px;font-weight:700;opacity:.95;margin-top:3px;white-space:nowrap}.wbar{height:7px;border-radius:5px;background:rgba(255,255,255,.35);margin-top:5px;overflow:hidden}.wbar i{display:block;height:100%;background:#fff;border-radius:5px}.wgo{flex:none;background:#fff;border-radius:14px;padding:9px 12px;font-size:14px;font-weight:800;white-space:nowrap}</style>
     <div style="width:100%;max-width:420px;margin:auto"><div style="text-align:center;color:#fff;font-size:26px;font-weight:800;margin:6px 0 14px;text-shadow:0 2px 8px rgba(0,0,0,.25)">Qui joue ? 🎮</div>${Acct.list.map((r,k)=>{const cur=r.id===Acct.pid,d=cur?S:(r.data||{}),li=levelInfo(d.xp||0),c=COL[k%COL.length],nom=cur?(S.name||r.nom):r.nom;return `<button class="wcard" data-who="${r.id}" style="background:linear-gradient(135deg,${c[0]},${c[1]})"><span class="wav">${avatarSVG(d.avatar)}</span><span class="wmid"><div class="wnm">${esc(nom)}</div><div class="wlv">Niveau ${li.level} · 🪙 ${fmtP(d.coins||0)}</div><div class="wbar"><i style="width:${Math.round(li.pct*100)}%"></i></div></span><span class="wgo" style="color:${c[0]}">${cur?'▶ Continuer':'▶ Jouer !'}</span></button>`;}).join('')}<div style="text-align:center;margin-top:6px"><button data-wparent="1" style="border:0;background:none;color:rgba(255,255,255,.8);font-size:12px;font-weight:600;text-decoration:underline">🔒 Espace parents</button></div></div>`;
     e.style.display='flex';
-    e.querySelectorAll('[data-who]').forEach(b=>b.onclick=()=>{e.style.display='none';Sound.play('tap');Acct.switchTo(b.dataset.who);});
+    e.querySelectorAll('[data-who]').forEach(b=>b.onclick=()=>{e.style.display='none';Sound.play('tap');if(b.dataset.who!==Acct.pid)Famille.confirmer(b.dataset.who);});
     e.querySelector('[data-wparent]').onclick=()=>{e.style.display='none';ACT.parent();};
   },
-  afterRefresh(){ if(Acct.user&&localStorage.getItem('malino_invite'))this.handleInvite(); else this.who(); },
+  // passer sur le profil d'un frère ou d'une sœur : il faut le vouloir (appui long), puis une grande animation
+  confirmer(id){const r=(Acct.list||[]).find(x=>x.id===id);if(!r)return;const d=r.data||{},nom=r.nom||'Champion';
+    queueModal(`<div class="swc"><span class="amav lg">${avatarSVG(S.avatar)}</span><span class="swa">➜</span><span class="amav lg">${avatarSVG(d.avatar)}</span></div><h2>Passer sur ${esc(nom)} ?</h2><p>Tu vas jouer avec le profil de <b>${esc(nom)}</b>. Tes progrès à toi restent enregistrés.</p>
+      <button class="btn p block swhold" id="swHold"><i class="swfill"></i><span>✋ Reste appuyé pour changer</span></button><button class="alink" data-act="mclose">Non, je reste</button>`,()=>{
+      const b=$('#swHold');if(!b)return;let t=null;const stop=()=>{clearTimeout(t);b.classList.remove('hold');};
+      b.addEventListener('pointerdown',ev=>{ev.preventDefault();b.classList.add('hold');t=setTimeout(()=>{closeAllModals();Famille.transition(id);},1300);});
+      ['pointerup','pointerleave','pointercancel'].forEach(k=>b.addEventListener(k,stop));b.addEventListener('contextmenu',ev=>ev.preventDefault());});},
+  transition(id,apres){const r=(Acct.list||[]).find(x=>x.id===id);if(!r)return;const d=r.data||{},o=document.createElement('div');o.className='swtr';
+    o.innerHTML=`<div class="swo">${avatarSVG(S.avatar)}</div><div class="swn">${avatarSVG(d.avatar)}</div><b>Salut ${esc(r.nom||'Champion')} !</b>`;document.body.appendChild(o);
+    try{Sound.play('level');Confetti.burst(80);}catch(e){}setTimeout(()=>{Promise.resolve(Acct.switchTo(id)).then(()=>{if(apres)setTimeout(apres,300);});},700);setTimeout(()=>{o.classList.add('out');setTimeout(()=>o.remove(),500);},2000);},
+  afterRefresh(){ if(Acct.user&&localStorage.getItem('malino_invite'))this.handleInvite(); },
   async handleInvite(){
     const id=localStorage.getItem('malino_invite');if(!id||!Acct.sb)return;
     const {data,error}=await Acct.sb.rpc('famille_apercu',{p_token:id});
@@ -4140,7 +4166,7 @@ const Famille={
   }
 };
 try{const q=new URLSearchParams(location.search).get('invite');if(q){localStorage.setItem('malino_invite',q);history.replaceState(null,'',location.pathname);}}catch(e){}
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')Famille.hiddenAt=Date.now();else{const w=Famille.hiddenAt&&Date.now()-Famille.hiddenAt>30000;Famille.hiddenAt=0;Acct.refresh(w).then(()=>{if(w)Famille.who();},()=>{if(w)Famille.who();});}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')Famille.hiddenAt=Date.now();else{const w=Famille.hiddenAt&&Date.now()-Famille.hiddenAt>30000;Famille.hiddenAt=0;Acct.refresh(w).then(()=>{},()=>{});}});
 setInterval(()=>{if(document.visibilityState==='visible')Acct.refresh();},60000);
 setTimeout(()=>{if(localStorage.getItem('malino_invite')&&!Acct.user&&typeof ACT!=='undefined')ACT.openlogin();},1500);
 
