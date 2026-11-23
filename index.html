@@ -153,7 +153,7 @@ h1,h2,h3,h4{font-weight:700}
 .oico{font-size:40px;line-height:1.1}.obox h2{font-size:21px;margin:4px 0 6px}.obox p{font-size:14.5px;margin:0 0 10px;color:var(--ink2);line-height:1.4}
 .ocards{display:grid;gap:6px;margin:0 0 10px;text-align:left}.ocards div{display:grid;grid-template-columns:30px 1fr;column-gap:8px;background:#F6F3FF;border-radius:12px;padding:7px 10px}.ocards span{grid-row:span 2;font-size:22px;align-self:center}.ocards b{font-size:14px}.ocards small{font-size:12.5px;color:var(--ink2);line-height:1.3}
 .olab{font-weight:700;color:var(--ink)!important;text-align:left;margin:4px 0 6px!important;font-size:14px!important}
-.ochips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:0 0 10px}.ochips button{background:#F1EDFF;color:var(--ink);border-radius:999px;padding:6px 11px;font-size:13.5px;font-weight:600;border:2px solid transparent}.ochips button.on{background:#fff;border-color:var(--v);color:var(--vd)}
+.ochips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:0 0 10px}.ochips button{background:#F1EDFF;color:var(--ink);border-radius:999px;padding:6px 11px;font-size:13.5px;font-weight:600;border:2px solid transparent}.ochips button.on{background:var(--v);border-color:var(--v);color:#fff;box-shadow:0 3px 10px rgba(123,92,255,.35)}.ochips button.on::before{content:'✓ '}
 .otip{background:#FFF8E1;border-radius:12px;padding:8px 10px;text-align:left;font-size:13px!important;color:#5C4400!important}
 .osteps{display:grid;gap:6px;margin:0 0 10px;text-align:left}.osteps div{display:flex;gap:8px;align-items:center;background:#F6F3FF;border-radius:12px;padding:7px 10px;font-size:13.5px}.osteps div>b{flex:none;width:24px;height:24px;border-radius:50%;background:var(--v);color:#fff;display:grid;place-items:center;font-size:13px}
 .odemo{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin:0 0 10px}.odemo span{font-size:12.5px;font-weight:700;border-radius:8px;padding:3px 8px}.odemo .ok{background:#DCFCE7;color:#166534}.odemo .ko{background:#FFE4E6;color:#B4232E}
@@ -2771,8 +2771,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.88';
+const VERSION='1.89';
 const VERSIONS=[
+ ['1.89','23/11/2026 17:45','Correction : le choix Garçon / Fille au démarrage fonctionne et s’enregistre ; à la connexion, le profil du même prénom est proposé en premier (plus de doublon) ; admin : historique des enfants et bouton Actualiser dans la fiche'],
  ['1.88','22/11/2026 22:15','Admin : ajouter ses propres sons de notification (MP3, M4A), les écouter et les supprimer'],
  ['1.87','22/11/2026 22:05','Admin : où est la famille en ligne (enfant et jeu en cours, accueil ou espace parents) et depuis quand'],
  ['1.86','22/11/2026 21:55','Admin : rond gris vide hors ligne, vert lumineux en ligne (comptes admin compris)'],
@@ -3108,7 +3109,8 @@ const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:
     if(v==='email')body=`<label class="fld">E-mail du parent<input id="aEmail" type="email" inputmode="email" autocomplete="email" placeholder="parent@exemple.fr" value="${esc(this.email)}"></label><button class="btn p sm block" data-act="authsend">Recevoir mon code ✉️</button><button class="alink" data-act="authview" data-arg="pw">J’ai un mot de passe</button>`;
     else if(v==='code')body=`<p>Un code a été envoyé à <b>${esc(this.email)}</b>.<br>Pense à regarder les courriers indésirables.</p><label class="fld">Code reçu par e-mail<input id="aCode" class="acode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="········"></label><button class="btn p sm block" data-act="authverify">Valider</button><button class="alink" id="aResend" data-act="authsend" data-arg="again" ${this.wait>0?'disabled':''}>${this.wait>0?`Renvoyer le code (${this.wait} s)`:'Renvoyer le code'}</button><button class="alink" data-act="authview" data-arg="email">Changer d’adresse</button>`;
     else if(v==='pw')body=`<label class="fld">E-mail<input id="aEmail" type="email" inputmode="email" autocomplete="email" value="${esc(this.email)}"></label><label class="fld">Mot de passe<input id="aPw" type="password" autocomplete="current-password"></label><button class="btn p sm block" data-act="authpw">Se connecter</button><button class="alink" data-act="authforgot">Mot de passe oublié ? Recevoir un code</button><button class="alink" data-act="authview" data-arg="email">Connexion par code e-mail</button>`;
-    else if(v==='pick')body=`<p>Quel profil utiliser sur cet appareil ?</p>${this.list.map(r=>`<button class="btn sm o block" style="margin-bottom:8px" data-act="authpick" data-arg="${r.id}">${esc(r.nom)} · niv. ${levelInfo((r.data&&r.data.xp)||0).level}</button>`).join('')}<button class="btn sm block" data-act="authpick" data-arg="local">➕ Garder la progression de cet appareil (${esc(S.name||'Champion')}) comme nouveau profil</button>`;
+    else if(v==='pick'){const ln=(S.name||'Champion').trim().toLowerCase(),same=this.list.find(r=>(r.nom||'').trim().toLowerCase()===ln);
+      body=`<p>Quel profil utiliser sur cet appareil ?</p>${same?`<p class="hint" style="margin:-4px 0 10px">👉 <b>${esc(same.nom)}</b> existe déjà sur ton compte : choisis-le pour continuer avec lui.</p>`:''}${this.list.map(r=>`<button class="btn sm ${r===same?'':'o'} block" style="margin-bottom:8px" data-act="authpick" data-arg="${r.id}">${esc(r.nom)} · niv. ${levelInfo((r.data&&r.data.xp)||0).level}${r===same?' ✓':''}</button>`).join('')}<button class="btn sm ${same?'o':''} block" data-act="authpick" data-arg="local">➕ ${same?`Créer un 2ᵉ profil ${esc(S.name)} avec les parties de cet appareil`:`Garder la progression de cet appareil (${esc(S.name||'Champion')}) comme nouveau profil`}</button>`;}
     else body=`<p>Connexion en cours…</p>`;
     const close=w||v==='load'?'':`<button class="xbtn aclose" data-act="authclose" aria-label="Fermer">✕</button>`;
     const lg=window.MLANG==='en'?['fr','Français']:['en','English'];
@@ -3448,11 +3450,13 @@ const Onb={i:0,d:{},
     const f=el.querySelector('input');if(f&&!f.value)setTimeout(()=>{try{f.focus();}catch(e){}},60);
     el.scrollTop=0;
   },
-  set(a){this.keep();const [k,v]=a.split('|');this.d[k]=k==='classe'?v:+v;this.draw();},
+  set(a){this.keep();const [k,v]=a.split('|');this.d[k]=(k==='prize'||k==='goal')?+v:v;this.draw();},
+  genre(g){if(g!=='f'&&g!=='g')return;S.genre=g;S.avatar=Object.assign({},S.avatar,g==='f'?{hair:'hair_long',shirt:'sh_rouge'}:{hair:'hair_court',shirt:'sh_bleu'});},
   next(skipGift){
     this.keep();const d=this.d;
     if(this.i===1){
       if(d.enfant){S.name=d.enfant;if(Acct.list.length&&Acct.pid){const r=Acct.list.find(x=>x.id===Acct.pid);if(r)r.nom=d.enfant;}}
+      this.genre(d.genre);
       if(d.classe&&!S.sessions.length&&!S.xp){const L={gs:[1,1],cp:[1,3],ce1:[3,6]}[d.classe];S.settings.mathLevel=Math.min(L[0],MATH_LEVELS.length);S.settings.frLevel=Math.min(L[1],FR_LEVELS.length);}
       S.welcomed=true;save();
     }
@@ -3468,7 +3472,7 @@ const Onb={i:0,d:{},
   skip(){this.keep();if(this.i===4)return this.next(true);this.done();},
   done(){
     const d=this.d;this.on=false;const el=$('#onb');el.className='auth hidden';el.innerHTML='';
-    if(d.genre){S.genre=d.genre;if(d.genre==='f')S.avatar=Object.assign({},S.avatar,{hair:'hair_long',shirt:'sh_rouge'});save();}
+    if(d.genre){this.genre(d.genre);save();}
     if(Acct.user)localStorage.setItem('malino_onb_'+Acct.user.id,'1');
     if(Plan.info)Plan.info.onb=true;
     if(Acct.sb)Acct.sb.rpc('maj_parent',{p_prenom:d.prenom||'',p_onb:true}).then(()=>{});
