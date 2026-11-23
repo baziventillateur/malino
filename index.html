@@ -2790,8 +2790,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.91';
+const VERSION='1.92';
 const VERSIONS=[
+ ['1.92','23/11/2026 18:20','Admin : type d’appareil de chaque famille (iPhone, iPad, Android, tablette, ordinateur), avec la date de dernière utilisation'],
  ['1.91','23/11/2026 18:05','Accueil des parents : dernière étape « installer l’appli » puis « activer les notifications » ; tant que ce n’est pas fait, deux boutons restent en haut de l’accueil'],
  ['1.90','23/11/2026 17:55','Admin : pastilles « appli installée » et « notifications activées » pour chaque famille ; graphique des minutes avec échelle, valeurs et détail au toucher'],
  ['1.89','23/11/2026 17:45','Correction : le choix Garçon / Fille au démarrage fonctionne et s’enregistre ; à la connexion, le profil du même prénom est proposé en premier (plus de doublon) ; admin : historique des enfants et bouton Actualiser dans la fiche'],
@@ -3095,7 +3096,11 @@ const Presence={t:0,last:'',tm:0,
   inst(){try{return Install.autonome()||localStorage.getItem('malino-installe')==='1';}catch(e){return false;}},
   push(){try{if(Push.st==null){if(!this.pc){this.pc=1;Push.check().then(()=>this.maj()).catch(()=>{});}return null;}return Push.st==='denied'?'refuse':Push.st;}catch(e){return null;}},
   cle(){const [l,d]=this.lieu();return [l,d,this.inst(),this.push()];},
-  ping(force){try{if(document.visibilityState!=='visible'||!Acct.user||!Acct.sb)return;const [l,d,inst,ps]=this.cle(),k=[l,d,inst,ps].join('|'),n=Date.now();if(!force&&k===this.last&&n-this.t<45000)return;this.t=n;this.last=k;Acct.sb.rpc('malino_ping',{p_lieu:l,p_detail:d,p_installe:inst,p_push:ps}).then(()=>{},()=>{});}catch(e){}},
+  app(){try{const u=navigator.userAgent||'',tp=navigator.maxTouchPoints||0;
+    if(/iPhone|iPod/i.test(u))return 'ios:tel';if(/iPad/i.test(u)||(/Macintosh/i.test(u)&&tp>1))return 'ios:tab';
+    if(/Android/i.test(u))return /Mobile/i.test(u)?'android:tel':'android:tab';if(/Macintosh|Mac OS X/i.test(u))return 'mac:ordi';
+    if(/Windows/i.test(u))return 'windows:ordi';if(/CrOS|Linux/i.test(u))return 'linux:ordi';}catch(e){}return 'autre:ordi';},
+  ping(force){try{if(document.visibilityState!=='visible'||!Acct.user||!Acct.sb)return;const [l,d,inst,ps]=this.cle(),k=[l,d,inst,ps].join('|'),n=Date.now();if(!force&&k===this.last&&n-this.t<45000)return;this.t=n;this.last=k;Acct.sb.rpc('malino_ping',{p_lieu:l,p_detail:d,p_installe:inst,p_push:ps,p_app:this.app()}).then(()=>{},()=>{});}catch(e){}},
   maj(){clearTimeout(this.tm);this.tm=setTimeout(()=>{try{if(this.cle().join('|')!==this.last)this.ping();}catch(e){}},1500);}};
 setInterval(()=>Presence.ping(),60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Presence.ping();});
 const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:'email',email:'',forgot:false,wait:0,_l:null,note:'',
