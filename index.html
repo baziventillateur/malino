@@ -3177,8 +3177,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.03';
+const VERSION='2.04';
 const VERSIONS=[
+ ['2.04','23/11/2026 21:40','Entre amis : notifications sur le téléphone quand le copain arrive, lance un défi, marque des points ou envoie un message ; toucher la notification ouvre directement le salon'],
  ['2.03','23/11/2026 21:45','Entre amis en direct : la chouette explique quoi faire, nouvelles animées du copain, présence en ligne, radar quand on attend, 3-2-1 au lancement, jauge d’équipe en haut de la partie. À la fin d’une partie d’équipe, un récap animé (la jauge monte, les points du copain arrivent en grand) et une pause proposée si l’un est loin devant. Plus besoin de l’accord des parents'],
  ['2.02','23/11/2026 21:30','Entre amis plus simple pour les petits : une grande action animée à la fois (une main montre où appuyer), codes à 6 chiffres tapés sur un pavé dans l’appli, « Ajouter un copain » rangé en bas'],
  ['2.01','23/11/2026 21:10','Connexion : écran « Qui joue sur cet appareil ? » plus clair (avatars, niveau, profil recommandé). Entre amis : moins de boutons avec « Plus », et la fenêtre ne clignote plus quand on choisit'],
@@ -3822,7 +3823,7 @@ const Plan={info:null,
     try{const k='malino_src_sent_'+Acct.user.id;if(!localStorage.getItem(k))Acct.sb.rpc('maj_source',{p_source:localStorage.getItem('malino_src')||'direct'}).then(r=>{if(!r.error)localStorage.setItem(k,'1');});}catch(e){}
     Famille.afterRefresh();
     if(Onb.should()&&SCR!=='game')setTimeout(()=>{if(Onb.should())Onb.start();},500);
-    try{const g=new URLSearchParams(location.search).get('go');if(g&&!Plan._go){Plan._go=1;setTimeout(()=>{if(SCR==='game'||Onb.should())return;if(g==='offre')ACT.offre('mail');else if(g==='inviter')ACT.parrain();else if(g==='cadeaux'){adminTab='cadeaux';ACT.parent();}else if(g==='progres'||g==='famille'||g==='jeux'||g==='reglages'){adminTab=g==='famille'?'compte':g;ACT.parent();}},1200);}}catch(e){}
+    try{const g=new URLSearchParams(location.search).get('go');if(g&&!Plan._go){Plan._go=1;setTimeout(()=>{if(SCR==='game'||Onb.should())return;if(g==='offre')ACT.offre('mail');else if(g==='inviter')ACT.parrain();else if(g==='cadeaux'){adminTab='cadeaux';ACT.parent();}else if(g==='amis'){const pp=new URLSearchParams(location.search).get('p');if(pp&&pp!==Acct.pid&&Acct.list.some(r=>r.id===pp))Promise.resolve(Acct.switchTo(pp)).then(()=>setTimeout(()=>ACT.amis(),400));else ACT.amis();}else if(g==='progres'||g==='famille'||g==='jeux'||g==='reglages'){adminTab=g==='famille'?'compte':g;ACT.parent();}},1200);}}catch(e){}
     if(data.cadeaux>0&&!quiet)queueModal(`<div class="bigemoji sm">🎁</div><h2>Cadeau activé !</h2><p>Malino+ est débloqué jusqu’au <b>${fmtDate(data.plus_jusqua)}</b>.</p><button class="btn g block" data-act="mclose">Génial ! 🎉</button>`,()=>Confetti.burst(140));
     if(before!==this.kind()&&SCR!=='game')render();
     return data;
