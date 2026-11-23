@@ -97,11 +97,29 @@ textarea{font:inherit;border:1px solid #D9D3F3;border-radius:9px;padding:6px 8px
 .plot{position:relative;flex:1;min-width:0}.plot .gl{position:absolute;left:0;right:0;border-top:1px dashed #E6E3F2;pointer-events:none}
 .plot .bars{position:relative;padding-top:0}.bc{position:relative;cursor:pointer}.bc b{position:absolute;left:-4px;right:-4px;text-align:center;font-size:9px;font-weight:700;color:var(--vd);line-height:1;pointer-events:none}
 .chartw .barax{margin-left:40px}.bc.sel i{background:#F59E0B}.bc.sel{box-shadow:inset 0 0 0 1px #FCD34D}.barsel{margin:6px 0 0;color:#4B4180}
+.tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:6px 8px}
+.tabs button{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 1px 4px;font-size:10.5px;line-height:1.15;border-radius:12px;white-space:nowrap}
+.tabs button i{font-style:normal;font-size:17px;line-height:1.1}
+.tabs b:not(:empty){position:absolute;top:1px;right:4px;margin:0;min-width:16px;padding:0 4px;font-size:10px;line-height:16px}.tabs b.g:not(:empty){background:#22C55E;box-shadow:0 0 8px rgba(34,197,94,.6)}
+@media (min-width:700px){.tabs{display:flex}.tabs button{flex-direction:row;gap:5px;font-size:13px;padding:6px 12px}.tabs button i{font-size:15px}.tabs b:not(:empty){position:static;margin-left:3px}}
+.kpis.now{grid-template-columns:repeat(3,1fr);gap:6px}.kpis.now .kpi{padding:7px 8px}.kpis.now .kpi b{font-size:16px}.kpis.now .kpi small{font-size:11px;line-height:1.2;display:block}
+.lst>.li{padding:7px 0;border-top:1px solid #F3F1FA}.lst>.li:first-child{border-top:0}.li.off{opacity:.55}
+.li .l1{display:flex;align-items:center;gap:6px;min-width:0}.li .sp{flex:1}.li .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:13.5px}
+.li .vr{font-weight:800;white-space:nowrap}.nw{white-space:nowrap}
+.li .l2{font-size:12.5px;color:var(--ink2);margin-top:3px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.li .l3{font-size:11.5px;color:var(--mut);margin-top:2px;line-height:1.35;overflow-wrap:anywhere}
+.li .lb{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}.li .lb button{padding:4px 9px;font-size:12px}
+.cpc{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700;font-size:13px;background:#F4F1FF;color:var(--vd);padding:1px 6px;border-radius:6px;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.fgrid .full{grid-column:1/-1}.fgrid>*{width:100%;min-width:0}
+details.nouv{background:#F8F6FF;border-radius:10px;padding:6px 8px;margin-bottom:6px}details.nouv summary{font-size:13.5px;color:var(--vd)}details.nouv[open] summary{margin-bottom:6px}
+.chips.per{align-items:center;margin:-2px 0 4px}.chips.per .chip{font-size:11.5px;padding:3px 8px}
+#cRes:empty,#gRes:empty{display:none}#cRes,#gRes{margin:6px 0 0}
+#tst{position:fixed;left:50%;bottom:18px;transform:translate(-50%,20px);max-width:92vw;background:#24263A;color:#fff;font-size:13px;font-weight:600;padding:9px 14px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:.25s;z-index:50}#tst.on{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
 <body>
 <header><img src="logo.svg" alt=""><h1>Malino · Admin</h1><button class="o bell" id="bell" title="Notifications">🔔<b id="bellN"></b></button><button class="o" id="refresh" title="Actualiser">↻</button><a href="./" style="font-size:13px;color:var(--vd);font-weight:600;text-decoration:none">Appli</a></header>
-<nav id="tabs" class="tabs hidden"><button data-view="tableau">📊 Tableau</button><button data-view="contrib">🤝 Contributions <b id="tabN"></b></button><button data-view="reglages">⚙️ Réglages</button></nav>
+<nav id="tabs" class="tabs hidden"><button data-view="tableau"><i>📊</i>Tableau<b id="tabA"></b></button><button data-view="familles"><i>👨‍👩‍👧</i>Familles<b class="g" id="tabF"></b></button><button data-view="ventes"><i>💶</i>Ventes</button><button data-view="emails"><i>📨</i>E-mails</button><button data-view="contrib"><i>🤝</i>Contrib.<b id="tabN"></b></button><button data-view="reglages"><i>⚙️</i>Réglages</button></nav>
 <main id="app"><p class="mut">Chargement…</p></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
@@ -120,7 +138,8 @@ const jours=x=>Math.max(0,Math.ceil((Date.parse(x)-Date.now())/864e5));
 const JEU0={xpK:425,xpE:2.15,coinLv:5,coinMul:100,cofDay:3,cofSlots:4,cofH:12,cof3:25,cof2:8,cofGame:1,cofWorld:40,keyDays:5,keyMin:180,keyChest:6,wall:2,objPartie:1,
   u_heure:3,u_quoi:4,u_formes:5,u_chiffres:6,u_probl:7,u_drapeaux:8,u_espace:10,u_ortho:12};
 let JEU=Object.assign({},JEU0);
-let D=null,email='',q='',VIEW=/^#(contrib|dev)$/.test(location.hash)?'contrib':location.hash==='#reglages'?'reglages':'tableau';
+const VUESOK=['tableau','familles','ventes','emails','contrib','reglages'];
+let D=null,email='',q='',VIEW=/^#(contrib|dev)$/.test(location.hash)?'contrib':VUESOK.includes(location.hash.slice(1))?location.hash.slice(1):(VUESOK.includes(localStorage.getItem('adm_vue'))?localStorage.getItem('adm_vue'):'tableau');
 
 function loginView(step,msg){
   app.innerHTML=`<div id="login" class="card"><img src="logo.svg" width="56" height="56" style="border-radius:14px"><h2 style="justify-content:center">Connexion admin</h2>
@@ -172,7 +191,7 @@ const LIVE={ids:new Set(),info:new Map(),t:0,async maj(){if(document.visibilityS
     return ['','🟢 En ligne'+dd];},
   app(){document.querySelectorAll('[data-live]').forEach(el=>{const on=this.ids.has(el.dataset.live);el.classList.toggle('on',on);el.title=on?'En ligne':'Hors ligne';const f=el.closest('.fam,.rk');if(f)f.classList.toggle('enligne',on);});
     document.querySelectorAll('[data-lieu]').forEach(el=>{const x=this.info.get(el.dataset.lieu),t=x&&this.txt(x),ap=t&&typeof DEV!=='undefined'&&DEV.apps(DEV.m.get(el.dataset.lieu))[0];el.className='lieu'+(t?' on '+t[0]:'');el.innerHTML=t?t[1]+(ap?` · sur ${OSL[ap[0]][0]} ${OSL[ap[0]][1]}`:''):'';});
-    const n=$('#liveN');if(n){const k=document.querySelectorAll('.fam .live.on').length||this.ids.size;n.innerHTML=k?`<span class="live on"></span>${k} en ligne`:'';n.classList.toggle('on',!!k);}}};
+    const tf=$('#tabF');if(tf)tf.textContent=this.ids.size||'';const n=$('#liveN');if(n){const k=document.querySelectorAll('.fam .live.on').length||this.ids.size;n.innerHTML=k?`<span class="live on"></span>${k} en ligne`:'';n.classList.toggle('on',!!k);}}};
 setInterval(()=>LIVE.maj(),20000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')LIVE.maj();});
 // ---------- Appli installée et notifications : pastilles grises ou en couleur ----------
 const DEV={m:new Map(),async maj(){const {data,error}=await sb.rpc('admin_appareils');if(error||!Array.isArray(data))return;this.m=new Map(data.map(x=>[x.user_id,x]));this.app();LIVE.app();},
@@ -279,9 +298,9 @@ function devLink(){const el=$('#devlink');if(!el)return;if(!DV){el.innerHTML='';
   const n=DV.reduce((a,d)=>a+(d.reponses||[]).filter(isNew).length,0),on=DV.filter(d=>d.statut==='en_ligne').length;
   el.innerHTML=`<div class="card row" style="cursor:pointer;justify-content:space-between" id="goC"><b>🤝 Contributions</b><span class="row"><span class="small mut">${on} en ligne</span>${n?`<span class="tag t-chaud">${n} nouvelle${n>1?'s':''}</span>`:''}<span class="go">›</span></span></div>`;
   $('#goC').onclick=()=>setView('contrib');}
-function setView(v){VIEW=v;try{history.replaceState(null,'',v==='contrib'?'#contrib':v==='reglages'?'#reglages':location.pathname);}catch(e){}
+function setView(v){VIEW=v;try{localStorage.setItem('adm_vue',v);history.replaceState(null,'',v==='tableau'?location.pathname:'#'+v);}catch(e){}
   document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('on',b.dataset.view===v));window.scrollTo(0,0);render();}
-function render(){if(!D)return;if(VIEW==='contrib')drawContrib();else if(VIEW==='reglages')drawJeu();else draw();}
+function render(){if(!D)return;if(VIEW==='contrib')drawContrib();else if(VIEW==='reglages')drawJeu();else draw();if(VIEW==='contrib'||VIEW==='reglages')tabBadges(nAlertes());LIVE.app();}
 function persItems(dm,r){const f=r.fichiers||{};return `<div class="its">${dm.items.map(x=>{const e=f[x.id];return `<div class="it"><span class="ar" ${/[؀-ۿ]/.test(x.texte)?'dir="rtl"':''}>${esc(x.texte)}</span><span class="s">${esc(x.sens||'')}</span>${!e?'<span class="small mut">pas encore</span>':e.texte?`<span>${esc(e.texte)}</span>`:`<audio controls preload="none" data-path="${esc(e.path)}"></audio>${adoptBtn(r.id,x,e)}<a class="dl" data-dl="${esc(e.path)}" title="Télécharger">⬇️</a>`}</div>`;}).join('')}</div>`;}
 function drawContrib(){
   if(!DV){app.innerHTML=`<div class="card"><h2>🤝 Contributions</h2><p class="small mut">${DVERR==='base'?'La base des contributions doit être mise à jour sur Supabase.':DVERR?'Chargement impossible.':'Chargement…'}</p></div>`;return;}
@@ -604,8 +623,10 @@ const RANKS={actif:['🔥 Plus actives',f=>f._r.jours,f=>`${f._r.jours} j de jeu
 function rangHTML(F){const lab=(PERS.find(x=>x[0]===PER)||PERS[0])[1];F.forEach(f=>f._r=f._r||{sec:0,jours:0});
   const [,val,txt,keep]=RANKS[RANK]||RANKS.actif,L=F.filter(keep).sort((x,y)=>val(y)-val(x));
   return `<div class="card" data-plier="8" data-plk="classement" data-plrow=":scope > .rk"><h2>🏆 Classement des familles</h2><div class="chips">${Object.entries(RANKS).map(([k,[l]])=>`<button class="chip ${RANK===k?'on':''}" data-rank="${k}">${l}</button>`).join('')}</div>
-    ${RANK==='actif'||RANK==='temps'?`<p class="small mut" style="margin:0 0 4px">Sur les ${lab} écoulés (bouton de période en haut).</p>`:''}
+    ${RANK==='actif'||RANK==='temps'?`<div class="chips per"><span class="small mut">Sur</span>${PERS.map(([n,l])=>`<button class="chip ${PER===n?'on':''}" data-per="${n}">${l}</button>`).join('')}</div>`:''}
     ${L.length?L.map((f,i)=>`<div class="rk" data-fiche="${f.user_id}"><span class="rkn ${i<3?'top':''}">${i<3?['🥇','🥈','🥉'][i]:i+1}</span><div class="rkm"><b><span class="live" data-live="${f.user_id}" title="Hors ligne"></span>${esc(f.prenom||f.email)}</b><small>${esc((f.enfants||[]).map(k=>k.nom).join(', ')||'—')}${f.prenom?' · '+esc(f.email):''}</small></div><span class="rkv">${txt(f)}</span></div>`).join(''):'<p class="small mut" style="margin:0">Personne pour l’instant sur cette période.</p>'}</div>`;}
+const ALERTT={paiement_echoue:1,envoi_code_echec:1,envoi_cadeau_echec:1,envoi_invitation_echec:1,webhook_erreur:1,abonne_sans_compte:1,cadeau_sans_formulaire:1,resiliation:1,resiliation_prevue:1,remboursement:1};
+function nAlertes(){const now=Date.now();return D?D.journal.filter(j=>ALERTT[j.type]&&now-Date.parse(j.cree_le)<30*864e5).length:0;}
 function draw(){
   const F=D.familles,P=D.paiements,now=Date.now(),mois=new Date();mois.setDate(1);mois.setHours(0,0,0,0);
   const enfants=F.reduce((a,f)=>a+f.enfants.length,0),actifs=F.filter(f=>now-Date.parse(f.derniere_activite)<7*864e5).length;
@@ -618,9 +639,14 @@ function draw(){
   F.forEach(f=>f._p=predict(f));
   const flt=F.filter(f=>(!q||f.email.includes(q)||(f.prenom||'').toLowerCase().includes(q)||f.enfants.some(k=>(k.nom||'').toLowerCase().includes(q)))&&FILTRES[FLT][1](f._p));
   const st=f=>f.plan==='plus'?`<span class="tag t-plus">👑 ${f.abo_statut?'Abonné '+(f.abo_formule||''):'Offert → '+d(f.plus_jusqua)}</span>${f.abo_statut==='past_due'?' <span class="tag t-echec">impayé</span>':''}`:f.plan==='essai'?`<span class="tag t-essai">Essai · ${jours(f.essai_fin)} j</span>`:'<span class="tag t-gratuit">Gratuit</span>';
-  app.innerHTML=`${evolHTML(F)}
-  <h3 class="nowh">📌 En ce moment</h3>
-  <div class="kpis">
+  const pct=k=>k.utilisations?` (${Math.round(100*k.payants/k.utilisations)} %)`:'';
+  const codeRow=k=>`<div class="li ${k.actif?'':'off'}"><div class="l1"><span class="cpc">${esc(k.code)}</span><span class="tag t-gratuit">${k.jours} j</span>${k.actif?'':'<span class="tag t-echec">désactivé</span>'}<span class="sp"></span><span class="vr">${k.utilisations}${k.max_util?'/'+k.max_util:''}</span><span class="small mut">utilisé${k.utilisations>1?'s':''}</span></div>
+    <div class="l2">${esc(k.libelle)}</div><div class="l3">${k.en_cours} en cours · ${k.payants} payant${k.payants>1?'s':''}${pct(k)} · créé le ${d(k.cree_le)}${k.dernier?' · dernier : '+d(k.dernier):''}${k.expire_le?' · expire le '+d(k.expire_le):''}</div>
+    <div class="lb"><button class="o small" data-copy="${esc(k.code)}">🔗 Copier le lien</button><button class="o small" data-cmax="${k.id}" data-max="${k.max_util||0}" data-exp="${k.expire_le||''}" data-act="${k.actif}">Limite</button><button class="${k.actif?'r':'o'} small" data-ctog="${k.id}" data-max="${k.max_util||0}" data-exp="${k.expire_le||''}" data-act="${k.actif}">${k.actif?'Désactiver':'Réactiver'}</button></div></div>`;
+  const famRows=()=>flt.map(f=>`<div class="fam" data-fiche="${f.user_id}"><div class="row" style="justify-content:space-between"><b style="word-break:break-all"><span class="live" data-live="${f.user_id}" title="Hors ligne"></span>${f.prenom?esc(f.prenom)+' · ':''}${esc(f.email)}<span class="dev" data-dev="${f.user_id}"></span> <span class="go">›</span></b></div><div class="lieu" data-lieu="${f.user_id}"></div><div class="row" style="margin:3px 0 2px;gap:4px 5px">${st(f)}<span class="tag ${f._p.cls}">${f._p.tag}</span>${f._p.score!=null&&f._p.k!=='client'?`<span class="small mut">${f._p.score} %</span>`:''}${f.offre_jusqua?`<span class="tag t-chaud">−30 % → ${d(f.offre_jusqua)}</span>`:''}<button class="o small" data-gift="${esc(f.email)}" style="margin-left:auto;padding:2px 8px;font-size:12px">+1 mois</button></div><div class="small mut">Inscrit le ${d(f.cree_le)} · actif il y a ${ilya(f.derniere_activite)}${f.total?` · payé ${eur(f.total)}`:''}${f.bonus_jours?` · +${f.bonus_jours} j parrainage`:''}${f.code?` · 🎟️ ${esc(f.code)}`:''}</div><div class="kids" style="margin-top:3px">${f.proprio?`<span class="small mut">👥 co-parent de ${esc(f.proprio)}</span>`:''}${f.enfants.map(k=>`<span class="kid">${esc(k.nom)} · niv. ${lvl(k.xp)} · ${k.seances} séances${k.t7>=60?` · ${Math.round(k.t7/60)} min/7 j`:''}</span>`).join('')||(f.proprio?'':'<span class="small mut">aucun enfant</span>')}</div></div>`).join('')||'<p class="mut small">Aucune famille</p>';
+  const SEC={
+  evol:()=>evolHTML(F),
+  now:()=>`<div class="kpis now">
     <div class="kpi"><b>${eur(dumois)}</b><small>encaissé ce mois-ci</small></div>
     <div class="kpi"><b>${eur(total)}</b><small>total encaissé</small></div>
     <div class="kpi"><b>${eur(Math.round(mrr))}</b><small>revenu mensuel récurrent</small></div>
@@ -628,42 +654,46 @@ function draw(){
     <div class="kpi"><b>${plus.length-abos.length}</b><small>Malino+ offerts</small></div>
     <div class="kpi"><b>${F.filter(f=>f.plan==='essai').length}</b><small>en essai</small></div>
     <div class="kpi"><b>${F.length}</b><small>familles inscrites</small></div>
-    <div class="kpi"><b>${D.codes.reduce((a,k)=>a+k.utilisations,0)}</b><small>codes utilisés</small></div>
     <div class="kpi"><b>${enfants}</b><small>enfants</small></div>
     <div class="kpi"><b>${D.parrainages.inscrits}/${D.parrainages.envoyes}</b><small>parrainages réussis</small></div>
-  </div>
-  <div class="card" data-plier="8" data-plk="alertes" data-plrow=":scope > .alert"><h2>🚨 À traiter <span class="tag ${alerts.length?'t-echec':'t-paye'}">${alerts.length}</span></h2>${alerts.length?alerts.slice(0,15).map(a=>`<div class="alert"><span class="mut small" style="min-width:76px">${dh(a.cree_le)}</span><span><b>${alertTypes[a.type]}</b> ${esc(a.email||'')}<br><span class="small mut">${esc(a.detail||'')}</span></span></div>`).join(''):'<p class="mut small" style="margin:0">Rien à signaler sur les 30 derniers jours ✅</p>'}</div>
-  ${autoCard()}
-  <div class="card"><h2>🎟️ Codes promo <span class="mut small">${D.codes.length}</span></h2>
-    <div class="row"><input id="cLib" placeholder="Où je le partage (ex. Facebook – groupe Parents 95)" maxlength="80" style="flex:1;min-width:220px"></div>
-    <div class="row" style="margin-top:6px"><input id="cCode" placeholder="Code (vide = automatique)" maxlength="24" style="width:170px;text-transform:uppercase"><select id="cJours"><option value="14">14 jours</option><option value="30" selected>30 jours</option><option value="45">45 jours</option><option value="60">60 jours</option></select><input id="cMax" type="number" min="0" placeholder="Limite (0 = illimité)" style="width:150px"><input id="cExp" type="date" title="Expire le (facultatif)"><button id="cGo">Créer</button></div><p class="msg" id="cRes"></p>
-    <div class="scroll"><table data-plier="5" data-plk="codes"><tr><th>Code / lien</th><th>Où</th><th>Durée</th><th>Utilisé</th><th>En cours</th><th>Payants</th><th></th></tr>${D.codes.map(k=>`<tr><td><b>${esc(k.code)}</b><br><button class="o small" data-copy="${esc(k.code)}">Copier le lien</button></td><td>${esc(k.libelle)}<br><span class="small mut">créé le ${d(k.cree_le)}${k.dernier?' · dernier : '+d(k.dernier):''}${k.expire_le?' · expire le '+d(k.expire_le):''}</span></td><td>${k.jours} j</td><td><b>${k.utilisations}</b>${k.max_util?' / '+k.max_util:''}</td><td>${k.en_cours}</td><td>${k.payants}${k.utilisations?` <span class="small mut">(${Math.round(100*k.payants/k.utilisations)} %)</span>`:''}</td><td class="row"><button class="o small" data-cmax="${k.id}" data-max="${k.max_util||0}" data-exp="${k.expire_le||''}" data-act="${k.actif}">Limite</button><button class="${k.actif?'r':'o'} small" data-ctog="${k.id}" data-max="${k.max_util||0}" data-exp="${k.expire_le||''}" data-act="${k.actif}">${k.actif?'Désactiver':'Réactiver'}</button></td></tr>`).join('')||'<tr><td colspan="7" class="mut">Aucun code pour le moment</td></tr>'}</table></div></div>
-  <div class="card"><h2>🎁 Offrir Malino+</h2><div class="row"><input type="email" id="gEmail" placeholder="e-mail de la famille"><select id="gMois"><option value="1">1 mois</option><option value="3">3 mois</option><option value="6">6 mois</option><option value="12">12 mois</option></select></div><div class="row" style="margin-top:6px"><input id="gMsg" placeholder="petit mot (facultatif)" maxlength="200" style="flex:1"><button id="gGo">Offrir et envoyer l’e-mail</button></div><p class="msg" id="gRes"></p></div>
-  <div class="card" data-plier="8" data-plk="familles" data-plrow=":scope > .fam"><h2>👨‍👩‍👧 Familles <span class="mut small">${F.length}</span><span class="livecount" id="liveN"></span><span class="osn" id="osN"></span></h2><div class="chips">${Object.entries(FILTRES).map(([k,[l,fn]])=>`<button class="chip ${FLT===k?'on':''}" data-flt="${k}">${l} <b>${F.filter(f=>fn(f._p)).length}</b></button>`).join('')}</div><input id="q" placeholder="Rechercher un e-mail ou un prénom" value="${esc(q)}" style="width:100%;margin-bottom:6px">${flt.map(f=>`<div class="fam" data-fiche="${f.user_id}"><div class="row" style="justify-content:space-between"><b style="word-break:break-all"><span class="live" data-live="${f.user_id}" title="Hors ligne"></span>${f.prenom?esc(f.prenom)+' · ':''}${esc(f.email)}<span class="dev" data-dev="${f.user_id}"></span> <span class="go">›</span></b><span class="row">${st(f)}<button class="o small" data-gift="${esc(f.email)}">+1 mois</button></span></div><div class="lieu" data-lieu="${f.user_id}"></div><div class="row" style="margin:3px 0 2px"><span class="tag ${f._p.cls}">${f._p.tag}</span>${f._p.score!=null&&f._p.k!=='client'?`<span class="small mut">${f._p.score} % de chances</span>`:''}${f.offre_jusqua?`<span class="tag t-chaud">−30 % → ${d(f.offre_jusqua)}</span>`:''}</div><div class="small mut">Inscrit le ${d(f.cree_le)} · actif il y a ${ilya(f.derniere_activite)}${f.total?` · payé ${eur(f.total)}`:''}${f.bonus_jours?` · +${f.bonus_jours} j parrainage`:''}${f.code?` · 🎟️ ${esc(f.code)}`:''}</div><div class="kids" style="margin-top:3px">${f.proprio?`<span class="small mut">👥 co-parent de ${esc(f.proprio)}</span>`:''}${f.enfants.map(k=>`<span class="kid">${esc(k.nom)} · niv. ${lvl(k.xp)} · ${k.seances} séances${k.t7>=60?` · ${Math.round(k.t7/60)} min/7 j`:''}</span>`).join('')||(f.proprio?'':'<span class="small mut">aucun enfant</span>')}</div></div>`).join('')||'<p class="mut small">Aucune famille</p>'}</div>
-  <div class="card"><h2>💳 Paiements <span class="mut small">${P.length}</span></h2><div class="scroll"><table data-plier="5" data-plk="paiements"><tr><th>Date</th><th>E-mail</th><th>Type</th><th>Montant</th><th>Statut</th></tr>${P.map(p=>`<tr><td class="small">${dh(p.cree_le)}</td><td>${esc(p.email||'')}</td><td>${p.type==='cadeau'?'🎁 cadeau':'Abonnement'}</td><td>${eur(p.montant)}</td><td><span class="tag t-${p.statut}">${{paye:'payé',echec:'échec',rembourse:'remboursé'}[p.statut]||p.statut}</span></td></tr>`).join('')||'<tr><td colspan="5" class="mut">Aucun paiement pour le moment</td></tr>'}</table></div></div>
-  <div class="card"><h2>🎁 Cadeaux</h2><div class="scroll"><table data-plier="5" data-plk="cadeaux"><tr><th>Date</th><th>De</th><th>Pour</th><th>Durée</th><th>Statut</th></tr>${D.cadeaux.map(g=>`<tr><td class="small">${d(g.cree_le)}</td><td>${esc(g.offrant_prenom||'')}<br><span class="small mut">${esc(g.offrant_email||'')}</span></td><td>${esc(g.dest_email)}</td><td>${g.mois} mois</td><td><span class="tag ${g.statut==='applique'?'t-paye':g.statut==='paye'?'t-essai':'t-gratuit'}">${{attente:'non payé',paye:'en attente de connexion',applique:'activé'}[g.statut]}</span></td></tr>`).join('')||'<tr><td colspan="5" class="mut">Aucun cadeau</td></tr>'}</table></div></div>
-  <div id="devlink"></div>
-  <div class="card"><details><summary>🛑 Demandes STOP (${D.stops.length})</summary><p class="small mut">Les adresses de cette liste ne reçoivent plus d’invitations ni de cadeaux par e-mail (les codes de connexion restent possibles).</p><div class="row"><input type="email" id="sEmail" placeholder="e-mail à bloquer"><button id="sAdd" class="r">Ajouter</button></div><table style="margin-top:6px" data-plier="5" data-plk="stops">${D.stops.map(s=>`<tr><td>${esc(s.email)}</td><td class="small mut">${d(s.cree_le)}</td><td><button class="o" data-unstop="${esc(s.email)}">Retirer</button></td></tr>`).join('')}</table></details></div>
-  <div class="card"><details><summary>📜 Journal complet</summary><table data-plier="10" data-plk="journal">${D.journal.map(j=>`<tr><td class="small mut">${dh(j.cree_le)}</td><td>${esc(j.type)}</td><td>${esc(j.email||'')}</td><td class="small">${esc(j.detail||'')}</td></tr>`).join('')}</table></details></div>
-  ${rangHTML(F)}
-  <p class="small mut" style="text-align:center">Mis à jour à ${dh(D.maintenant)} · Stripe : compte Pace, produit Malino+</p>`;
+  </div>`,
+  alertes:()=>`<div class="card" data-plier="5" data-plk="alertes" data-plrow=":scope > .alert"><h2>🚨 À traiter <span class="tag ${alerts.length?'t-echec':'t-paye'}">${alerts.length}</span></h2>${alerts.length?alerts.slice(0,15).map(a=>`<div class="alert"><span class="mut small" style="min-width:76px">${dh(a.cree_le)}</span><span><b>${alertTypes[a.type]}</b> ${esc(a.email||'')}<br><span class="small mut">${esc(a.detail||'')}</span></span></div>`).join(''):'<p class="mut small" style="margin:0">Rien à signaler sur les 30 derniers jours ✅</p>'}</div>`,
+  journal:()=>`<div class="card"><details ${OUV.journal?'open':''} data-ouv="journal"><summary>📜 Journal complet <span class="mut small">${D.journal.length}</span></summary><div class="lst" data-plier="8" data-plk="journal" data-plrow=":scope > .li">${D.journal.map(j=>`<div class="li"><div class="l1"><span class="nm">${esc(JTYPE[j.type]||j.type)}</span><span class="small mut nw">${dh(j.cree_le)}</span></div><div class="l3">${esc(j.email||'')}${j.detail?' · '+esc(j.detail):''}</div></div>`).join('')}</div></details></div>`,
+  codes:()=>`<div class="card"><h2>🎟️ Codes promo <span class="mut small">${D.codes.length} · ${D.codes.filter(k=>k.actif).length} actifs · ${D.codes.reduce((a,k)=>a+k.utilisations,0)} utilisations</span></h2>
+    <details class="nouv" ${OUV.code?'open':''} data-ouv="code"><summary>➕ Créer un code</summary><div class="fgrid">
+      <input class="full" id="cLib" placeholder="Où je le partage (ex. Facebook – groupe Parents 95)" maxlength="80">
+      <input id="cCode" placeholder="Code (vide = auto)" maxlength="24" style="text-transform:uppercase"><select id="cJours"><option value="14">14 jours</option><option value="30" selected>30 jours</option><option value="45">45 jours</option><option value="60">60 jours</option></select>
+      <input id="cMax" type="number" min="0" inputmode="numeric" placeholder="Limite (0 = illimité)"><input id="cExp" type="date" title="Expire le (facultatif)">
+      <button class="full" id="cGo">Créer le code</button></div></details><p class="msg" id="cRes"></p>
+    <div class="lst" data-plier="5" data-plk="codes" data-plrow=":scope > .li">${D.codes.slice().sort((x,y)=>(y.actif?1:0)-(x.actif?1:0)).map(codeRow).join('')||'<p class="mut small">Aucun code pour le moment</p>'}</div></div>`,
+  offrir:()=>`<div class="card"><h2>🎁 Offrir Malino+</h2><div class="fgrid"><input class="full" type="email" id="gEmail" placeholder="e-mail de la famille"><select id="gMois"><option value="1">1 mois</option><option value="3">3 mois</option><option value="6">6 mois</option><option value="12">12 mois</option></select><input id="gMsg" placeholder="petit mot (facultatif)" maxlength="200"><button class="full" id="gGo">Offrir et envoyer l’e-mail</button></div><p class="msg" id="gRes"></p></div>`,
+  familles:()=>`<div class="card" data-plier="8" data-plk="familles" data-plrow=":scope > .fam"><h2>👨‍👩‍👧 Familles <span class="mut small">${F.length}</span><span class="livecount" id="liveN"></span><span class="osn" id="osN"></span></h2><div class="chips">${Object.entries(FILTRES).map(([k,[l,fn]])=>`<button class="chip ${FLT===k?'on':''}" data-flt="${k}">${l} <b>${F.filter(f=>fn(f._p)).length}</b></button>`).join('')}</div><input id="q" placeholder="Rechercher un e-mail ou un prénom" value="${esc(q)}" style="width:100%;margin-bottom:6px">${famRows()}</div>`,
+  paiements:()=>`<div class="card"><h2>💳 Paiements <span class="mut small">${P.length}</span></h2><div class="lst" data-plier="5" data-plk="paiements" data-plrow=":scope > .li">${P.map(p=>`<div class="li"><div class="l1"><span class="nm">${esc(p.email||'—')}</span><span class="vr">${eur(p.montant)}</span></div><div class="l3">${dh(p.cree_le)} · ${p.type==='cadeau'?'🎁 cadeau':'Abonnement'} · <span class="tag t-${p.statut}">${{paye:'payé',echec:'échec',rembourse:'remboursé'}[p.statut]||p.statut}</span></div></div>`).join('')||'<p class="mut small" style="margin:0">Aucun paiement pour le moment</p>'}</div></div>`,
+  cadeaux:()=>`<div class="card"><h2>🎁 Cadeaux <span class="mut small">${D.cadeaux.length}</span></h2><div class="lst" data-plier="5" data-plk="cadeaux" data-plrow=":scope > .li">${D.cadeaux.map(g=>`<div class="li"><div class="l1"><span class="nm">→ ${esc(g.dest_email)}</span><span class="tag ${g.statut==='applique'?'t-paye':g.statut==='paye'?'t-essai':'t-gratuit'}">${{attente:'non payé',paye:'en attente',applique:'activé'}[g.statut]||g.statut}</span></div><div class="l3">${d(g.cree_le)} · ${g.mois} mois · de ${esc(g.offrant_prenom||'')}${g.offrant_email?` (${esc(g.offrant_email)})`:''}</div></div>`).join('')||'<p class="mut small" style="margin:0">Aucun cadeau</p>'}</div></div>`,
+  auto:()=>autoCard(),
+  stops:()=>`<div class="card"><h2>🛑 Demandes STOP <span class="mut small">${D.stops.length}</span></h2><p class="small mut" style="margin:0 0 6px">Ces adresses ne reçoivent plus d’invitations ni de cadeaux par e-mail (les codes de connexion restent possibles).</p><div class="row"><input type="email" id="sEmail" placeholder="e-mail à bloquer"><button id="sAdd" class="r">Ajouter</button></div><div class="lst" style="margin-top:6px" data-plier="5" data-plk="stops" data-plrow=":scope > .li">${D.stops.map(s=>`<div class="li"><div class="l1"><span class="nm" style="font-weight:600">${esc(s.email)}</span><span class="small mut nw">${d(s.cree_le)}</span><button class="o small" data-unstop="${esc(s.email)}">Retirer</button></div></div>`).join('')}</div></div>`,
+  rang:()=>rangHTML(F)};
+  const VUES={tableau:['evol','now','alertes','journal'],familles:['familles','rang'],ventes:['codes','offrir','paiements','cadeaux'],emails:['auto','stops']};
+  app.innerHTML=(VUES[VIEW]||VUES.tableau).map(k=>VIEW==='tableau'&&k==='now'?'<h3 class="nowh">📌 En ce moment</h3>'+SEC[k]():SEC[k]()).join('')+(VIEW==='tableau'?`<p class="small mut" style="text-align:center">Mis à jour à ${dh(D.maintenant)} · Stripe : compte Pace, produit Malino+</p>`:'');
+  tabBadges(alerts.length);
   app.querySelectorAll('[data-per]').forEach(b=>b.onclick=()=>{PER=+b.dataset.per;localStorage.setItem('adm_per',PER);keepY(draw);});
   app.querySelectorAll('[data-rank]').forEach(b=>b.onclick=()=>{RANK=b.dataset.rank;localStorage.setItem('adm_rank',RANK);keepY(draw);});
-  $('#q').oninput=e=>{q=e.target.value.trim().toLowerCase();const p=e.target.selectionStart;draw();const n=$('#q');n.focus();n.setSelectionRange(p,p);};
-  $('#cGo').onclick=async()=>{const r=$('#cRes'),e=$('#cExp').value;r.className='msg';
+  app.querySelectorAll('[data-ouv]').forEach(x=>x.ontoggle=()=>{OUV[x.dataset.ouv]=x.open;});
+  if($('#q'))$('#q').oninput=e=>{q=e.target.value.trim().toLowerCase();const p=e.target.selectionStart;draw();const n=$('#q');n.focus();n.setSelectionRange(p,p);};
+  if($('#cGo'))$('#cGo').onclick=async()=>{const r=$('#cRes'),e=$('#cExp').value;r.className='msg';
     const {data,error}=await sb.rpc('admin_code_creer',{p_code:$('#cCode').value,p_libelle:$('#cLib').value,p_jours:+$('#cJours').value,p_max:+($('#cMax').value||0),p_expire:e?new Date(e+'T23:59:59').toISOString():null});
     if(error||!data||!data.ok){r.textContent={libelle:'Indique où tu le partages',format:'Code : 4 à 24 lettres, chiffres ou tirets',existe:'Ce code existe déjà'}[data&&data.error]||'Échec, réessaie';return;}
     await load();const n=$('#cRes');n.className='msg ok';n.textContent='✅ Code créé : '+data.code;};
   app.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{const u=location.origin+'/?code='+b.dataset.copy;try{await navigator.clipboard.writeText(u);b.textContent='Lien copié ✅';}catch(e){prompt('Copie ce lien :',u);}});
   app.querySelectorAll('[data-cmax]').forEach(b=>b.onclick=async()=>{const v=prompt('Nombre maximum d’utilisations (0 = illimité)',b.dataset.max);if(v===null)return;await sb.rpc('admin_code_maj',{p_id:+b.dataset.cmax,p_max:+v||0,p_expire:b.dataset.exp||null,p_actif:b.dataset.act==='true'});load();});
   app.querySelectorAll('[data-ctog]').forEach(b=>b.onclick=async()=>{await sb.rpc('admin_code_maj',{p_id:+b.dataset.ctog,p_max:+b.dataset.max,p_expire:b.dataset.exp||null,p_actif:b.dataset.act!=='true'});load();});
-  $('#gGo').onclick=()=>offrir($('#gEmail').value,$('#gMois').value,$('#gMsg').value);
-  autoBind();
+  if($('#gGo'))$('#gGo').onclick=()=>offrir($('#gEmail').value,$('#gMois').value,$('#gMsg').value);
+  if($('#aInfo'))autoBind();
   app.querySelectorAll('[data-flt]').forEach(b=>b.onclick=()=>{FLT=b.dataset.flt;draw();});
   app.querySelectorAll('[data-fiche]').forEach(r=>r.onclick=e=>{if(e.target.closest('button'))return;openFiche(r.dataset.fiche);});
   app.querySelectorAll('[data-gift]').forEach(b=>b.onclick=()=>{if(confirm(`Offrir 1 mois de Malino+ à ${b.dataset.gift} ? Un e-mail lui sera envoyé.`))offrir(b.dataset.gift,1,'');});
   devLink();
-  $('#sAdd').onclick=async()=>{const e=$('#sEmail').value.trim();if(!e)return;await sb.rpc('admin_stop',{mail:e,ajouter:true});load();};
+  if($('#sAdd'))$('#sAdd').onclick=async()=>{const e=$('#sEmail').value.trim();if(!e)return;await sb.rpc('admin_stop',{mail:e,ajouter:true});load();};
   app.querySelectorAll('[data-unstop]').forEach(b=>b.onclick=async()=>{await sb.rpc('admin_stop',{mail:b.dataset.unstop,ajouter:false});load();});
 }
 
@@ -704,18 +734,21 @@ function drawJeu(){const v=JEUD||(JEUD=Object.assign({},JEU));
     r.className='msg ok';r.textContent='Enregistrement…';const {data,error}=await sb.rpc('admin_jeu_set',{p});
     if(error){r.className='msg';r.textContent='Échec, réessaie';return;}
     JEU=Object.assign({},JEU0,data||{});JEUD=Object.assign({},JEU);drawJeu();const n=$('#jRes');n.className='msg ok';n.textContent='✅ Enregistré : appliqué au prochain lancement de l’appli';};}
+const OUV={};
+function tabBadges(na){const a=$('#tabA');if(a)a.textContent=na||'';}
 function keepY(fn){const y=scrollY;fn();scrollTo(0,y);}
+function tst(t){let e=$('#tst');if(!e){e=document.createElement('div');e.id='tst';document.body.appendChild(e);}e.textContent=t;e.className='on';clearTimeout(tst.t);tst.t=setTimeout(()=>{e.className='';},4000);}
 async function offrir(mail,mois,message){
-  const res=$('#gRes');mail=(mail||'').trim();if(!/^\S+@\S+\.\S+$/.test(mail)){res.className='msg';res.textContent='Vérifie l’e-mail';return;}
+  const res=$('#gRes')||{set className(v){},set textContent(t){tst(t);}};mail=(mail||'').trim();if(!/^\S+@\S+\.\S+$/.test(mail)){res.className='msg';res.textContent='Vérifie l’e-mail';return;}
   res.className='msg ok';res.textContent='Envoi…';
   const {data:{session}}=await sb.auth.getSession();
   const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+session.access_token},body:JSON.stringify({action:'admin_offrir',email:mail,mois:+mois,message})}).then(r=>r.json()).catch(()=>({}));
   if(!r.ok){res.className='msg';res.textContent=r.error==='interdit'?'Accès refusé':'Échec, réessaie';return;}
-  await load();const n=$('#gRes');n.className='msg ok';n.textContent=`✅ ${mois} mois offerts à ${mail}${r.applique?' (déjà actif sur son compte)':' (activé à sa première connexion)'}${r.envoye?' · e-mail envoyé':' · ⚠️ e-mail non envoyé'}`;
+  await load();const n=$('#gRes')||{set className(v){},set textContent(t){tst(t);}};n.className='msg ok';n.textContent=`✅ ${mois} mois offerts à ${mail}${r.applique?' (déjà actif sur son compte)':' (activé à sa première connexion)'}${r.envoye?' · e-mail envoyé':' · ⚠️ e-mail non envoyé'}`;
 }
 $('#refresh').onclick=load;
 $('#bell').onclick=()=>openBell();
-window.addEventListener('hashchange',()=>{if(location.hash==='#notifs'&&D)openBell();if(/^#(contrib|dev)$/.test(location.hash)&&VIEW!=='contrib')setView('contrib');});
+window.addEventListener('hashchange',()=>{if(location.hash==='#notifs'&&D)openBell();if(/^#(contrib|dev)$/.test(location.hash)&&VIEW!=='contrib')setView('contrib');else if(VUESOK.includes(location.hash.slice(1))&&location.hash.slice(1)!==VIEW)setView(location.hash.slice(1));});
 document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('on',b.dataset.view===VIEW);b.onclick=()=>setView(b.dataset.view);});
 load();
 </script>
