@@ -143,6 +143,12 @@ h1,h2,h3,h4{font-weight:700}
 .abox h2{font-size:22px;margin:6px 0}.abox p{color:var(--ink2);font-size:15px;line-height:1.4;margin:4px 0 12px}
 .abox .fld{text-align:left;margin-bottom:10px;font-size:15px}
 .acode{text-align:center;letter-spacing:6px;font-size:22px!important}
+.astc h2{margin:6px 0 6px}.astc p{margin:0 0 12px}.astsvg{display:block;width:100%;max-width:250px;height:auto;margin:-4px auto 6px}
+.astag{display:inline-block;background:linear-gradient(135deg,#FFF4C2,#FFE08A);color:#7A5200;font-weight:800;font-size:12.5px;padding:3px 10px;border-radius:999px;box-shadow:0 2px 6px rgba(185,130,0,.25)}
+.astl{list-style:none;padding:0;margin:4px 0 14px;text-align:left}.astl li{display:flex;gap:10px;align-items:flex-start;padding:7px 9px;margin:0 0 6px;border-radius:14px;background:linear-gradient(180deg,#FBFAFF,#F3EFFF);box-shadow:0 1px 0 #fff inset,0 2px 6px rgba(75,47,214,.08);font-size:14px;line-height:1.35}
+.astl i{font-style:normal;font-size:19px;line-height:1.2;flex:none;width:26px;text-align:center;margin-right:2px}.astl li>span{flex:1;min-width:0}.astl b{color:#2B2160}
+.acard.astgo{animation:astGo 1.3s ease-in-out 3}@keyframes astGo{0%,100%{box-shadow:0 0 0 0 rgba(123,92,255,0)}50%{box-shadow:0 0 0 4px rgba(123,92,255,.45),0 8px 26px rgba(123,92,255,.35)}}
+.asthint{margin:0 0 6px;padding:7px 10px;border-radius:12px;background:#FFF4C2;color:#7A5200;font-weight:700;font-size:13px;box-shadow:0 2px 8px rgba(185,130,0,.18);animation:pop .35s}
 .alink{display:block;margin:8px auto 0;color:var(--v);font-weight:600;font-size:14px;padding:6px}
 .alink:disabled{color:#a9a4c6}
 .amsg{margin:0 0 8px;color:#C0392B;font-weight:600;font-size:14px}.amsg.ok{color:#27795a}.amsg:empty{display:none}
@@ -2716,6 +2722,7 @@ function render(){
   const ap=$('#app');ap.className='scr-'+SCR;ap.innerHTML=(R[SCR]||renderHome)();
   try{Install.maj();}catch(e){}
   try{Presence.maj();}catch(e){}
+  try{if(SCR==='admin'&&adminOk)AstuceCo.check();}catch(e){}
   try{if(Push.st==null&&!Push._c){Push._c=1;Push.check();}}catch(e){}
   if(SCR==='home'&&!modalOpen&&!(typeof Onb!=='undefined'&&Onb.should()))setTimeout(()=>{try{if(SCR==='home'&&!modalOpen)unlockCheck();}catch(e){}},350);
 }
@@ -2795,8 +2802,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.94';
+const VERSION='1.95';
 const VERSIONS=[
+ ['1.95','23/11/2026 18:55','Espace parents : astuce « Ajoutez un 2ᵉ parent », avec ce que ça permet, puis accès direct à l’invitation ; admin : filtre « En ligne » dans la liste des familles'],
  ['1.94','23/11/2026 18:45','Admin réorganisé pour le téléphone : 6 onglets (Tableau, Familles, Ventes, E-mails, Contributions, Réglages), codes promo, paiements et cadeaux en lignes compactes, listes repliées avec « Tout voir »'],
  ['1.93','23/11/2026 18:35','Correction : un enfant ne peut plus être ajouté deux fois depuis deux appareils (la liste des profils se met à jour, et si le prénom existe déjà, on propose d’ouvrir son profil) ; un appareil dont le profil a été fusionné se rattache tout seul au bon profil, sans perdre la progression'],
  ['1.92','23/11/2026 18:20','Admin : type d’appareil de chaque famille (iPhone, iPad, Android, tablette, ordinateur), avec la date de dernière utilisation'],
@@ -3057,6 +3065,7 @@ const ACT={
   gateok(){const v=parseInt(($('#gateIn')||{}).value,10);if(v===gateAns){S.pin=null;save();pinStage='enter';pinBuf='';closeAllModals();render();toast('Créez un nouveau code');}else toast('Ce n’est pas la bonne réponse');},
   leaveadmin(){adminOk=false;go('home');},
   tab(t){adminTab=t;render();window.scrollTo(0,0);},
+  astc2(){AstuceCo.etape2();},astcgo(){AstuceCo.aller();},astcx(){closeAllModals();},
   set(a){const [k,v]=a.split('|');S.settings[k]=isNaN(+v)?v:+v;save();keepScroll(render);},
   toggle(k){S.settings[k]=!S.settings[k];save();keepScroll(render);},
   setlvl(n){S.settings.mathLevel=+n;save();toast(`Maths : monde ${n} · ${MATH_LEVELS[n-1].n}`);keepScroll(render);},
@@ -3288,6 +3297,43 @@ const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:
     S=defaultState();S.gs0=0;save();adminOk=false;go('home');toast('Déconnecté');
   }
 };
+// Astuce « 2e parent » : proposée à l'ouverture de l'Espace parents (3 fois au plus, tous les 3 jours, jusqu'à ce que ce soit fait)
+const AstuceCo={
+  k(){return 'malino-astuce-coparent-'+((Acct.user&&Acct.user.id)||'');},
+  st(){try{return JSON.parse(localStorage.getItem(this.k())||'{}')||{};}catch(e){return {};}},
+  set(o){try{localStorage.setItem(this.k(),JSON.stringify(Object.assign(this.st(),o)));}catch(e){}},
+  peut(){const pi=Plan.info;if(!Acct.user||!pi||pi.role==='coparent'||pi.coparent||pi.invitation||!(Acct.list||[]).length)return false;
+    const s=this.st();if(s.ok||(s.n||0)>=3)return false;return !s.t||Date.now()-s.t>3*864e5;},
+  check(){if(this.vu||modalOpen||(typeof Onb!=='undefined'&&Onb.on)||!this.peut())return;this.vu=1;
+    setTimeout(()=>{if(SCR==='admin'&&adminOk&&!modalOpen&&this.peut())this.etape1();else this.vu=0;},800);},
+  noms(){const l=(Acct.list||[]).map(r=>r.id===Acct.pid?(S.name||r.nom):r.nom).filter(Boolean);return l.length?l.map(esc).join(l.length>2?', ':' et ').replace(/, ([^,]*)$/,' et $1'):'vos enfants';},
+  ill(){return `<svg class="astsvg" viewBox="0 0 240 118" aria-hidden="true"><defs>
+    <linearGradient id="agP" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C4B5FF"/><stop offset="1" stop-color="#7B5CFF"/></linearGradient>
+    <linearGradient id="agO" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD08A"/><stop offset="1" stop-color="#FF8A3D"/></linearGradient>
+    <linearGradient id="agC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F1ECFF"/></linearGradient>
+    <linearGradient id="agB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5FDDB0"/><stop offset="1" stop-color="#12B886"/></linearGradient>
+    <filter id="asd" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#4B2FD6" flood-opacity=".28"/></filter></defs>
+    <path d="M62 60 C78 60 80 62 86 62" stroke="#C9BDFF" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 6" fill="none"/>
+    <path d="M178 60 C162 60 160 62 154 62" stroke="#FFC79A" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 6" fill="none"/>
+    <g filter="url(#asd)"><circle cx="36" cy="60" r="27" fill="url(#agP)"/><circle cx="204" cy="60" r="27" fill="url(#agO)"/><rect x="86" y="14" width="68" height="90" rx="18" fill="url(#agC)" stroke="#E4DCFF"/></g>
+    <ellipse cx="36" cy="48" rx="16" ry="7" fill="#fff" opacity=".25"/><ellipse cx="204" cy="48" rx="16" ry="7" fill="#fff" opacity=".25"/>
+    <text x="36" y="70" font-size="28" text-anchor="middle">👩</text><text x="204" y="70" font-size="28" text-anchor="middle">👨</text>
+    <text x="120" y="46" font-size="25" text-anchor="middle">🧒</text>
+    <rect x="98" y="78" width="9" height="14" rx="3" fill="url(#agB)"/><rect x="111" y="70" width="9" height="22" rx="3" fill="url(#agB)"/><rect x="124" y="63" width="9" height="29" rx="3" fill="url(#agB)"/><rect x="137" y="56" width="9" height="36" rx="3" fill="url(#agB)"/>
+    <g filter="url(#asd)"><circle cx="225" cy="36" r="11" fill="#22C55E"/></g><path d="M225 31v10M220 36h10" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>`;},
+  etape1(){const s=this.st();this.set({n:(s.n||0)+1,t:Date.now()});
+    queueModal(`<div class="astc">${this.ill()}<span class="astag">💡 Astuce</span><h2>Le saviez-vous ?</h2><p>Vous pouvez ajouter un <b>2ᵉ parent</b> : il suit lui aussi la progression de <b>${this.noms()}</b>, depuis son propre téléphone.</p><button class="btn p block" data-act="astc2">Comment ça marche ?</button><button class="alink" data-act="astcx">Plus tard</button></div>`);},
+  etape2(){queueModal(`<div class="astc"><span class="astag">💡 Astuce · 2ᵉ parent</span><h2>Comment ça marche ?</h2><ul class="astl">
+    <li><i>✉️</i><span><b>Vous saisissez son e-mail</b> (celui de votre conjoint, par exemple) : il reçoit une invitation.</span></li>
+    <li><i>🔑</i><span><b>Il a son propre accès</b>, avec son e-mail : pas besoin de partager le vôtre.</span></li>
+    <li><i>📈</i><span><b>Il voit les mêmes enfants</b> : progrès, temps de jeu, rapports.</span></li>
+    <li><i>⚙️</i><span><b>Il gère aussi le compte</b> : réglages, cadeaux, profils des enfants.</span></li>
+    <li><i>👑</i><span><b>Votre accès est partagé</b> : rien à payer en plus.</span></li></ul>
+    <button class="btn p block" data-act="astcgo">👥 Ajouter l’autre parent</button><button class="alink" data-act="astcx">Plus tard</button></div>`);nextModal();},
+  aller(){this.set({ok:1});closeAllModals();adminTab='compte';render();
+    setTimeout(()=>{const c=$('#famSec');if(!c)return;c.scrollIntoView({behavior:'smooth',block:'center'});c.classList.remove('astgo');void c.offsetWidth;c.classList.add('astgo');
+      const i=$('#famMail');if(i){const h=document.createElement('div');h.className='asthint';h.textContent='👇 Saisissez ici l’e-mail de l’autre parent, puis « Envoyer l’invitation »';i.closest('label').before(h);setTimeout(()=>{try{i.focus({preventScroll:true});}catch(e){}},700);}},200);}
+};
 function famCard(){
   const pi=Plan.info||{};
   if(pi.role==='coparent'){const noms=(Acct.list||[]).map(r=>esc(r.nom)).join(', ')||'vos enfants';const pr=esc(pi.proprio_prenom||pi.proprio_email||'');return `<div style="background:#F4F1FF;border-radius:14px;padding:12px 14px;margin-bottom:10px"><div style="font-size:13px;font-weight:700;color:#6F679C;text-transform:uppercase;letter-spacing:.4px">Espace famille</div><div style="font-size:16px;font-weight:700;color:#2B2160;margin-top:2px">Famille de ${pr}</div><div style="font-size:14px;color:#4B4180;margin-top:6px">Suivi partagé : <b>${noms}</b></div></div><p class="hint">Vous voyez les mêmes profils, les mêmes progrès et les mêmes rapports que ${pr}.</p><button class="alink" data-act="famQuitter" style="color:#8A83B5;font-size:13px;font-weight:600">Quitter l’espace famille</button>`;}
@@ -3301,7 +3347,7 @@ function paneAccount0(){
   const k=Plan.kind(),pi=Plan.info||{};
   return `<section class="acard"><h3>👤 Compte parent</h3><p class="hint">Connecté : <b>${esc(Acct.user.email||'')}</b>. La progression est sauvegardée automatiquement.</p></section>${Push.card()}
   <section class="acard"><h3>👑 Malino+</h3><p class="hint">${k==='plus'?(pi.abonne?`Abonnement actif${pi.abo_fin?` · prochain renouvellement le ${fmtDate(pi.abo_fin)}`:''}.`:`Offert jusqu’au ${pi.plus_jusqua?fmtDate(pi.plus_jusqua):'—'}.`):k==='essai'?`Essai gratuit : encore ${Plan.jours()} jour${Plan.jours()>1?'s':''}.`:'Version gratuite.'} Profils : ${Acct.list.length}/${Plan.maxProfils()}.</p><div class="btnrow"><button class="btn sm" data-act="offre">${k==='plus'?'Voir mon offre':'Passer à Malino+'}</button>${pi.abonne?'<button class="btn sm o" data-act="portail">Gérer l’abonnement</button>':''}<button class="btn sm o" data-act="parrain">👥 Inviter</button><button class="btn sm o" data-act="offrir">🎁 Offrir</button></div><p style="margin-top:8px"><button class="alink" style="margin:0;padding:0" data-act="onbstart">👋 Revoir la présentation</button></p>${pi.admin?'<p style="margin-top:10px"><a class="btn sm y" href="admin.html" target="_blank" rel="noopener">🛠️ Panel admin</a></p>':''}</section>
-  <section class="acard"><h3>👨‍👩‍👧 Espace famille</h3>${famCard()}</section>
+  <section class="acard" id="famSec"><h3>👨‍👩‍👧 Espace famille</h3>${famCard()}</section>
   <section class="acard"><h3>🧒 Profils enfants</h3><div class="seg" style="flex-wrap:wrap">${Acct.list.map(r=>`<button class="${r.id===Acct.pid?'on':''}" data-act="acctswitch" data-arg="${r.id}">${r.id===Acct.pid?'✅ ':''}${esc(r.id===Acct.pid?(S.name||r.nom):r.nom)}</button>`).join('')}</div>
   <p class="hint" style="margin-top:10px">Profil actif : <b>${esc(S.name||'')}</b></p><div class="seg">${[['g','👦 Garçon'],['f','👧 Fille']].map(([c,l])=>`<button class="${(S.genre||'g')===c?'on':''}" data-act="setgenre" data-arg="${c}">${l}</button>`).join('')}</div>
   <label class="fld" style="margin-top:10px">Ajouter un profil<input id="newprof" maxlength="20" placeholder="Prénom de l’enfant" autocomplete="off"></label><div class="seg" style="margin-top:6px">${[['g','👦 Garçon'],['f','👧 Fille']].map(([c,l])=>`<button class="${(Acct.newG||'g')===c?'on':''}" data-act="newgenre" data-arg="${c}">${l}</button>`).join('')}</div><button class="btn p sm" style="margin-top:8px" data-act="acctadd">➕ Ajouter</button></section>
