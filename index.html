@@ -2954,7 +2954,7 @@ function render(){
 }
 function weekHTML(){const now=new Date(),dow=(now.getDay()+6)%7,mon=addDays(now,-dow),t=dayKey();return (window.MLANG==='en'?['M','T','W','T','F','S','S']:['L','M','M','J','V','S','D']).map((n,i)=>{const d=dayKey(addDays(mon,i)),st=S.days[d],done=dayDone(st);const cls=(done?'done ':d<t?'miss ':'')+(d===t?'today':'');return `<div class="day ${cls}">${n}<b>${done?'🔥':d===t?'⭐':''}</b></div>`;}).join('');}
 
-// ---------- Jouer entre amis : en équipe (jauge de la semaine), Défi (10 questions, une étoile au meilleur), petits mots ----------
+// ---------- Jouer entre amis : en équipe (parties avec un objectif commun), petits mots (le mode Défi a été retiré) ----------
 // Salon privé par code, accepté par les deux parents. On voit le prénom et le badge du copain (avatar, niveau, série, badges) pour se comparer.
 const AMIS_MOTS={bravo:['👏','Bien joué !'],atoi:['🎮','À toi de jouer !'],presque:['💪','On y est presque !'],fort:['🏆','Trop fort !'],courage:['🔥','Allez, encore un effort !'],merci:['🤝','Merci coéquipier !'],reussi:['🎉','On a réussi !'],chance:['🍀','Bonne chance !']};
 const AMIS_VOIX={normale:['🙂','Normale',1,1],robot:['🤖','Robot',.2,.85],souris:['🐭','Souris',2,1.35],geant:['👹','Géant',.01,.72],rigolo:['🤪','Rigolo',1.7,1.6]};
@@ -2967,8 +2967,10 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
   sel(act,v){document.querySelectorAll(`#modal [data-act="${act}"]`).forEach(b=>b.classList.toggle('on',b.dataset.arg===String(v)));},
   // liste courte + bouton « Plus » ; le choix en cours reste toujours visible
   court(items,cur,nb,g,fn){return items.map(([k,v],i)=>fn(k,v,i>=nb&&k!==cur?'xtra':'')).join('')+(items.length>nb?`<button class="amplus" data-act="amisplus" data-arg="${g}">＋ Plus</button>`:'');},
-  async charger(lieu){if(!this.ok())return null;const pid=Acct.pid;const {data,error}=await Acct.sb.rpc('amis_moi',lieu?{p_profil:pid,p_lieu:lieu}:{p_profil:pid});if(error||!data||pid!==Acct.pid)return null;this.d=data;this.d.pid=pid;this.t=Date.now();return data;},
+  async charger(lieu){if(!this.ok())return null;const pid=Acct.pid;const {data,error}=await Acct.sb.rpc('amis_moi',lieu?{p_profil:pid,p_lieu:lieu}:{p_profil:pid});if(error||!data||pid!==Acct.pid)return null;
+    (data.salons||[]).forEach(x=>{x.defi=null;x.etoiles=null;x.evts=this.sansDefi(x.evts);});/* mode Défi retiré */this.d=data;this.d.pid=pid;this.t=Date.now();return data;},
   frais(){return this.d&&this.d.pid===Acct.pid?this.d:null;},
+  sansDefi(L){return (L||[]).filter(e=>e.type!=='defi'&&e.type!=='defi_joue');},
   maj(){if(!this.ok()||this.load||Date.now()-this.t<45000)return;const avant=JSON.stringify(this.frais());this.load=this.charger('accueil').finally(()=>{this.load=null;if(SCR!=='home')return;this.nouveaux();if(!modalOpen&&JSON.stringify(this.frais())!==avant)render();setTimeout(()=>this.recoModal(),900);});},
   // objectif d'équipe atteint : on le dit dès l'accueil (une fois par salon et par semaine)
   recoModal(){const d=this.frais();if(!d||SCR!=='home'||modalOpen)return;const x=d.salons.find(s=>this.gagne(s)&&!s.recompense_prise);if(!x)return;
@@ -3055,7 +3057,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     for(const e of E){const plus=e.pend;e.pend=0;
       try{const {data}=await Acct.sb.rpc('amis_live',{p_profil:Acct.pid,p_salon:e.id,p_apres:e.last,p_plus:plus,p_partie:fin?fin.ok:null,p_lieu:fin?'salon':'jeu'});
         if(!data||data.erreur){e.pend+=plus;continue;}
-        const luiAv=e.lui;e.moi=Math.max(e.moi-e.pend,data.moi)+e.pend;e.lui=data.lui;e.copain=data.copain||e.copain;const ev=(data.evts||[]).slice().sort((a,b)=>a.id-b.id);
+        const luiAv=e.lui;e.moi=Math.max(e.moi-e.pend,data.moi)+e.pend;e.lui=data.lui;e.copain=data.copain||e.copain;const ev=this.sansDefi(data.evts).sort((a,b)=>a.id-b.id);
         ev.forEach(v=>{e.last=Math.max(e.last,v.id);if(!fin&&(!v.moi||v.type==='objectif'))this.jeuNote(e,v);});
         if(!fin&&e.lui>luiAv&&!ev.some(v=>!v.moi&&v.type==='partie'))this.luiPlus(e.lui-luiAv);
         if(!fin)this.barMaj();if(!fin&&data.etat&&data.etat!=='jeu'&&!e.fete){e.fete=1;this.finPartie(e);}}catch(z){e.pend+=plus;}}},
@@ -3138,10 +3140,9 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     const info=D&&D.expire?`<button class="am-info" data-act="defires" data-arg="${D.id}">⌛ Le défi a expiré <u>OK</u></button>`:D&&!D.fini&&D.moi!=null?`<div class="am-info">⏳ Défi envoyé : tu as <b>${D.moi} / ${D.n}</b>. À ${qui} de jouer !</div>`:'';
     const mots=(x.mots||[]).slice(0,3).map(m=>`<button class="am-bulle" data-act="amisdire" data-arg="${m.mot}|${m.voix}">${this.av(c,'xs')}<span><b>${qui} :</b> ${esc((AMIS_MOTS[m.mot]||['',''])[1])}</span><i class="am-ic">🔊</i></button>`).join('');
     const sec=(jouerBas?`<button class="smb" data-act="amisjouer" data-arg="${x.theme}"><span class="am-ic">▶️</span>Jouer</button>`:'')
-      +(this.defiOuvert(x)||(D&&(D.fini||D.expire))?'':`<button class="smb" data-act="defilancer" data-arg="${x.id}"><span class="am-ic">⚔️</span>Défier</button>`)
       +`<button class="smb" data-act="amismot" data-arg="${x.id}"><span class="am-ic">💬</span>Message</button>`;
     return `<div class="card sal act" style="${this.cols(x.createur)}">
-      <div class="duo">${this.badge(this.moi(),'ab1'+(e.moi>e.lui?' top1':''),e.moi)}<span class="duo-x">🤝</span>${this.badge(c,'ab2'+(e.lui>e.moi?' top1':''),e.lui)}</div>
+      <div class="duo">${this.badge(this.moi(),'ab1'+(x.moi>x.lui?' top1':''))}<span class="duo-x">🤝</span>${this.badge(c,'ab2'+(x.lui>x.moi?' top1':''))}</div>
       <div class="goal"><div class="goal-t"><span>🎯 Ensemble</span><b>${tot} / ${x.objectif}</b></div>${this.jauge(x.moi,x.lui,x.objectif)}<small>${T.e} ${esc(T.n)} · 1 bonne réponse = 1 point · encore <b>${Math.max(0,x.objectif-tot)}</b> pour gagner 🏆</small></div>
       ${this.fil(x)}${mots}${info}${prim}<div class="sal-mini">${sec}</div></div>`;},
   // partie gagnée : elle est finie ; on ouvre la récompense, puis on relance une nouvelle partie
@@ -3374,8 +3375,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.13';
+const VERSION='2.14';
 const VERSIONS=[
+ ['2.14','24/11/2026 00:45','Entre amis : le mode Défi est retiré (plus de bouton « Défier », plus de défis ni d’étoiles) ; on joue seulement en équipe, partie après partie'],
  ['2.13','24/11/2026 00:35','Entre amis : la fenêtre « X est là ! » ne reste plus devant une partie (elle ne s’affiche que pour celui qui attendait, et toute partie qui démarre ferme les fenêtres ouvertes)'],
  ['2.12','24/11/2026 00:25','Notifications au bon appareil : celles d’un enfant vont sur sa tablette (sinon sur le dernier appareil utilisé), les alertes admin jamais sur l’appareil d’un enfant ; code parent commun à toute la famille, demandé aussi depuis une notification et dans l’admin ; code oublié : code envoyé par e-mail au parent ; vibration et son différents pour l’enfant et pour les parents'],
  ['2.11','24/11/2026 00:10','Entre amis : une partie a une fin (à l’objectif, la partie s’arrête et la victoire s’affiche), récompense puis « Nouvelle partie », salle d’attente et invitation « Je rejoins la partie », notifications « X t’attend »'],
@@ -3662,7 +3664,7 @@ const ACT={
     +sec('🎮 Les jeux',['<b>Maths</b> et <b>Lecture</b> d’abord. <b>Défi éclair</b> : le plus de calculs justes en une minute.','Les <b>autres jeux</b> (monnaie, logique, robot, anglais, arabe…) s’ouvrent après les maths du jour, et de nouveaux arrivent avec le niveau du joueur.'])
     +sec('⭐ Récompenses',['Les bonnes réponses font monter le <b>niveau du joueur</b>. Les <b>pièces 🪙</b> achètent des objets pour le personnage (jamais d’argent réel).','La <b>série 🔥</b> compte les jours joués de suite. La mission du jour ouvre le <b>coffre du jour</b>.',`Les <b>coffres magiques</b> se gagnent en jouant et s’ouvrent après ${CFG.cofH} h : pièces, autocollants pour l’album, objets… ou une farce.`])
     +sec('🎁 Vrais cadeaux',['Dans l’onglet <b>Cadeaux</b>, fixez une vraie récompense (une glace, une sortie…) et l’objectif pour l’obtenir.','L’enfant voit sa progression, et une fête s’affiche quand il l’atteint.'])
-    +sec('👫 Entre amis',['L’enfant joue en équipe avec un copain grâce à un <b>code à 6 chiffres</b>. Ils voient le prénom et l’avatar de l’autre.','<b>1 bonne réponse = 1 point</b> dans une jauge commune. À 100 points, la <b>partie est gagnée</b> et s’arrête : une récompense chacun.','Pour rejouer : <b>Nouvelle partie</b>. Le copain reçoit l’invitation et touche « Je rejoins » : la partie commence quand ils sont deux.','<b>Défi</b> : 10 questions chacun à son niveau, le meilleur gagne une étoile.','Messages tout faits lus par une voix rigolote : aucun message libre. Un salon se retire dans Famille et compte.'])
+    +sec('👫 Entre amis',['L’enfant joue en équipe avec un copain grâce à un <b>code à 6 chiffres</b>. Ils voient le prénom et l’avatar de l’autre.','<b>1 bonne réponse = 1 point</b> dans une jauge commune. À 100 points, la <b>partie est gagnée</b> et s’arrête : une récompense chacun.','Pour rejouer : <b>Nouvelle partie</b>. Le copain reçoit l’invitation et touche « Je rejoins » : la partie commence quand ils sont deux.','Messages tout faits lus par une voix rigolote : aucun message libre. Un salon se retire dans Famille et compte.'])
     +sec('👨‍👩‍👧 Parents et famille',['Chaque tablette s’ouvre sur son enfant. Pour en ajouter une : <b>📱 Appareils → Ajouter un appareil</b>, puis taper le code sur la tablette (« Se connecter » → « J’ai un code »).','Sur un appareil <b>partagé</b>, on passe à un frère ou une sœur avec <b>Changer</b>, en restant appuyé.','Le <b>code parent</b> est le même pour toute la famille, sur tous les appareils. Code oublié : un code est envoyé par e-mail au parent.','Invitez un second parent dans Famille et compte : il voit les mêmes enfants.','L’onglet <b>Progrès</b> ouvre sur le tableau de bord : un score sur 1000 avec le niveau repère (CP, CE1, CE2), la vitesse, les calculs sus par cœur et la réussite, mois par mois. Les rapports par e-mail se coupent dans Famille et compte.'])
     +sec('🔄 Mises à jour',['Malino vérifie seul les nouvelles versions : un bandeau propose « Mettre à jour ».','Le numéro de version est en bas de l’accueil : touchez-le pour voir les nouveautés ou vérifier.'])
     +`</div><button class="btn y block" data-act="mclose">Fermer</button>`);},
