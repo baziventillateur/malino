@@ -2802,8 +2802,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.97';
+const VERSION='1.98';
 const VERSIONS=[
+ ['1.98','23/11/2026 20:15','Liens des mails vers l’Espace parents (progrès, famille, jeux) ; admin : accès direct aux campagnes et au parcours d’accueil dans l’appli Contacts'],
  ['1.97','23/11/2026 19:20','Admin : liste des familles allégée (un seul indicateur « En ligne », appareil précisé seulement dans la fiche)'],
  ['1.96','23/11/2026 19:10','Malino+ offert (codes promo, mois offerts) : chaque jeu s’arrête au monde 8 ; l’abonnement payé débloque tous les mondes'],
  ['1.95','23/11/2026 18:55','Espace parents : astuce « Ajoutez un 2ᵉ parent », avec ce que ça permet, puis accès direct à l’invitation ; admin : filtre « En ligne » dans la liste des familles'],
@@ -3417,7 +3418,7 @@ const Plan={info:null,
     try{const k='malino_src_sent_'+Acct.user.id;if(!localStorage.getItem(k))Acct.sb.rpc('maj_source',{p_source:localStorage.getItem('malino_src')||'direct'}).then(r=>{if(!r.error)localStorage.setItem(k,'1');});}catch(e){}
     Famille.afterRefresh();
     if(Onb.should()&&SCR!=='game')setTimeout(()=>{if(Onb.should())Onb.start();},500);
-    try{const g=new URLSearchParams(location.search).get('go');if(g&&!Plan._go){Plan._go=1;setTimeout(()=>{if(SCR==='game'||Onb.should())return;if(g==='offre')ACT.offre('mail');else if(g==='inviter')ACT.parrain();else if(g==='cadeaux'){adminTab='cadeaux';ACT.parent();}},1200);}}catch(e){}
+    try{const g=new URLSearchParams(location.search).get('go');if(g&&!Plan._go){Plan._go=1;setTimeout(()=>{if(SCR==='game'||Onb.should())return;if(g==='offre')ACT.offre('mail');else if(g==='inviter')ACT.parrain();else if(g==='cadeaux'){adminTab='cadeaux';ACT.parent();}else if(g==='progres'||g==='famille'||g==='jeux'||g==='reglages'){adminTab=g==='famille'?'compte':g;ACT.parent();}},1200);}}catch(e){}
     if(data.cadeaux>0&&!quiet)queueModal(`<div class="bigemoji sm">🎁</div><h2>Cadeau activé !</h2><p>Malino+ est débloqué jusqu’au <b>${fmtDate(data.plus_jusqua)}</b>.</p><button class="btn g block" data-act="mclose">Génial ! 🎉</button>`,()=>Confetti.burst(140));
     if(before!==this.kind()&&SCR!=='game')render();
     return data;
