@@ -662,6 +662,26 @@ h1,h2,h3,h4{font-weight:700}
 .cur{background:var(--v);color:#fff;border-radius:99px;padding:3px 9px;font-size:12px;font-weight:700;flex:none}
 .reco{background:#DCFCE7;color:#14532D;border-radius:14px;padding:10px 12px;margin-bottom:10px;font-weight:500;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
 .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpt{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.kpt h3{margin:0}.kpt>span{font-size:12px;color:var(--ink2);font-weight:700;text-transform:capitalize}
+.kseg{display:flex;gap:6px;margin:8px 0 10px}.kseg button{flex:1;border:0;border-radius:12px;padding:7px;font:inherit;font-weight:700;font-size:14px;background:var(--soft);color:var(--ink2)}.kseg button.on{background:linear-gradient(180deg,#8B73FF,#6A4BF5);color:#fff;box-shadow:0 3px 0 #4B33C9}
+.khero{display:flex;align-items:center;gap:12px}
+.kring{flex:none;margin-left:5px;width:92px;height:92px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#FFFFFF,#EEE9FF 70%);box-shadow:inset 0 -4px 0 rgba(123,92,255,.18),0 8px 18px rgba(75,47,214,.18),0 0 0 5px #fff,0 0 0 7px #E4DCFF}
+.kring b{font-size:30px;line-height:1;color:#2B2160;font-variant-numeric:tabular-nums}.kring small{font-size:11px;color:var(--ink2);font-weight:700}
+.kst{display:flex;flex-direction:column;gap:2px;min-width:0}.klab{font-size:12px;font-weight:800;color:var(--ink2);text-transform:uppercase;letter-spacing:.04em}.kniv{font-size:19px;font-weight:800;color:#2B2160;line-height:1.15}.kdl small{font-size:12px;color:var(--ink2)}
+.kd{font-style:normal;font-size:12.5px;font-weight:800;border-radius:99px;padding:1px 8px;display:inline-block}.kd.up{background:#E3F9F0;color:#0B7A57}.kd.dn{background:#F1F2F6;color:#6B7088}.kd.eq{background:#F1F2F6;color:#6B7088}
+.klad{position:relative;display:flex;gap:2px;height:22px;margin:12px 0 4px;border-radius:99px;overflow:hidden;background:#F1F2F6}
+.klad span{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#6B7088;border-right:2px solid #fff}.klad span:last-of-type{border-right:0}.klad span.on{color:#fff}
+.klad i{position:absolute;left:0;top:0;bottom:0;z-index:1;background:linear-gradient(90deg,#B9A8FF,#7B5CFF);border-radius:99px 0 0 99px}
+.klad em{position:absolute;z-index:3;top:3px;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(43,33,96,.35),inset 0 0 0 4px #7B5CFF}
+.kmonde{font-size:13px;color:var(--ink2);margin:6px 0 10px}.kmonde b{color:var(--ink)}
+.ktiles{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.ktile{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:1px;background:#fff;border:1.5px solid #ECEAF7;border-radius:16px;padding:8px 4px 7px;font:inherit;color:inherit;box-shadow:0 3px 0 #ECEAF7;cursor:pointer}
+.ktile.on{border-color:#7B5CFF;box-shadow:0 3px 0 #CFC4FF,0 8px 16px rgba(75,47,214,.12)}
+.ktile .ke{font-size:16px;line-height:1}.ktile b{font-size:24px;line-height:1.1;color:#2B2160;font-variant-numeric:tabular-nums}.ktile small{font-size:11px;color:var(--ink2);line-height:1.2;min-height:26px;display:flex;align-items:center}.ktile .kd{font-size:11px;padding:0 6px;margin:2px 0}.ktile em{font-style:normal;font-size:10.5px;color:#8A8FA8;line-height:1.2}
+.kfoot{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;font-size:12.5px;color:var(--ink2);margin:10px 0 4px}.kfoot b{color:var(--ink)}
+.kch{margin-top:10px;border-top:1px solid #F0F1F6;padding-top:10px}.kchh{font-size:13px;color:var(--ink2);margin-bottom:6px}.kchh b{color:var(--ink)}.kchs{display:grid!important;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:4px}.kchs button{font-size:12.5px;padding:5px 2px;margin:0}
+.chart .axc{font-weight:700;fill:#2B2160}
+.kinfo{margin-top:8px;font-size:12.5px;color:var(--ink2)}.kinfo summary{cursor:pointer;font-weight:700;color:#6A4BF5}.kinfo ul{padding-left:18px;margin:6px 0 0}.kinfo li{margin-bottom:4px;line-height:1.35}
 .tile{background:var(--soft);border-radius:14px;padding:10px 6px;text-align:center}
 .tile b{display:block;font-size:21px}.tile small{color:var(--ink2);font-size:12px}
 .chart{width:100%;height:auto;display:block;overflow:visible}
@@ -2081,7 +2101,7 @@ const today=()=>S.days[dayKey()]||{};
 // la lecture (méthode syllabique française) n'existe qu'en français
 const frOnNow=()=>S.settings.frOn&&window.MLANG==='fr';
 const chestAvailable=()=>{const t=today();return !!t.math&&(!!t.fr||!frOnNow())&&!t.chest;};
-function recordStat(store,key,ok,ms,fast){const s=store[key]||(store[key]={n:0,ok:0,st:0,err:0,ms:0});s.n++;s.last=Date.now();s.lo=ok?1:0;if(ok){s.ok++;s.ms=s.ms?Math.round(s.ms*.6+ms*.4):Math.round(ms);if(fast)s.st=Math.min(s.st+1,5);}else{s.err++;s.st=0;s.le=Date.now();}}
+function recordStat(store,key,ok,ms,fast){const s=store[key]||(store[key]={n:0,ok:0,st:0,err:0,ms:0});s.n++;s.last=Date.now();s.lo=ok?1:0;if(ok){s.ok++;s.ms=s.ms?Math.round(s.ms*.6+ms*.4):Math.round(ms);if(fast){s.st=Math.min(s.st+1,5);if(s.st>=3&&!s.m)s.m=Date.now();}}else{s.err++;s.st=0;s.le=Date.now();delete s.m;}}
 function wOf(store,key){const s=store[key];if(!s||!s.n)return 3;let w=s.st>=3?.5:s.st===2?1.5:s.st===1?2.5:4;if(s.le&&Date.now()-s.le<3*864e5)w+=2;return w;}
 const factStatus=s=>!s||!s.n?'new':s.st>=3?'ok':(s.st>=1||s.lo)?'mid':'weak';
 // Rythme adaptatif : d'après les 2 dernières parties du niveau
@@ -2832,7 +2852,7 @@ function endGame(){
     if(G.sub==='fr')sess.flash=S.frFlashMs;if(G.defi)sess.defi=G.defi;if(G.equipe)sess.eq=1;
     S.days[day]=S.days[day]||{};S.days[day][G.sub]=true;updateStreak(day);
   }
-  S.sessions.push(sess);if(S.sessions.length>800)S.sessions.splice(0,S.sessions.length-800);delete S.enCours;try{Amis.apres(sess);}catch(e){}
+  S.sessions.push(sess);if(S.sessions.length>800)S.sessions.splice(0,S.sessions.length-800);delete S.enCours;try{Amis.apres(sess);}catch(e){}Kpi.snap();
   S.stats.bestCombo=Math.max(S.stats.bestCombo,G.bestCombo);S.xp+=G.xp;S.coins+=G.coins;G.sess=sess;
   TimeT.flush();const ups=G.mode==='sprint'?[]:autoUp();let thUp=0,thLock=0;if(THEMES[G.sub]&&S.settings.thAuto){const lv=S.settings.lv[G.sub],len=THEMES[G.sub].levels.length,p=paceOf(G.sub,lv);if(lv<len&&levelMastery(G.sub,lv)>=p.need){let tgt=Math.min(lv+p.jump,len);for(let k=lv+1;k<tgt;k++){const Lk=THEMES[G.sub].levels[k-1];if(Lk&&Lk.lesson&&!(S.arLesson||{})[Lk.lesson]){tgt=k;break;}}const cap=Plan.thMax(G.sub);if(tgt<=cap)S.settings.lv[G.sub]=thUp=tgt;else if(lv<cap)S.settings.lv[G.sub]=thUp=cap;else thLock=lv+1;}}const thT=THEMES[G.sub];
   save();
@@ -3255,8 +3275,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.09';
+const VERSION='2.10';
 const VERSIONS=[
+ ['2.10','23/11/2026 23:55','Tableau de bord des parents : score de calcul et de lecture sur 1000 avec le niveau repère (CP, CE1, CE2), vitesse comparée aux repères du programme, calculs sus par cœur, réussite du premier coup, et l’évolution mois par mois'],
  ['2.09','23/11/2026 23:30','Connexion simplifiée : ajouter une tablette avec un code à 6 chiffres affiché sur le téléphone du parent ; « Cet appareil est pour… » (l’invité rejoint l’enfant choisi, sans doublon) ; appareil personnel ou partagé ; page « 📱 Appareils » pour voir, régler et retirer chaque appareil'],
  ['2.08','23/11/2026 22:20','Espace parents plus clair : l’essentiel en 3 lignes, chaque réglage replié avec sa valeur visible, réglages avancés rangés à l’intérieur ; guide « Comment marche Malino » raccourci et mis à jour (Entre amis, mises à jour)'],
  ['2.07','23/11/2026 22:10','Mises à jour : Malino vérifie tout seul s’il y a une nouvelle version (bandeau « Mettre à jour »), numéro de version discret en bas de l’accueil et bouton « Vérifier les mises à jour »'],
@@ -3374,6 +3395,89 @@ function weakList(){
   if(!arr.length)return '<div class="empty">Rien à signaler 👍</div>';
   return arr.map(({f,s})=>`<div class="weak"><span class="chip weak">${esc(fShort(f))}</span><span>${s.err} erreur${s.err>1?'s':''} · ${s.ok} juste${s.ok>1?'s':''}${s.ms?' · '+sec(s.ms):''}</span></div>`).join('');
 }
+// ---------- Tableau de bord des parents : quelques chiffres clés, suivis mois par mois ----------
+// Score : le monde atteint et la réussite sur ce monde, ramenés sur 1000 (comme les scores des diagnostics adaptatifs).
+// Vitesse : calculs justes par minute ; par cœur : juste 3 fois de suite en moins de 3 s ; réussite : du premier coup.
+const Kpi={dom:'math',k:'sc',
+  ym(t){const d=t?new Date(t):new Date();return d.getFullYear()+'-'+pad2(d.getMonth()+1);},
+  fin(ym){const [y,m]=ym.split('-').map(Number);return new Date(y,m,1).getTime()-1;},
+  prev(ym,n){const [y,m]=ym.split('-').map(Number),d=new Date(y,m-1-(n==null?1:n),1);return d.getFullYear()+'-'+pad2(d.getMonth()+1);},
+  lab(ym,l){const [y,m]=ym.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString(LOC,l?{month:'long',year:'numeric'}:{month:'short'}).replace('.','');},
+  N(dom){return dom==='math'?MATH_LEVELS.length:FR_LEVELS.length;},
+  // les mondes de « faits numériques » à connaître par cœur (pas les techniques : dizaines, retenues, grandes additions)
+  faits(){if(!this._fk){const k=new Set();MATH_LEVELS.forEach((L,i)=>{if(!/retenue|dizaines|Grandes/i.test(L.n))mathFacts(i+1).forEach(f=>k.add(f.key));});this._fk=[...k];}return this._fk;},
+  auto(t){const F=S.facts||{};return this.faits().filter(k=>{const f=F[k];return f&&f.st>=3&&f.ms>0&&f.ms<=3000&&(!t||(f.m||f.last||0)<=t);}).length;},
+  lus(t){const F=S.fr||{};return Object.keys(F).filter(k=>{const f=F[k];return /^f\d+:/.test(k)&&f&&f.st>=3&&(!t||(f.m||f.last||0)<=t);}).length;},
+  pos(dom,t,live){const N=this.N(dom),L=(S.sessions||[]).filter(s=>s.type===dom&&s.lvl&&s.t<=t);
+    let W=L.reduce((a,s)=>Math.max(a,s.lvl),0);if(live)W=Math.max(W,(dom==='math'?S.settings.mathLevel:S.settings.frLevel)||0);if(!W)return null;W=Math.min(W,N);
+    const r=L.filter(s=>s.lvl===W).slice(-3),n=r.reduce((a,s)=>a+(s.n||0),0),ok=r.reduce((a,s)=>a+(s.ok||0),0);
+    return {W,p:(W-1)+(n?Math.min(1,ok/n):0)};},
+  score(dom,p){return Math.round(p/this.N(dom)*1000);},
+  niv(dom,p){const B=dom==='math'?[['CP',0,9],['CE1',9,14],['CE2',14,20]]:[['GS',0,2],['CP',2,12],['CE1',12,21]];
+    for(let i=0;i<B.length;i++){const [c,a,b]=B[i];if(p<b||i===B.length-1){const f=Math.max(0,Math.min(.999,(p-a)/(b-a)));return {c,B,t:c==='GS'?'Grande section':`${c} · ${['début','milieu','fin'][Math.floor(f*3)]} d’année`};}}},
+  rep(dom,c){return dom==='math'?({CP:8,CE1:12,CE2:15}[c]||8):({GS:50,CP:50,CE1:70,CE2:90}[c]||50);},
+  mois(ym){const cur=ym===this.ym(),t=cur?Date.now():this.fin(ym),t0=this.fin(this.prev(ym))+1,M=(S.sessions||[]).filter(s=>s.t>=t0&&s.t<=t);
+    const m=M.filter(s=>s.type==='math'),f=M.filter(s=>s.type==='fr');
+    const acc=L=>{const n=L.reduce((a,s)=>a+(s.n||0),0);return n?Math.round(L.reduce((a,s)=>a+(s.ok||0),0)/n*100):null;};
+    let tt=0,tn=0;m.forEach(s=>{if(s.avgMs&&s.ok){tt+=s.avgMs*s.ok;tn+=s.ok;}});
+    const fl=FR_LEVELS.findIndex(L=>L.type==='flash')+1,fx=f.filter(s=>s.lvl===fl&&s.flash).map(s=>s.flash);
+    const pm=this.pos('math',t,cur),pf=this.pos('fr',t,cur);
+    let sec=0;Object.keys(S.time||{}).forEach(k=>{if(k.startsWith(ym))sec+=TimeT.sec(k);});if(cur&&!(S.time||{})[dayKey()])sec+=TimeT.sec();
+    return {sm:pm?this.score('math',pm.p):null,pm,sr:pf?this.score('fr',pf.p):null,pf,cpm:tn?Math.round(60000/(tt/tn)):null,am:acc(m),af:acc(f),
+      wpm:fx.length?Math.round(60000/Math.min(...fx)):null,auto:this.auto(cur?0:t),lus:this.lus(cur?0:t),j:new Set(M.map(s=>s.d)).size,min:Math.round((sec||M.reduce((a,s)=>a+(s.dur||0),0))/60)};},
+  get(ym){if(ym===this.ym())return this.mois(ym);const k=S.kpi&&S.kpi[ym];return k&&k.v===1?k:this.mois(ym);},
+  // photo du mois en cours, gardée à la fin de chaque partie : les mois passés restent tels qu'ils étaient
+  snap(){try{const ym=this.ym();S.kpi=S.kpi||{};S.kpi[ym]=Object.assign(this.mois(ym),{v:1});const ks=Object.keys(S.kpi).sort();while(ks.length>24)delete S.kpi[ks.shift()];}catch(e){}},
+  mois6(){const d0=(S.sessions||[]).length?this.ym(S.sessions[0].t):this.ym(),cur=this.ym(),r=[];for(let i=5;i>=0;i--){const ym=this.prev(cur,i);if(ym>=d0)r.push(ym);}return r;}
+};
+function kpiChart(pts,o){
+  if(pts.filter(p=>p.y!=null).length<1)return '<div class="empty">La courbe apparaîtra après les premières parties.</div>';
+  const W=340,H=150,L=34,R=12,T=22,B=22,iw=W-L-R,ih=H-T-B,vals=pts.filter(p=>p.y!=null).map(p=>p.y),n=pts.length;let y1=o.max||Math.max(1,...vals)*1.12;if(!o.max){const st=Math.pow(10,Math.floor(Math.log10(y1)))/2;y1=Math.ceil(y1/st)*st;}
+  const X=i=>L+(n===1?iw/2:i*iw/(n-1)),Y=v=>T+ih-Math.min(Math.max(v,0),y1)/y1*ih;
+  let g='';[0,.5,1].forEach(f=>{const v=y1*f,y=Y(v).toFixed(1);g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="#ECEEF5" stroke-width="1"/><text x="${L-6}" y="${+y+4}" text-anchor="end" class="ax">${o.fmt(v)}</text>`;});
+  const P=pts.map((p,i)=>({p,i})).filter(x=>x.p.y!=null),d=P.map((x,j)=>`${j?'L':'M'}${X(x.i).toFixed(1)} ${Y(x.p.y).toFixed(1)}`).join(' ');
+  const area=P.length>1?`<path d="${d} L${X(P[P.length-1].i).toFixed(1)} ${T+ih} L${X(P[0].i).toFixed(1)} ${T+ih} Z" fill="url(#kpg)"/>`:'';
+  const dots=P.map(x=>`<circle cx="${X(x.i).toFixed(1)}" cy="${Y(x.p.y).toFixed(1)}" r="${x.i===n-1?5:4}" fill="#7B5CFF" stroke="#fff" stroke-width="2"/>`).join('');
+  const hits=P.map(x=>`<rect x="${(X(x.i)-iw/(2*Math.max(1,n-1))).toFixed(1)}" y="${T-14}" width="${(iw/Math.max(1,n-1)).toFixed(1)}" height="${ih+28}" fill="transparent" data-tip="${esc(x.p.tip+' : '+o.fmt(x.p.y,1))}"/>`).join('');
+  const xl=pts.map((p,i)=>`<text x="${X(i).toFixed(1)}" y="${H-5}" text-anchor="middle" class="ax${i===n-1?' axc':''}">${esc(p.lab)}</text>`).join('');
+  const lp=P[P.length-1],lx=X(lp.i),ly=Math.max(12,Y(lp.p.y)-10);
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${esc(o.title||'')}"><defs><linearGradient id="kpg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7B5CFF" stop-opacity=".22"/><stop offset="1" stop-color="#7B5CFF" stop-opacity="0"/></linearGradient></defs>${g}${area}${P.length>1?`<path d="${d}" fill="none" stroke="#7B5CFF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`:''}${dots}<text x="${Math.min(lx,W-R).toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${lx>W-40?'end':'middle'}" class="vl">${o.fmt(lp.p.y,1)}</text>${xl}${hits}</svg>`;
+}
+function paneKpi(){
+  const K=Kpi;if(!(S.sessions||[]).length)return `<section class="acard kpi"><h3>📈 Tableau de bord</h3><div class="empty">Les chiffres clés de ${nm()} apparaîtront après ses premières parties.</div></section>`;
+  const ym=K.ym(),c=K.get(ym),pv=K.get(K.prev(ym)),dm=K.dom,math=dm==='math',N=K.N(dm),pos=math?c.pm:c.pf;
+  const v=(o,k)=>o?o[k]:null,dl=(a,b,u)=>a==null||b==null?'':a>b?`<i class="kd up">▲ +${a-b}${u||''}</i>`:a<b?`<i class="kd dn">▼ ${a-b}${u||''}</i>`:`<i class="kd eq">=</i>`;
+  const seg=`<div class="kseg">${[['math','🔢 Calcul'],['fr','📖 Lecture']].map(([k,l])=>`<button class="${dm===k?'on':''}" data-act="kpidom" data-arg="${k}">${l}</button>`).join('')}</div>`;
+  if(!pos)return `<section class="acard kpi"><div class="kpt"><h3>📈 Tableau de bord</h3><span>${K.lab(ym,1)}</span></div>${seg}<div class="empty">Pas encore de partie de ${math?'calcul':'lecture'}.</div></section>`;
+  const sc=math?c.sm:c.sr,sc0=math?pv.sm:pv.sr,nv=K.niv(dm,pos.p),L=(math?MATH_LEVELS:FR_LEVELS)[pos.W-1],prem=!(math?pv.pm:pv.pf);
+  const lad=`<div class="klad">${nv.B.map(([b,a,e])=>`<span style="flex:${e-a}" class="${b===nv.c?'on':''}">${b}</span>`).join('')}<i style="width:${(pos.p/N*100).toFixed(1)}%"></i><em style="left:${(pos.p/N*100).toFixed(1)}%"></em></div>`;
+  const rp=K.rep(dm,nv.c==='GS'?'CP':nv.c);
+  const T=math?[
+      ['⚡',c.cpm,'calculs justes / min',dl(c.cpm,pv.cpm),`repère fin ${nv.c} : ${rp}/min`,'cpm'],
+      ['🧠',c.auto,'calculs par cœur',dl(c.auto,pv.auto),`sur ${K.faits().length}`,'auto'],
+      ['🎯',c.am,'% justes du 1er coup',dl(c.am,pv.am,' pts'),'idéal : 75 à 90 %','acc']]
+    :[['👀',c.wpm,'mots lus / min',dl(c.wpm,pv.wpm),`repère fin ${nv.c==='GS'?'CP':nv.c} : ${rp}`,'wpm'],
+      ['🔤',c.lus,'sons et mots maîtrisés',dl(c.lus,pv.lus),'juste 3 fois de suite','lus'],
+      ['🎯',c.af,'% justes du 1er coup',dl(c.af,pv.af,' pts'),'idéal : 75 à 90 %','acc']];
+  const tile=([e,val,l,d,sub,k])=>`<button class="ktile ${K.k===k?'on':''}" data-act="kpik" data-arg="${k}"><span class="ke">${e}</span><b>${val==null?'–':val+(k==='acc'?' %':'')}</b><small>${l}</small>${d}<em>${sub}</em></button>`;
+  const ks=math?[['sc','Score'],['cpm','Vitesse'],['auto','Par cœur'],['acc','Réussite']]:[['sc','Score'],['wpm','Vitesse'],['lus','Maîtrisés'],['acc','Réussite']];
+  if(!ks.some(x=>x[0]===K.k))K.k='sc';
+  const kv=(o,k)=>k==='sc'?(math?o.sm:o.sr):k==='acc'?(math?o.am:o.af):o[k];
+  const unit={sc:x=>Math.round(x)+'',cpm:x=>Math.round(x)+'/min',wpm:x=>Math.round(x)+'/min',auto:x=>Math.round(x)+'',lus:x=>Math.round(x)+'',acc:x=>Math.round(x)+' %'}[K.k];
+  const pts=K.mois6().map(m=>({lab:K.lab(m),tip:K.lab(m,1),y:kv(K.get(m),K.k)}));
+  const kt=ks.find(x=>x[0]===K.k)[1];
+  return `<section class="acard kpi"><div class="kpt"><h3>📈 Tableau de bord</h3><span>${K.lab(ym,1)}</span></div>${seg}
+    <div class="khero"><div class="kring"><b>${sc}</b><small>/ 1000</small></div><div class="kst"><span class="klab">${math?'Score de calcul':'Score de lecture'}</span><span class="kniv">${nv.t}</span><span class="kdl">${prem?'<i class="kd eq">1er mois</i>':dl(sc,sc0)+' <small>ce mois</small>'}</span></div></div>
+    ${lad}<p class="kmonde">${L?L.e:''} Monde ${pos.W}/${N} : <b>${esc(L?L.n:'')}</b></p>
+    <div class="ktiles">${T.map(tile).join('')}</div>
+    <div class="kfoot"><span>📅 <b>${c.j}</b> jour${c.j>1?'s':''} joué${c.j>1?'s':''} ce mois</span><span>⏱️ <b>${fmtDur(c.min*60)}</b></span><span>🔥 série <b>${curStreak()}</b></span></div>
+    <div class="kch"><div class="kchh"><b>${kt}</b> · mois par mois</div><div class="seg kchs">${ks.map(([k,l])=>`<button class="${K.k===k?'on':''}" data-act="kpik" data-arg="${k}">${l}</button>`).join('')}</div>${kpiChart(pts,{fmt:unit,max:K.k==='sc'?0:K.k==='acc'?100:0,title:kt+' par mois'})}</div>
+    <details class="kinfo"><summary>Comment ces chiffres sont calculés ?</summary><ul>
+      <li><b>Score</b> : chaque monde réussi vaut ${math?50:Math.round(1000/N)} points, plus la réussite sur le monde en cours, sur 1000. Le niveau (${math?'CP, CE1, CE2':'GS, CP, CE1'}) est un repère indicatif d’après les programmes.</li>
+      ${math?`<li><b>Vitesse</b> : calculs justes en une minute, d’après son temps de réponse. Repères du programme 2024 (à l’écrit, tables d’addition) : 8/min en fin de CP, 12 en fin de CE1, 15 en fin de CE2.</li><li><b>Par cœur</b> : un calcul est su par cœur quand il est juste 3 fois de suite, en moins de 3 secondes.</li>`
+        :`<li><b>Vitesse</b> : mots lus par minute en lecture éclair (le mot s’affiche puis disparaît). Repères de fluence : 50 mots/min en fin de CP, 70 en fin de CE1, 90 en fin de CE2.</li><li><b>Maîtrisés</b> : sons, syllabes et mots justes 3 fois de suite.</li>`}
+      <li><b>Réussite</b> : la bonne zone est entre 75 et 90 %. Au-dessus, c’est trop facile ; en dessous, trop difficile.</li></ul></details></section>`;
+}
 function paneProgress(){const h=paneProgressFull();if(Plan.kind()!=='gratuit')return h;const i=h.indexOf('<section class="acard"><h3>⏱️');if(i<0)return h;
   return h.slice(0,i)+`<div class="plock"><div class="plockin">${h.slice(i)}</div><div class="plockov"><b>👑 Suivi détaillé</b><p>Vitesse, défi éclair, carte des calculs, points à retravailler et lecture.</p><button class="btn sm" data-act="offre" data-arg="suivi">Débloquer avec Malino+</button></div></div>`;}
 function paneProgressFull(){
@@ -3381,7 +3485,7 @@ function paneProgressFull(){
   const md=aggDays(S.sessions.filter(s=>s.type==='math')),fd=aggDays(S.sessions.filter(s=>s.type==='fr')),sp=S.sessions.filter(s=>s.type==='sprint').slice(-20);
   const tMax=Math.max(4,Math.ceil(Math.max(0,...md.map(x=>x.avg/1000))*1.2)),spMax=Math.max(10,Math.ceil(Math.max(0,...sp.map(s=>s.score*60/s.sec))*1.2/5)*5);
   const lv=mapLevel||S.settings.mathLevel,last=S.sessions.slice(-12).reverse();
-  return `<section class="acard"><h3>📊 En bref</h3><div class="tiles"><div class="tile"><b>${worked}</b><small>jours travaillés</small></div><div class="tile"><b>🔥 ${curStreak()}</b><small>série (record ${S.streak.best})</small></div><div class="tile"><b>${S.stats.ok}</b><small>bonnes réponses</small></div><div class="tile"><b>${pct(acc)}</b><small>précision</small></div><div class="tile"><b>${totalMin} min</b><small>d’entraînement</small></div><div class="tile"><b>${li.level}</b><small>niveau joueur</small></div></div></section>
+  return `${paneKpi()}
   ${timeSection()}
   <section class="acard"><h3>🎯 Réussite en maths</h3><p class="hint">Bonnes réponses du premier coup, par jour.</p>${lineChart(md.map(x=>({lab:fmtD(x.d),y:Math.round(x.acc*100)})),{yMin:0,yMax:100,fmt:v=>Math.round(v)+' %',color:'#7B5CFF',title:'Réussite en maths par jour'})}</section>
   <section class="acard"><h3>⏱️ Vitesse en maths</h3><p class="hint">Temps moyen par bonne réponse. Plus la courbe descend, plus ${nm()} calcule vite.</p>${lineChart(md.filter(x=>x.avg).map(x=>({lab:fmtD(x.d),y:x.avg/1000})),{yMin:0,yMax:tMax,fmt:v=>v.toFixed(1).replace('.',',')+' s',color:'#7B5CFF',title:'Temps moyen par jour'})}</section>
@@ -3457,7 +3561,7 @@ const ACT={
     +sec('⭐ Récompenses',['Les bonnes réponses font monter le <b>niveau du joueur</b>. Les <b>pièces 🪙</b> achètent des objets pour le personnage (jamais d’argent réel).','La <b>série 🔥</b> compte les jours joués de suite. La mission du jour ouvre le <b>coffre du jour</b>.',`Les <b>coffres magiques</b> se gagnent en jouant et s’ouvrent après ${CFG.cofH} h : pièces, autocollants pour l’album, objets… ou une farce.`])
     +sec('🎁 Vrais cadeaux',['Dans l’onglet <b>Cadeaux</b>, fixez une vraie récompense (une glace, une sortie…) et l’objectif pour l’obtenir.','L’enfant voit sa progression, et une fête s’affiche quand il l’atteint.'])
     +sec('👫 Entre amis',['L’enfant joue en équipe avec un copain grâce à un <b>code à 6 chiffres</b>. Ils voient le prénom et l’avatar de l’autre.','<b>1 bonne réponse = 1 point</b> dans une jauge commune. Objectif atteint avant dimanche : une récompense chacun.','<b>Défi</b> : 10 questions chacun à son niveau, le meilleur gagne une étoile.','Messages tout faits lus par une voix rigolote : aucun message libre. Un salon se retire dans Famille et compte.'])
-    +sec('👨‍👩‍👧 Parents et famille',['Chaque tablette s’ouvre sur son enfant. Pour en ajouter une : <b>📱 Appareils → Ajouter un appareil</b>, puis taper le code sur la tablette (« Se connecter » → « J’ai un code »).','Sur un appareil <b>partagé</b>, on passe à un frère ou une sœur avec <b>Changer</b>, en restant appuyé.','Invitez un second parent dans Famille et compte : il voit les mêmes enfants.','L’onglet <b>Progrès</b> montre la réussite, la vitesse et le temps de jeu. Les rapports par e-mail se coupent dans Famille et compte.'])
+    +sec('👨‍👩‍👧 Parents et famille',['Chaque tablette s’ouvre sur son enfant. Pour en ajouter une : <b>📱 Appareils → Ajouter un appareil</b>, puis taper le code sur la tablette (« Se connecter » → « J’ai un code »).','Sur un appareil <b>partagé</b>, on passe à un frère ou une sœur avec <b>Changer</b>, en restant appuyé.','Invitez un second parent dans Famille et compte : il voit les mêmes enfants.','L’onglet <b>Progrès</b> ouvre sur le tableau de bord : un score sur 1000 avec le niveau repère (CP, CE1, CE2), la vitesse, les calculs sus par cœur et la réussite, mois par mois. Les rapports par e-mail se coupent dans Famille et compte.'])
     +sec('🔄 Mises à jour',['Malino vérifie seul les nouvelles versions : un bandeau propose « Mettre à jour ».','Le numéro de version est en bas de l’accueil : touchez-le pour voir les nouveautés ou vérifier.'])
     +`</div><button class="btn y block" data-act="mclose">Fermer</button>`);},
   majcheck(a,el){Maj.manuel(el);},majgo(){Maj.go();},
@@ -3511,7 +3615,7 @@ const ACT={
   setlang(l){if(l===(window.MLANG||'fr'))return;if(window.I18N)I18N.set(l);},
   newgenre(g){Acct.newG=g;const v=($('#newprof')||{}).value||'';keepScroll(render);const e=$('#newprof');if(e)e.value=v;},
   setgenre(g){S.genre=g;S.avatar=Object.assign({},S.avatar,g==='f'?{hair:'hair_long',shirt:'sh_rouge'}:{hair:'hair_court',shirt:'sh_bleu'});save();toast(g==='f'?'Profil : fille 👧':'Profil : garçon 👦');keepScroll(render);},
-  authview(v){Acct.view=v;Acct.draw();},authpw(){Acct.pwLogin();},authforgot(){Acct.forgotSend();},authpick(id){Acct.pick(id);},authkp(k){Acct.kpTape(k);},devajout(){DevP.ajout();},devreg(id){DevP.reg(id);},devpour(a){DevP.pour(a);},devretirer(id){DevP.retirer(id);},devtout(){DevP.tout=1;DevP.draw();},
+  authview(v){Acct.view=v;Acct.draw();},authpw(){Acct.pwLogin();},authforgot(){Acct.forgotSend();},authpick(id){Acct.pick(id);},authkp(k){Acct.kpTape(k);},kpidom(d){Kpi.dom=d;Kpi.k='sc';render();},kpik(k){Kpi.k=k;render();},devajout(){DevP.ajout();},devreg(id){DevP.reg(id);},devpour(a){DevP.pour(a);},devretirer(id){DevP.retirer(id);},devtout(){DevP.tout=1;DevP.draw();},
   acctlogout(){Acct.logout();},acctsetpw(id){Acct.setPw(id);},acctadd(){Acct.addProfile();},acctswitch(id){Acct.switchTo(id).then(()=>{SCR='admin';render();});},
   wstart(){const e=$('#wname');if(e&&e.value.trim()){S.name=e.value.trim().slice(0,20);save();}nextModal();render();},
   chest(){const t=today();if(!chestAvailable()){toast(t.chest?'Coffre déjà ouvert aujourd’hui. Reviens demain ! 🌙':'Termine ta mission du jour pour ouvrir le coffre 🎁');return;}queueModal('<div class="chestbig" data-act="chestopen">🎁</div><h2>Coffre du jour</h2><p>Touche le coffre pour l’ouvrir !</p>');},
