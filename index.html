@@ -2440,7 +2440,7 @@ function closeAllModals(){MQ.length=0;nextModal();}
 // Confirmation dans la charte de l'appli (remplace la fenêtre grise du navigateur), par-dessus tout le reste
 const Ask={cb:null,
   open(o){this.done(false);return new Promise(res=>{this.cb=res;let e=document.getElementById('ask');if(!e){e=document.createElement('div');e.id='ask';document.body.appendChild(e);}
-    e.className='modal ask';e.innerHTML=`<div class="mbox">${o.e?`<div class="bigemoji sm">${o.e}</div>`:''}<h2>${o.t}</h2>${o.p?`<p>${o.p}</p>`:''}<button class="btn ${o.cls||'p'} block" data-act="askok">${o.ok||'Oui'}</button><button class="btn sm w block" data-act="askno" style="margin-top:8px">${o.no||'Non'}</button></div>`;
+    e.className='modal ask';e.innerHTML=`<div class="mbox">${o.e?`<div class="bigemoji sm">${o.e}</div>`:''}<h2>${o.t}</h2>${o.p?`<p>${o.p}</p>`:''}<button class="btn ${o.cls||'p'} block" data-act="askok">${o.ok||'Oui'}</button><button class="btn sm w block" data-act="askno" style="margin-top:8px">${o.no||'Non'}</button>${o.alt?`<button class="alink" data-act="askalt">${o.alt}</button>`:''}</div>`;
     e.onclick=ev=>{if(ev.target===e)this.done(false);};});},
   done(v){const e=document.getElementById('ask');if(e){e.className='modal ask hidden';e.innerHTML='';}const c=this.cb;this.cb=null;if(c)c(v);}};
 function levelUpModal(from,to){
@@ -2505,6 +2505,11 @@ function partialSess(c){if(!c||!c.n||S.sessions.some(x=>x.t0===c.id))return null
   if(c.n>=Math.ceil((c.plan||10)/2)){S.days[day]=S.days[day]||{};S.days[day][c.sub]=true;updateStreak(day);}
   return sess;}
 function savePartial(){if(!G||G.ended||G.mode==='sprint')return null;ckpt();const sess=partialSess(S.enCours);delete S.enCours;save();return sess;}
+function fusionEtat(a,b){
+  if(Array.isArray(a)&&Array.isArray(b)){const k=x=>x&&typeof x==='object'?(x.id!=null?'i'+x.id:x.t!=null?'t'+x.t:JSON.stringify(x)):JSON.stringify(x),vu=new Set(a.map(k)),r=a.concat(b.filter(x=>!vu.has(k(x))));if(r.length&&r.every(x=>x&&typeof x.t==='number'))r.sort((x,y)=>x.t-y.t);return r;}
+  if(a&&b&&typeof a==='object'&&typeof b==='object'&&!Array.isArray(a)&&!Array.isArray(b)){const o=Object.assign({},b,a);for(const k in b)if(k in a)o[k]=fusionEtat(a[k],b[k]);return o;}
+  if(typeof a==='number'&&typeof b==='number')return Math.max(a,b);
+  return a==null?b:a;}
 function recoverPartial(){const c=S.enCours;if(!c||(G&&!G.ended&&G.t0===c.id))return;partialSess(c);delete S.enCours;save();}
 function nextQ(){
   if(!G||G.ended)return;let qi;ckpt();
@@ -2790,8 +2795,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.92';
+const VERSION='1.93';
 const VERSIONS=[
+ ['1.93','23/11/2026 18:35','Correction : un enfant ne peut plus être ajouté deux fois depuis deux appareils (la liste des profils se met à jour, et si le prénom existe déjà, on propose d’ouvrir son profil) ; un appareil dont le profil a été fusionné se rattache tout seul au bon profil, sans perdre la progression'],
  ['1.92','23/11/2026 18:20','Admin : type d’appareil de chaque famille (iPhone, iPad, Android, tablette, ordinateur), avec la date de dernière utilisation'],
  ['1.91','23/11/2026 18:05','Accueil des parents : dernière étape « installer l’appli » puis « activer les notifications » ; tant que ce n’est pas fait, deux boutons restent en haut de l’accueil'],
  ['1.90','23/11/2026 17:55','Admin : pastilles « appli installée » et « notifications activées » pour chaque famille ; graphique des minutes avec échelle, valeurs et détail au toucher'],
@@ -2928,7 +2934,7 @@ function importFile(file){const r=new FileReader();r.onload=()=>{try{const d=JSO
 const lockedMsg=()=>{toast('Fais d’abord ton entraînement de maths ! 🔢');if(S.settings.voice)Voice.say('Fais d’abord ton entraînement de maths !');};
 const ACT={
   tournext(){Tour.next();},tourskip(){Tour.end();},tourgo(){Tour.start();},
-  askok(){Ask.done(true);},askno(){Ask.done(false);},
+  askok(){Ask.done(true);},askno(){Ask.done(false);},askalt(){Ask.done('alt');},
   dhist(){Dem.hOpen=!Dem.hOpen;Dem.hN=5;Dem.parentDessiner();},dhmore(){Dem.hN+=5;Dem.parentDessiner();},
   giftmore(){giftN=S.gifts.length>giftN?giftN+5:5;keepScroll(render);},
   installer(){Promise.resolve(Install.installer()).then(()=>Etapes.redraw());},instx(){Install.plusTard();},instcopie(){const u=location.origin+location.pathname+location.search;try{navigator.clipboard.writeText(u).then(()=>toast('Lien copié : colle-le dans ton navigateur'),()=>toast(u));}catch(e){toast(u);}},
@@ -3198,27 +3204,52 @@ const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:
     const saved=localStorage.getItem('malino_pid');
     if(!this.list.length){await this.createFromLocal();return;}
     if(fresh&&this.hasLocal()){this.view='pick';this.draw();return;}
-    this.use(this.list.find(r=>r.id===saved)||this.list[0],!fresh);
+    const m=this.list.find(r=>r.id===saved),n=!m&&S.name&&this.list.find(r=>this.norm(r.nom)===this.norm(S.name));
+    if(n){this.use(n,false,true);return;}
+    this.use(m||this.list[0],!fresh&&!!m);
   },
-  async createFromLocal(){
-    const {data,error}=await this.sb.from('profils').insert({owner:this.user.id,nom:S.name||'Champion',data:S}).select('id,nom,data,updated_at,created_at').single();
+  norm(n){return String(n||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');},
+  // liste des profils à jour (profils ajoutés ou supprimés sur un autre appareil)
+  async refresh(force){
+    if(!this.user||!this.sb||this.rf)return;const n=Date.now();if(!force&&n-(this.rfT||0)<20000)return;this.rfT=n;this.rf=1;
+    try{
+      const {data,error}=await this.sb.from('profils').select('id,nom,updated_at,created_at').order('created_at');if(error||!Array.isArray(data))return;
+      const old=new Map(this.list.map(r=>[r.id,r])),need=data.filter(r=>{const o=old.get(r.id);return !o||(r.id!==this.pid&&o.updated_at!==r.updated_at);}).map(r=>r.id);
+      let full=new Map();if(need.length){const q=await this.sb.from('profils').select('id,nom,data,updated_at,created_at').in('id',need);if(!q.error&&Array.isArray(q.data))full=new Map(q.data.map(r=>[r.id,r]));}
+      const chg=data.length!==this.list.length||data.some((r,i)=>!this.list[i]||this.list[i].id!==r.id||this.list[i].nom!==r.nom);
+      this.list=data.map(r=>full.get(r.id)||Object.assign(old.get(r.id)||{},{id:r.id,nom:r.nom,created_at:r.created_at},r.id===this.pid?{}:{updated_at:r.updated_at}));
+      if(this.pid&&!data.some(r=>r.id===this.pid)){   // ce profil n'existe plus (fusionné ou supprimé ailleurs)
+        if(SCR==='game')return;
+        const m=this.list.find(r=>this.norm(r.nom)===this.norm(S.name));
+        if(m){let row=full.get(m.id);if(!row){const q=await this.sb.from('profils').select('id,nom,data,updated_at,created_at').eq('id',m.id).single();row=q.data;}if(row){this.list=this.list.map(r=>r.id===row.id?row:r);this.use(row,false,true);}return;}
+        if(this.list.length){const q=await this.sb.from('profils').select('id,nom,data,updated_at,created_at').eq('id',this.list[0].id).single();if(q.data)this.use(q.data,false);return;}
+        this.pid=null;await this.createFromLocal();return;
+      }
+      const ae=document.activeElement;
+      if(chg&&SCR==='admin'&&!modalOpen&&!(ae&&/INPUT|TEXTAREA/.test(ae.tagName)))render();
+    }catch(e){}finally{this.rf=0;}
+  },
+  async createFromLocal(dup){
+    const {data,error}=await this.sb.from('profils').insert({owner:this.user.id,nom:S.name||'Champion',data:dup?Object.assign({},S,{doublon_ok:'1'}):S}).select('id,nom,data,updated_at,created_at').single();
+    if(error&&/deja_existe/.test(error.message||'')){const q=await this.sb.from('profils').select('id,nom,data,updated_at,created_at').order('created_at');if(!q.error&&q.data){this.list=q.data;const m=q.data.find(r=>this.norm(r.nom)===this.norm(S.name));if(m){this.use(m,false,true);return;}}}
     if(error){toast('Profil non créé : réessaie plus tard');return;}
     this.list.push(data);this.pid=data.id;localStorage.setItem('malino_pid',data.id);
   },
-  use(row,cmp){
+  use(row,cmp,fus){
     this.pid=row.id;localStorage.setItem('malino_pid',row.id);
+    if(fus&&row.data){try{localStorage.setItem(STORE_KEY,JSON.stringify(fusionEtat(JSON.parse(JSON.stringify(S)),row.data)));load();recoverPartial();save();this.push();if(SCR!=='game'){SCR='home';render();}return;}catch(e){}}
     if(cmp&&(S.ts||0)>(Date.parse(row.updated_at)||0)+1500){this.push();return;}   // l'appareil a des changements plus récents
     localStorage.setItem(STORE_KEY,JSON.stringify(row.data||{}));load();recoverPartial();
     if(!S.name&&row.nom&&row.nom!=='Champion'){S.name=row.nom;}
     save();SCR='home';render();
   },
   async pick(id){
-    if(id==='local'){await this.createFromLocal();}
+    if(id==='local'){await this.createFromLocal(true);}
     else{const r=this.list.find(x=>x.id===id);if(r)this.use(r,false);}
     this.hide();toast('Connecté ✅');Plan.refresh();if(Offre.after){const fn=Offre.after;Offre.after=null;setTimeout(fn,400);}
   },
   dirty(){clearTimeout(this.t);this.t=setTimeout(()=>this.push(),2500);},
-  push(){if(!this.user||!this.pid||!this.sb)return;this.sb.from('profils').update({data:S,nom:S.name||'Champion'}).eq('id',this.pid).then(r=>{if(r.error)console.warn('sync',r.error.message);});},
+  push(){if(!this.user||!this.pid||!this.sb)return;const id=this.pid;this.sb.from('profils').update({data:S,nom:S.name||'Champion'}).eq('id',id).select('id').then(r=>{if(r.error)console.warn('sync',r.error.message);else if(Array.isArray(r.data)&&!r.data.length&&id===this.pid)this.refresh(true);});},
   async switchTo(id){TimeT.flush();
     if(id===this.pid)return;this.push();
     const {data,error}=await this.sb.from('profils').select('id,nom,data,updated_at,created_at').eq('id',id).single();
@@ -3226,11 +3257,22 @@ const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:
     this.use(data,false);toast(`Profil : ${data.nom}`);
   },
   async addProfile(){
-    const el=$('#newprof'),nom=((el&&el.value)||'').trim().slice(0,20);if(!nom)return toast('Écris un prénom');if(this.list.length>=Plan.maxProfils())return Offre.open('profils');
-    this.push();const st=defaultState();st.name=nom;st.welcomed=true;st.gs0=0;const gn=this.newG||'g';st.genre=gn;if(gn==='f')st.avatar=Object.assign({},st.avatar,{hair:'hair_long',shirt:'sh_rouge'});this.newG='g';
+    const el=$('#newprof'),nom=((el&&el.value)||'').trim().slice(0,20);if(!nom)return toast('Écris un prénom');
+    if(this.adding)return;this.adding=1;try{await this.addProfile0(el,nom);}finally{this.adding=0;}
+  },
+  async addProfile0(el,nom){
+    await this.refresh(true);
+    const ex=this.list.find(r=>this.norm(r.nom)===this.norm(nom));let dup=false;
+    if(ex){const c=ex.created_at?new Date(ex.created_at):null,q=c?` (créé le ${c.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})} à ${c.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})})`:'';
+      const r=await Ask.open({e:'🧒',t:`${esc(ex.nom)} a déjà un profil`,p:`Le profil « ${esc(ex.nom)} » existe déjà dans votre compte${q}, peut-être ajouté depuis un autre appareil.`,ok:`Ouvrir le profil de ${esc(ex.nom)}`,no:'Annuler',alt:`Créer quand même un 2ᵉ profil « ${esc(nom)} »`});
+      if(r===true){if(el)el.value='';await this.switchTo(ex.id);SCR='admin';render();return;}
+      if(r!=='alt')return;dup=true;}
+    if(this.list.length>=Plan.maxProfils())return Offre.open('profils');
+    this.push();const st=defaultState();if(dup)st.doublon_ok='1';st.name=nom;st.welcomed=true;st.gs0=0;const gn=this.newG||'g';st.genre=gn;if(gn==='f')st.avatar=Object.assign({},st.avatar,{hair:'hair_long',shirt:'sh_rouge'});this.newG='g';
     const {data,error}=await this.sb.from('profils').insert({owner:this.user.id,nom,data:st}).select('id,nom,data,updated_at,created_at').single();
+    if(error&&/deja_existe/.test(error.message||'')){this.rfT=0;await this.refresh(true);const m=this.list.find(r=>this.norm(r.nom)===this.norm(nom));if(m){if(el)el.value='';await this.switchTo(m.id);toast(`« ${m.nom} » avait déjà un profil : il est ouvert`);SCR='admin';render();return;}}
     if(error)return toast(error.message.includes('Maximum')?'8 profils maximum':'Profil non créé');
-    this.list.push(data);this.use(data,false);toast(`Profil « ${nom} » créé ✅`);adminTab='compte';render();
+    if(el)el.value='';this.list.push(data);this.use(data,false);toast(`Profil « ${nom} » créé ✅`);adminTab='compte';render();
   },
   async setPw(id){
     const v=((document.getElementById(id)||{}).value)||'';if(v.length<8)return toast('8 caractères minimum');
@@ -3599,7 +3641,8 @@ const Famille={
   }
 };
 try{const q=new URLSearchParams(location.search).get('invite');if(q){localStorage.setItem('malino_invite',q);history.replaceState(null,'',location.pathname);}}catch(e){}
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')Famille.hiddenAt=Date.now();else if(Famille.hiddenAt&&Date.now()-Famille.hiddenAt>30000){Famille.hiddenAt=0;Famille.who();}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')Famille.hiddenAt=Date.now();else{const w=Famille.hiddenAt&&Date.now()-Famille.hiddenAt>30000;Famille.hiddenAt=0;Acct.refresh(w).then(()=>{if(w)Famille.who();},()=>{if(w)Famille.who();});}});
+setInterval(()=>{if(document.visibilityState==='visible')Acct.refresh();},60000);
 setTimeout(()=>{if(localStorage.getItem('malino_invite')&&!Acct.user&&typeof ACT!=='undefined')ACT.openlogin();},1500);
 
 // ---------- Démarrage ----------
