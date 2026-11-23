@@ -736,7 +736,7 @@ h1,h2,h3,h4{font-weight:700}
 
 // ---------- Réglages du jeu (modifiables dans l'admin › Réglages du jeu) ----------
 const CFG0={xpK:425,xpE:2.15,coinLv:5,coinMul:100,cofDay:3,cofSlots:4,cofH:12,cof3:25,cof2:8,cofGame:1,cofWorld:40,keyDays:5,keyMin:180,keyChest:6,wall:2,objPartie:1,
-  u_heure:3,u_quoi:4,u_formes:5,u_chiffres:6,u_probl:7,u_drapeaux:8,u_espace:10,u_ortho:12};
+  u_heure:3,u_quoi:4,u_formes:5,u_chiffres:6,u_probl:7,u_drapeaux:8,u_espace:10,u_ortho:12,plusOff:8};
 const CFG=Object.assign({},CFG0);try{Object.assign(CFG,JSON.parse(localStorage.getItem('malino_cfg')||'{}'));}catch(e){}
 // ---------- Outils ----------
 const $=(s,el=document)=>el.querySelector(s);
@@ -1668,7 +1668,7 @@ function lvlList(id,levels,cur,row){const c=Math.min(Math.max(cur||1,1),levels.l
   return `<div class="lvls">${levels.map((L,i)=>open||i===c-1?row(L,i):'').join('')}</div>${levels.length>1?`<button class="lvmore" data-act="lvmore" data-arg="${id}">${open?'▲ Réduire':`▼ Voir tous les mondes (${levels.length})`}</button>`:''}`;}
 function paneThemes(){const st=S.settings;
   return `<section class="acard"><h3>🎲 Autres jeux</h3><p class="hint">Des jeux en plus des maths et de la lecture. Même principe : répétition, correction immédiate, pièces et badges. Certains se débloquent avec le niveau du joueur. Ils ne comptent pas dans la mission du jour.</p><div class="thjump">${Object.entries(THEMES).map(([k,T])=>`<button data-act="thgo" data-arg="${k}" class="${st.thOn[k]===false?'off':''}">${T.e} ${T.n}</button>`).join('')}</div>${tog('thAfterMath','Débloqués après les maths du jour')}${tog('thAuto','Monde suivant automatique','Plus vite si tu réussis très bien, plus lent si tu as du mal')}<div class="row"><span>Questions par partie</span>${seg('thNQ',[[5,'5'],[8,'8'],[10,'10'],[15,'15']])}</div></section>`
-  +Object.entries(THEMES).map(([k,T])=>`<section class="acard" id="th-${k}"><div class="tog" style="border:none;padding-top:0"><span>${T.e} ${T.n}<small>${T.desc}${thUnlocked(k)?'':` · 🔒 se débloque au niveau ${T.unlock} (${esc(nm())} est niveau ${levelInfo(S.xp).level})`}</small></span><button class="sw ${st.thOn[k]!==false?'on':''}" data-act="togth" data-arg="${k}" aria-label="${T.n}"><i></i></button></div>${lvlList(k,T.levels,st.lv[k],(L,i)=>{const n=i+1,mm=levelMastery(k,n);return `<button class="lvl ${n===st.lv[k]?'on':''}" data-act="setth" data-arg="${k}|${n}"><span class="le">${L.e}</span><span class="ln"><b>${n}. ${L.n}</b><small>${diffTxt(i,T.levels)} · ${L.items.length} éléments · ${pct(mm)} maîtrisés</small><span class="mbar2"><i style="width:${mm*100}%"></i></span></span>${n===st.lv[k]?'<span class="cur">Actuel</span>':n>Plan.thMax(k)?'<span class="cur lk">👑 Malino+</span>':''}</button>`;})}</section>`).join('');}
+  +Object.entries(THEMES).map(([k,T])=>`<section class="acard" id="th-${k}"><div class="tog" style="border:none;padding-top:0"><span>${T.e} ${T.n}<small>${T.desc}${thUnlocked(k)?'':` · 🔒 se débloque au niveau ${T.unlock} (${esc(nm())} est niveau ${levelInfo(S.xp).level})`}</small></span><button class="sw ${st.thOn[k]!==false?'on':''}" data-act="togth" data-arg="${k}" aria-label="${T.n}"><i></i></button></div>${lvlList(k,T.levels,st.lv[k],(L,i)=>{const n=i+1,mm=levelMastery(k,n);return `<button class="lvl ${n===st.lv[k]?'on':''}" data-act="setth" data-arg="${k}|${n}"><span class="le">${L.e}</span><span class="ln"><b>${n}. ${L.n}</b><small>${diffTxt(i,T.levels)} · ${L.items.length} éléments · ${pct(mm)} maîtrisés</small><span class="mbar2"><i style="width:${mm*100}%"></i></span></span>${n===st.lv[k]?'<span class="cur">Actuel</span>':n>Plan.thMax(k)?`<span class="cur lk">${Plan.offert()?'👑 Abonnés':'👑 Malino+'}</span>`:''}</button>`;})}</section>`).join('');}
 function themeSummary(){return `<table class="hist">${Object.entries(THEMES).map(([k,T])=>{const ss=S.sessions.filter(s=>s.type===k),n=ss.reduce((a,s)=>a+(s.n||0),0),ok=ss.reduce((a,s)=>a+(s.ok||0),0),lv=S.settings.lv[k];return `<tr><td>${T.e} ${T.n}</td><td>monde ${lv}/${T.levels.length} · ${diffTxt(lv-1,T.levels)}</td><td>${ss.length} partie${ss.length>1?'s':''}</td><td>${n?pct(ok/n)+' justes':'–'}</td></tr>`;}).join('')}</table>`;}
 
 // ---------- Avatar : catalogue (raretés Bois → Plasma) ----------
@@ -2482,7 +2482,7 @@ function startGame(sub,mode){if(sub==='fr')frPreload();
   if(TimeT.limited()){queueModal(`<div class="bigemoji">🌙</div><h2>Bravo ${nm()} !</h2><p>Tu as bien joué aujourd’hui : <b>${fmtDur(TimeT.sec())}</b>. C’est fini pour aujourd’hui, à demain !</p><button class="btn y block" data-act="mclose">À demain 👋</button>`,()=>{if(S.settings.voice)Voice.say('Bravo ! C’est fini pour aujourd’hui. À demain !');});return;}
   if(THEMES[sub]&&!thUnlocked(sub))return ACT.thlocked(sub);
   if(THEMES[sub]&&!S.settings.lv[sub]){S.settings.lv[sub]=1;}
-  if(THEMES[sub]&&S.settings.lv[sub]>Plan.thMax(sub)){S.settings.lv[sub]=Plan.thMax(sub);save();toast('🔒 Les mondes suivants sont dans Malino+');}
+  if(THEMES[sub]&&S.settings.lv[sub]>Plan.thMax(sub)){S.settings.lv[sub]=Plan.thMax(sub);save();toast(Plan.offert()?'🔒 Les mondes suivants sont réservés aux abonnés Malino+':'🔒 Les mondes suivants sont dans Malino+');}
   if(sub==='arabe'&&mode==='theme'){const cur=S.settings.lv.arabe||1,sk=THEMES.arabe.levels.findIndex((L,i)=>i<cur-1&&L.lesson&&!(S.arLesson||{})[L.lesson]&&!S.sessions.some(x=>x.type==='arabe'&&x.lvl===i+1));
     if(sk>=0){S.settings.lv.arabe=sk+1;save();toast(`On apprend d’abord : ${THEMES.arabe.levels[sk].n}`);}}
   if(sub==='arabe'&&mode==='theme'){const AL=THEMES.arabe.levels[(S.settings.lv.arabe||1)-1];if(AL&&AL.lesson&&!(S.arLesson||{})[AL.lesson])return ArLesson.open(AL.lesson,()=>startGame(sub,mode));}
@@ -2802,8 +2802,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.95';
+const VERSION='1.96';
 const VERSIONS=[
+ ['1.96','23/11/2026 19:10','Malino+ offert (codes promo, mois offerts) : chaque jeu s’arrête au monde 8 ; l’abonnement payé débloque tous les mondes'],
  ['1.95','23/11/2026 18:55','Espace parents : astuce « Ajoutez un 2ᵉ parent », avec ce que ça permet, puis accès direct à l’invitation ; admin : filtre « En ligne » dans la liste des familles'],
  ['1.94','23/11/2026 18:45','Admin réorganisé pour le téléphone : 6 onglets (Tableau, Familles, Ventes, E-mails, Contributions, Réglages), codes promo, paiements et cadeaux en lignes compactes, listes repliées avec « Tout voir »'],
  ['1.93','23/11/2026 18:35','Correction : un enfant ne peut plus être ajouté deux fois depuis deux appareils (la liste des profils se met à jour, et si le prénom existe déjà, on propose d’ouvrir son profil) ; un appareil dont le profil a été fusionné se rattache tout seul au bon profil, sans perdre la progression'],
@@ -3422,8 +3423,11 @@ const Plan={info:null,
   },
   kind(){if(!Acct.user)return 'invite';return (this.info&&this.info.plan)||'essai';},
   plus(){return this.kind()==='plus';},
+  // Malino+ réellement payé (abonnement ou cadeau acheté) ; codes, essai et mois offerts s'arrêtent au palier
+  paye(){const i=this.info||{};return this.plus()&&(!!i.paye||!!i.admin);},
+  offert(){return this.plus()&&!this.paye();},
   jours(){const i=this.info;if(!i||!i.essai_fin)return 14;return Math.max(0,Math.ceil((Date.parse(i.essai_fin)-Date.now())/864e5));},
-  thMax(k){if(FREE_TH.includes(k)||this.plus())return 99;return this.kind()==='gratuit'?1:3;},
+  thMax(k){if(FREE_TH.includes(k)||this.paye())return 99;if(this.plus())return Math.max(1,Math.round(+CFG.plusOff||8));return this.kind()==='gratuit'?1:3;},
   maxProfils(){return this.plus()?4:this.kind()==='gratuit'?1:2;},
   pill(){const k=this.kind();
     if(k==='invite')return '';
@@ -3441,15 +3445,16 @@ const Offre={after:null,
   gate(next){if((Offre.okUntil||0)>Date.now())return next();const a=rand(6,9),b=rand(6,9);gateAns=a*b;Offre.next=next;queueModal(`<div class="bigemoji sm">👨‍👩‍👧</div><h2>Question pour les parents</h2><p>Combien font <b>${a} × ${b}</b> ?</p><input id="pgIn" class="ginput" inputmode="numeric" style="text-align:center;max-width:140px;margin:0 auto 12px;display:block" autocomplete="off"><button class="btn block" data-act="pgateok">Valider</button><button class="alink" data-act="mclose">Annuler</button>`);setTimeout(()=>{const e=$('#pgIn');if(e)e.focus();},80);},
   gateOk(){const v=parseInt(($('#pgIn')||{}).value,10);if(v!==gateAns)return toast('Ce n’est pas la bonne réponse');Offre.okUntil=Date.now()+6e5;nextModal();const n=Offre.next;Offre.next=null;if(n)setTimeout(n,60);},
   ask(src){if(SCR==='admin')return Offre.open(src);Offre.gate(()=>Offre.open(src));},
-  lock(name,n){queueModal(`<div class="bigemoji sm">🔒</div><h2>${esc(name)} : monde ${n}</h2><p>Bravo, tu as fini les mondes gratuits ! La suite est réservée à <b>Malino+</b> 👑</p><p>Demande à un parent de la débloquer.</p><button class="btn y block" data-act="offre" data-arg="theme">Je suis un parent</button><button class="alink" data-act="mclose">Plus tard</button>`);},
+  lock(name,n){queueModal(`<div class="bigemoji sm">🔒</div><h2>${esc(name)} : monde ${n}</h2>${Plan.offert()?`<p>Bravo, tu as atteint le palier ! 🏆 Les mondes suivants sont réservés aux <b>abonnés Malino+</b> 👑</p>`:`<p>Bravo, tu as fini les mondes gratuits ! La suite est réservée à <b>Malino+</b> 👑</p>`}<p>Demande à un parent de la débloquer.</p><button class="btn y block" data-act="offre" data-arg="theme">Je suis un parent</button><button class="alink" data-act="mclose">Plus tard</button>`);},
   open(src){
     const k=Plan.kind(),i=Plan.info||{};
     let status='';
-    if(k==='plus')status=`<p class="okline">✅ Malino+ est actif${i.abonne&&i.abo_fin?` · renouvellement le ${fmtDate(i.abo_fin)}`:i.plus_jusqua?` jusqu’au ${fmtDate(i.plus_jusqua)}`:''}</p>`;
+    if(k==='plus'&&Plan.offert())status=`<p class="okline">🎁 Malino+ offert${i.plus_jusqua?` jusqu’au ${fmtDate(i.plus_jusqua)}`:''}</p><p class="promo" style="text-align:left">🔒 Avec un accès offert (code, cadeau de l’équipe), chaque jeu s’arrête au <b>monde ${Math.round(+CFG.plusOff||8)}</b>. L’abonnement débloque <b>tous les mondes</b>, sans limite.</p>`;
+    else if(k==='plus')status=`<p class="okline">✅ Malino+ est actif${i.abonne&&i.abo_fin?` · renouvellement le ${fmtDate(i.abo_fin)}`:i.plus_jusqua?` jusqu’au ${fmtDate(i.plus_jusqua)}`:''}</p>`;
     else if(k==='essai')status=`<p class="okline">⏳ Ton essai gratuit se termine dans <b>${Plan.jours()} jour${Plan.jours()>1?'s':''}</b>.</p>`;
     else if(k==='gratuit')status=`<p class="okline">Ton essai est terminé : les jeux de base restent gratuits.</p>`;
     const of=Offre.promo();
-    const buy=k==='plus'?(i.abonne?`<button class="btn sm o block" data-act="portail">Gérer mon abonnement</button>`:''):(of?`<p class="promo">🎁 <b>−${of.pct} %</b> pour toi jusqu’au ${fmtDate(of.jusqua)}</p>`:'')+`<button class="btn g block planbtn" data-act="payer" data-arg="annuel"><span>${of?'<s>29,99 €</s> 20,99 € la 1re année':'29,99 € par an'}</span><small>${of?'puis 29,99 € par an':'soit 2,50 €/mois · le plus avantageux'}</small></button><button class="btn sm o block" style="margin-top:8px" data-act="payer" data-arg="mensuel">${of?'<s>3,99 €</s> 2,79 € par mois pendant 3 mois':'3,99 € par mois'}</button><p class="fine">Sans engagement, résiliable en 2 clics · paiement sécurisé Stripe</p>`;
+    const buy=k==='plus'&&!Plan.offert()?(i.abonne?`<button class="btn sm o block" data-act="portail">Gérer mon abonnement</button>`:''):(of?`<p class="promo">🎁 <b>−${of.pct} %</b> pour toi jusqu’au ${fmtDate(of.jusqua)}</p>`:'')+`<button class="btn g block planbtn" data-act="payer" data-arg="annuel"><span>${of?'<s>29,99 €</s> 20,99 € la 1re année':'29,99 € par an'}</span><small>${of?'puis 29,99 € par an':'soit 2,50 €/mois · le plus avantageux'}</small></button><button class="btn sm o block" style="margin-top:8px" data-act="payer" data-arg="mensuel">${of?'<s>3,99 €</s> 2,79 € par mois pendant 3 mois':'3,99 € par mois'}</button><p class="fine">Sans engagement, résiliable en 2 clics · paiement sécurisé Stripe</p>`;
     queueModal(`<div class="bigemoji sm">👑</div><h2>Malino+</h2>${status}<ul class="plist"><li>🎲 Toutes les thématiques, tous les mondes</li><li>👨‍👩‍👧 Jusqu’à 4 enfants</li><li>📊 Le suivi détaillé de chaque enfant</li><li>💎 Les objets Plasma et un coffre doré chaque semaine</li></ul>${buy}<div class="orow"><button class="alink" data-act="codepromo">🎟️ J’ai un code</button><button class="alink" data-act="offrir">🎁 Offrir Malino+</button>${k==='essai'||k==='gratuit'?'<button class="alink" data-act="parrain">👥 Inviter des amis</button>':''}</div><button class="alink" data-act="mclose">Fermer</button>`);
   },
   pay(f){

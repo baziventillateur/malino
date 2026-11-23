@@ -137,7 +137,7 @@ const xpTot=L=>Math.round(JEU.xpK*Math.pow(Math.max(0,L-1),JEU.xpE)/10)*10,lvl=x
 const jours=x=>Math.max(0,Math.ceil((Date.parse(x)-Date.now())/864e5));
 // ---- Réglages du jeu : mêmes valeurs de base que l'appli (index.html, CFG0) ----
 const JEU0={xpK:425,xpE:2.15,coinLv:5,coinMul:100,cofDay:3,cofSlots:4,cofH:12,cof3:25,cof2:8,cofGame:1,cofWorld:40,keyDays:5,keyMin:180,keyChest:6,wall:2,objPartie:1,
-  u_heure:3,u_quoi:4,u_formes:5,u_chiffres:6,u_probl:7,u_drapeaux:8,u_espace:10,u_ortho:12};
+  u_heure:3,u_quoi:4,u_formes:5,u_chiffres:6,u_probl:7,u_drapeaux:8,u_espace:10,u_ortho:12,plusOff:8};
 let JEU=Object.assign({},JEU0);
 const VUESOK=['tableau','familles','ventes','emails','contrib','reglages'];
 let D=null,email='',q='',VIEW=/^#(contrib|dev)$/.test(location.hash)?'contrib':VUESOK.includes(location.hash.slice(1))?location.hash.slice(1):(VUESOK.includes(localStorage.getItem('adm_vue'))?localStorage.getItem('adm_vue'):'tableau');
@@ -722,6 +722,7 @@ const JEUF=[
    ['keyMin','Minutes de jeu pour gagner une clé','180 = 3 h, sur ces jours.',10,1200,10],
    ['keyChest','Chance de trouver une clé dans un coffre (%)','Coffre « bon cadeau » ; deux fois plus dans un coffre épique. Jamais dans une farce.',0,50,1]]],
  ['🔓 Jeux débloqués au niveau','Un jeu déjà ouvert pour un enfant le reste.',[['u_heure','🕐 L’heure'],['u_quoi','🔦 Qui a changé ?'],['u_formes','📐 Formes'],['u_chiffres','💡 Chiffres éclair'],['u_probl','🧮 Problèmes'],['u_drapeaux','🚩 Drapeaux'],['u_espace','🪐 Sciences'],['u_ortho','✍️ Orthographe']].map(([k,l])=>[k,l,'',1,60,1])],
+ ['👑 Malino+ offert','Codes promo et mois offerts par l’équipe. L’abonnement payé (ou un cadeau acheté) débloque tout. Maths, lecture, Monnaie et Logique ne sont jamais bloqués.',[['plusOff','Dernier monde ouvert dans chaque jeu','Au-delà : 🔒 réservé aux abonnés, avec proposition de payer.',1,30,1]]],
  ['👋 Sans compte','',[['wall','Parties avant la connexion obligatoire','',1,10,1]]]];
 let JEUD=null;
 function jeuNiv(v){const t=L=>Math.round(v.xpK*Math.pow(Math.max(0,L-1),v.xpE)/10)*10,h=L=>{const m=Math.round(t(L)/160);return m<60?`${m} min`:m<1440?`${Math.round(m/6)/10} h`.replace('.',','):`${Math.round(m/60)} h`;};
