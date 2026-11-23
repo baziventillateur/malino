@@ -248,7 +248,7 @@ h1,h2,h3,h4{font-weight:700}
 @keyframes dotj{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
 .prep-p{text-align:center;margin:2px 0 0;font-size:14px;color:var(--ink2)}.sal.prep .prep-h{justify-content:center;text-align:center}
 .sal.win{text-align:center;background:radial-gradient(120% 70% at 50% 0%,#FFF6D6 0%,#FFFFFF 60%);box-shadow:0 6px 0 #F5E3A8,0 16px 34px rgba(245,158,11,.18)}
-.win-tr{position:relative;width:120px;height:104px;margin:-4px auto 0;display:grid;place-items:center}
+.win-tr{position:relative;width:120px;height:104px;margin:-4px auto 0;display:grid;place-items:center}.win-tr:not(.pris){width:auto;height:auto}
 .win-ray{position:absolute;inset:-14px;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,200,40,.32) 0 12deg,transparent 12deg 24deg);animation:winSpin 9s linear infinite;-webkit-mask:radial-gradient(circle,#000 35%,transparent 70%);mask:radial-gradient(circle,#000 35%,transparent 70%)}
 .win-cup{position:relative;font-size:70px;line-height:1;filter:drop-shadow(0 8px 10px rgba(180,83,9,.35));animation:winBob 1.8s ease-in-out infinite}
 @keyframes winSpin{to{transform:rotate(360deg)}}@keyframes winBob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-7px) rotate(4deg)}}
@@ -294,7 +294,28 @@ h1,h2,h3,h4{font-weight:700}
 @keyframes tlui{from{opacity:1;transform:translateY(0) scale(1.2)}to{opacity:0;transform:translateY(-26px) scale(.9)}}
 .jg{position:relative;margin-right:30px}.jg .amisg{margin:0}.jg .amisg i{transition:width 1.2s cubic-bezier(.3,1.3,.5,1)}
 .jgp{position:absolute;top:50%;transform:translate(-50%,-50%);font-style:normal;font-size:13px;line-height:1;filter:grayscale(1);opacity:.5;z-index:1;transition:.4s}.jgp.on{filter:none;opacity:1;transform:translate(-50%,-50%) scale(1.15)}
-.jgt{position:absolute;right:-30px;top:50%;transform:translateY(-50%);font-size:22px;line-height:1;filter:grayscale(1);opacity:.45}.jgt.on{filter:none;opacity:1;animation:pulse 1.6s infinite}
+.jgt{position:absolute;right:-34px;top:50%;transform:translateY(-50%);line-height:0;filter:drop-shadow(0 3px 4px rgba(31,95,214,.35));animation:dmBobS 2.2s ease-in-out infinite}.jgt.on{animation:pulse 1.2s infinite}
+.dmmini{width:32px;height:29px;display:block}.dmmini .dm-et,.dmsvg .dm-et{transform-box:fill-box;transform-origin:center;animation:dmTw 1.6s ease-in-out infinite}
+@keyframes dmBobS{0%,100%{transform:translateY(-50%) rotate(-4deg)}50%{transform:translateY(-62%) rotate(4deg)}}
+.dmsvg{overflow:visible}.dmsvg .dm-rays{transform-origin:100px 105px;animation:dmRot 14s linear infinite}.dmsvg .dm-aura{transform-origin:100px 105px;animation:dmPulse 2.2s ease-in-out infinite}
+.dmsvg .dm-coffre{animation:dmBob 2.4s ease-in-out infinite}.dmsvg .dm-ombre{transform-origin:100px 172px;animation:dmOmbre 2.4s ease-in-out infinite}
+.dmsvg .dm-cri{transform-box:fill-box;transform-origin:center;animation:dmCri 1.8s ease-in-out infinite}.dmsvg .dm-cri.d2{animation-delay:.3s}.dmsvg .dm-cri.d3{animation-delay:.6s}
+.dmsvg .dm-lock{transform-box:fill-box;transform-origin:center;animation:dmGem 1.6s ease-in-out infinite}.dmsvg .dm-brille{animation:dmSweep 2.8s ease-in-out infinite}
+.dmsvg.open .dm-in{animation:dmIn 1.2s ease-in-out infinite alternate}.dmsvg.open .dm-rays{animation-duration:5s}
+@keyframes dmRot{to{transform:rotate(360deg)}}@keyframes dmPulse{0%,100%{transform:scale(.92);opacity:.8}50%{transform:scale(1.06);opacity:1}}
+@keyframes dmBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}@keyframes dmOmbre{0%,100%{transform:scaleX(1);opacity:.25}50%{transform:scaleX(.82);opacity:.15}}
+@keyframes dmCri{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-5px) rotate(8deg)}}@keyframes dmGem{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.12);filter:brightness(1.35)}}
+@keyframes dmSweep{0%{transform:skewX(-18deg) translateX(0)}60%,100%{transform:skewX(-18deg) translateX(290px)}}@keyframes dmTw{0%,100%{transform:scale(.3);opacity:.2}50%{transform:scale(1.15);opacity:1}}
+@keyframes dmIn{from{opacity:.65}to{opacity:1}}
+.dmwrap{position:relative;display:flex;justify-content:center;cursor:pointer;margin:-6px 0 2px}.dmwrap::before,.win-tr:not(.pris)::before{content:'';position:absolute;left:50%;top:50%;width:200px;height:200px;margin:-104px 0 0 -100px;border-radius:50%;background:radial-gradient(circle,#2F5FD0 0%,#15307E 52%,rgba(21,48,126,0) 71%)}.dmwrap .csvg,.win-tr .csvg{position:relative}.win-tr:not(.pris)::before{width:170px;height:170px;margin:-88px 0 0 -85px}.dmwrap .csvg{width:230px;height:218px}.dmwrap .dmh{position:absolute;right:42px;bottom:26px;font-size:34px}
+.dmwrap.dmshake .csvg{animation:dmShake .24s ease-in-out infinite}@keyframes dmShake{0%,100%{transform:rotate(0) scale(1)}25%{transform:rotate(-7deg) scale(1.07)}75%{transform:rotate(7deg) scale(1.07)}}
+.dmwrap.dmopen .csvg{animation:dmOpenPop .6s cubic-bezier(.2,1.6,.4,1)}@keyframes dmOpenPop{from{transform:scale(.7)}to{transform:scale(1)}}
+.dmpart{position:absolute;left:50%;top:48%;font-style:normal;font-size:24px;pointer-events:none;animation:dmFly 1.3s cubic-bezier(.15,.7,.3,1) forwards}
+@keyframes dmFly{0%{transform:translate(-50%,-50%) scale(.2);opacity:1}70%{opacity:1}100%{transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(var(--r)) scale(1.1);opacity:0}}
+.dmflash{position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 50% 45%,#fff 0%,rgba(190,245,255,.9) 35%,rgba(120,220,255,0) 70%);pointer-events:none;animation:dmFlash .9s ease-out forwards}@keyframes dmFlash{from{opacity:1}to{opacity:0}}
+.dmh2{background:linear-gradient(90deg,#1F5FD6,#3FB6F5,#7B5CFF,#1F5FD6);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:dmTxt 3s linear infinite}@keyframes dmTxt{to{background-position:300% 0}}
+.cofopen.dm .csvg{width:170px;height:160px}.win-tr .dmsvg{width:190px;height:180px;margin:-26px 0 -4px}.win-dm{margin:2px 0 6px;font-weight:800;color:#1F5FD6}
+.cslot.t-diamant{background:linear-gradient(180deg,#E9FCFF,#BEEBFF)}.cslot.t-diamant .csvg{width:56px;height:52px}
 .eqbar{position:relative;display:flex;align-items:center;gap:8px;margin:8px 0 0;padding:6px 8px;border-radius:16px;background:#fff;box-shadow:0 3px 0 rgba(0,0,0,.07)}
 .eqp{position:relative;display:flex;flex-direction:column;align-items:center;flex:none;width:42px}.eqp .amav{width:34px;height:34px}
 .eqp.pm .amav{box-shadow:0 0 0 3px var(--cm)}.eqp.pl .amav{box-shadow:0 0 0 3px var(--cl)}
@@ -2361,7 +2382,7 @@ function checkGifts(){const out=[];S.gifts.forEach(g=>{if(!g.reached&&!g.given&&
 // ---------- Coffres magiques : gagnés en jouant, ils s'ouvrent au bout de 12 h ----------
 // nombre de coffres par jour, emplacements, délai d'ouverture : voir CFG (cofDay, cofSlots, cofH)
 // p = chances sur 100 : [farce, bon, épique] ; m = multiplicateur de pièces
-const COFT={bois:{n:'Coffre en bois',c1:'#D9A066',c2:'#8E5B2C',p:[30,62,8],m:1},argent:{n:'Coffre d’argent',c1:'#EEF2F6',c2:'#8592A1',p:[20,65,15],m:1.6},or:{n:'Coffre en or',c1:'#FFE27A',c2:'#D49A00',p:[10,62,28],m:2.5},epique:{n:'Coffre épique',c1:'#D7B8FF',c2:'#6A2BE0',p:[0,55,45],m:4},legende:{n:'Coffre légendaire',c1:'#FF9AE6',c2:'#4B1FB8',p:[0,25,75],m:7}};
+const COFT={bois:{n:'Coffre en bois',c1:'#D9A066',c2:'#8E5B2C',p:[30,62,8],m:1},argent:{n:'Coffre d’argent',c1:'#EEF2F6',c2:'#8592A1',p:[20,65,15],m:1.6},or:{n:'Coffre en or',c1:'#FFE27A',c2:'#D49A00',p:[10,62,28],m:2.5},epique:{n:'Coffre épique',c1:'#D7B8FF',c2:'#6A2BE0',p:[0,55,45],m:4},legende:{n:'Coffre légendaire',c1:'#FF9AE6',c2:'#4B1FB8',p:[0,25,75],m:7},diamant:{n:'Coffre en diamant',c1:'#9BF0FF',c2:'#1F5FD6',p:[0,10,90],m:8}};
 const ALBUM_S={animaux:{n:'Animaux du monde',r:'c',b:150},monstres:{n:'Monstres et magie',r:'r',b:300},espace:{n:'L’espace',r:'e',b:600},tresors:{n:'Trésors',r:'l',b:1500},farces:{n:'Farces',r:'f',b:200}};
 const ALBUM_R={c:{n:'Commun',col:'#94A3B8',dup:5},r:{n:'Rare',col:'#3B82F6',dup:10},e:{n:'Épique',col:'#A855F7',dup:25},l:{n:'Légendaire',col:'#F59E0B',dup:60},f:{n:'Farce',col:'#9A8478',dup:2}};
 const ALBUM=[];Object.entries({animaux:[['🐼','Panda'],['🦒','Girafe'],['🦓','Zèbre'],['🐨','Koala'],['🦘','Kangourou'],['🦥','Paresseux'],['🦦','Loutre'],['🦩','Flamant rose'],['🐧','Manchot'],['🦔','Hérisson'],['🦜','Perroquet'],['🐢','Tortue']],
@@ -2371,7 +2392,35 @@ const ALBUM=[];Object.entries({animaux:[['🐼','Panda'],['🦒','Girafe'],['�
  farces:[['🧦','Une chaussette qui pue'],['🪨','Un caillou tout gris'],['🍌','Une peau de banane'],['🐌','Un escargot tout lent'],['🦴','Un vieil os'],['🐟','Un poisson pas frais'],['🕸️','Une toile d’araignée'],['🛞','Un vieux pneu']]
 }).forEach(([s,l])=>l.forEach(([e,n],i)=>ALBUM.push({id:s+i,e,n,s,r:ALBUM_S[s].r})));
 const ALB=Object.fromEntries(ALBUM.map(a=>[a.id,a]));
-function chestSVG(t,open){const T=COFT[t]||COFT.bois,id='cg'+(++OBN),ink='#3B2A1A';
+// Coffre en diamant : grand dessin en relief, très animé (rayons, halo, cristaux, éclats, reflet qui passe, diamants en orbite)
+function diamantSVG(open){const k='dm'+(++OBN),L='#E9FCFF',star=(x,y,r,d)=>`<path class="dm-et" style="animation-delay:${d}s" d="M${x} ${y-r} Q${x} ${y} ${x+r} ${y} Q${x} ${y} ${x} ${y+r} Q${x} ${y} ${x-r} ${y} Q${x} ${y} ${x} ${y-r}Z" fill="#fff"/>`,
+    gem=(x,y,w,c)=>`<g class="${c||''}"><polygon points="${x},${y-w} ${x+w*.8},${y-w*.35} ${x},${y+w} ${x-w*.8},${y-w*.35}" fill="url(#${k}g)" stroke="#fff" stroke-width="1"/><polygon points="${x},${y-w} ${x+w*.8},${y-w*.35} ${x},${y-w*.1} ${x-w*.8},${y-w*.35}" fill="#fff" opacity=".55"/><path d="M${x-w*.8} ${y-w*.35} L${x} ${y+w} L${x+w*.8} ${y-w*.35}" fill="none" stroke="#1F5FD6" stroke-width=".8" opacity=".5"/></g>`;
+  const rays=Array.from({length:12},(_,i)=>`<polygon points="100,105 ${100+120*Math.cos((i*30-4)*Math.PI/180)},${105+120*Math.sin((i*30-4)*Math.PI/180)} ${100+120*Math.cos((i*30+4)*Math.PI/180)},${105+120*Math.sin((i*30+4)*Math.PI/180)}" fill="#fff" opacity="${i%2?.16:.3}"/>`).join('');
+  const orbite=[0,2,4].map(d=>`<g>${gem(0,0,6)}<animateMotion dur="6s" begin="-${d}s" repeatCount="indefinite" path="M100 112 m-86 0 a86 26 0 1 0 172 0 a86 26 0 1 0 -172 0"/></g>`).join('');
+  const lid=`<g class="dm-couv"><path d="M160 92 C160 70 165 62 172 60 L172 86Z" fill="url(#${k}s)"/><path d="M40 92 C40 58 62 46 100 46 C138 46 160 58 160 92Z" fill="url(#${k}l)" stroke="#fff" stroke-width="1.5"/>
+    <path d="M40 92 L62 56 L82 92Z M100 46 L82 92 L118 92Z M138 56 L118 92 L160 92Z" fill="#fff" opacity=".28"/><path d="M62 56 L100 46 L138 56" fill="none" stroke="#fff" stroke-width="1.4" opacity=".8"/>
+    <rect x="36" y="86" width="128" height="11" rx="5" fill="url(#${k}m)" stroke="#5B6E91" stroke-width="1"/>${gem(100,30,11,'dm-cri')}${gem(73,41,7,'dm-cri d2')}${gem(127,41,7,'dm-cri d3')}</g>`;
+  return `<svg viewBox="0 0 200 190" class="csvg dmsvg${open?' open':''}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <radialGradient id="${k}a" cx=".5" cy=".55" r=".5"><stop offset="0" stop-color="${L}" stop-opacity=".95"/><stop offset=".45" stop-color="#7FE3FF" stop-opacity=".5"/><stop offset="1" stop-color="#7FE3FF" stop-opacity="0"/></radialGradient>
+    <linearGradient id="${k}f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A9F3FF"/><stop offset=".55" stop-color="#3FB6F5"/><stop offset="1" stop-color="#1F5FD6"/></linearGradient>
+    <linearGradient id="${k}s" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3C8EEA"/><stop offset="1" stop-color="#173E9C"/></linearGradient>
+    <linearGradient id="${k}l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${L}"/><stop offset=".5" stop-color="#8FE6FF"/><stop offset="1" stop-color="#3FA9F0"/></linearGradient>
+    <linearGradient id="${k}m" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".5" stop-color="#C9D6E8"/><stop offset="1" stop-color="#7D8FAE"/></linearGradient>
+    <linearGradient id="${k}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".35" stop-color="#B8F4FF"/><stop offset=".65" stop-color="#5CD0FF"/><stop offset="1" stop-color="#2B7BEA"/></linearGradient>
+    <linearGradient id="${k}w" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <clipPath id="${k}c"><path d="M40 92 L160 92 L152 160 L48 160Z M40 92 C40 58 62 46 100 46 C138 46 160 58 160 92Z"/></clipPath></defs>
+    <g class="dm-rays">${rays}</g><circle cx="100" cy="105" r="92" fill="url(#${k}a)" class="dm-aura"/><ellipse cx="100" cy="172" rx="58" ry="9" fill="#0B2A6B" opacity=".25" class="dm-ombre"/>
+    <g class="dm-coffre">
+      ${open?`<g class="dm-in"><ellipse cx="100" cy="93" rx="58" ry="13" fill="#fff"/>${[-50,-25,0,25,50].map((a,i)=>`<polygon points="${100+a*.6},92 ${100+a*1.7-14},0 ${100+a*1.7+14},0" fill="#fff" opacity="${i%2?.35:.55}"/>`).join('')}</g>`:''}
+      <path d="M160 92 L172 86 L166 152 L152 160Z" fill="url(#${k}s)"/><path d="M40 92 L160 92 L152 160 L48 160Z" fill="url(#${k}f)" stroke="#fff" stroke-width="1.5"/>
+      <path d="M40 92 L100 92 L74 160 L48 160Z" fill="#fff" opacity=".16"/><path d="M100 92 L160 92 L152 160 L126 160Z" fill="#0B3A8C" opacity=".18"/><path d="M74 160 L100 92 L126 160" fill="none" stroke="#fff" stroke-width="1" opacity=".5"/>
+      <rect x="57" y="96" width="9" height="64" rx="2" fill="url(#${k}m)"/><rect x="134" y="96" width="9" height="64" rx="2" fill="url(#${k}m)"/><rect x="45" y="154" width="110" height="8" rx="4" fill="url(#${k}m)" stroke="#5B6E91" stroke-width="1"/>
+      ${open?`<g transform="rotate(-34 40 92) translate(-4 -8)">${lid}</g>`:lid}
+      ${open?'':`<rect x="85" y="84" width="30" height="36" rx="7" fill="url(#${k}m)" stroke="#5B6E91" stroke-width="1"/>${gem(100,102,14,'dm-lock')}`}
+      ${open?'':`<rect class="dm-brille" x="-70" y="40" width="34" height="130" fill="url(#${k}w)" clip-path="url(#${k}c)" transform="skewX(-18)"/>`}</g>
+    ${orbite}${star(28,48,7,0)}${star(176,40,9,.5)}${star(182,120,6,1)}${star(20,130,8,.8)}${star(150,20,5,1.3)}${star(54,22,5,.3)}</svg>`;}
+const diamantMini=()=>`<svg viewBox="0 0 40 36" class="dmmini" aria-hidden="true"><path d="M33 16 L37 14 L35 30 L31 32Z" fill="#2B63D0"/><path d="M5 16 L33 16 L31 32 L7 32Z" fill="#3FB6F5" stroke="#fff" stroke-width="1"/><path d="M5 16 C5 7 11 4 19 4 C27 4 33 7 33 16Z" fill="#9BEBFF" stroke="#fff" stroke-width="1"/><path d="M5 16 L11 7 L16 16Z M19 4 L16 16 L22 16Z" fill="#fff" opacity=".4"/><rect x="4" y="14.5" width="30" height="3" rx="1.5" fill="#E3EAF5"/><polygon points="19,19 23,22 19,28 15,22" fill="#fff" stroke="#5CD0FF" stroke-width=".8"/><path class="dm-et" d="M35 3 Q35 6 38 6 Q35 6 35 9 Q35 6 32 6 Q35 6 35 3Z" fill="#fff"/></svg>`;
+function chestSVG(t,open){if(t==='diamant')return diamantSVG(open);const T=COFT[t]||COFT.bois,id='cg'+(++OBN),ink='#3B2A1A';
   return `<svg viewBox="0 0 64 58" class="csvg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${T.c1}"/><stop offset="1" stop-color="${T.c2}"/></linearGradient></defs>`
    +(open?`<ellipse cx="32" cy="26" rx="24" ry="9" fill="#FFF3B0" opacity=".9"/><path d="M8 24 L15 5 H49 L56 24Z" fill="url(#${id})" stroke="${ink}" stroke-width="2" stroke-linejoin="round"/>`
          :`<path d="M6 26 C6 11 15 7 32 7 C49 7 58 11 58 26Z" fill="url(#${id})" stroke="${ink}" stroke-width="2"/><path d="M16 9 V26 M48 9 V26" stroke="${ink}" stroke-width="2" opacity=".4"/>`)
@@ -2395,8 +2444,15 @@ const Coffre={plein:false,
   gainModal(l){l=(l||[]).filter(Boolean);if(!l.length){if(this.plein){this.plein=false;toast('🗝️ Tes 4 emplacements de coffres sont pleins : ouvre-en un !');}return;}this.plein=false;const n=l.length,big=l.some(c=>c.t==='epique'||c.t==='legende');
     queueModal(`<div class="cofwin">${l.map(c=>`<span>${chestSVG(c.t)}</span>`).join('')}</div><h2>${n>1?`${n} coffres gagnés !`:'Coffre gagné !'}</h2><p>${l.map(c=>`<b>${COFT[c.t].n}</b>`).join(' · ')}</p><p>Il${n>1?'s s’ouvriront':' s’ouvrira'} dans <b>${CFG.cofH} heures</b>. On te préviendra ! ⏰</p><button class="btn y block" data-act="mclose">Trop bien !</button>`,
       ()=>{Sound.play(big?'level':'badge');if(big)Confetti.burst(90);if(S.settings.voice)Voice.say(n>1?'Tu gagnes des coffres ! Ils s’ouvriront dans douze heures.':`Tu gagnes un ${COFT[l[0].t].n.toLowerCase()} ! Il s’ouvrira dans douze heures.`);});},
-  open(id){const c=this.list().find(x=>x.id===id);if(!c)return;if(!this.ready(c)){Sound.play('tap');toast(`⏳ Encore ${this.left(c)} avant de l’ouvrir`);return;}
+  open(id){const c=this.list().find(x=>x.id===id);if(!c)return;if(c.t==='diamant'&&this.ready(c))return this.diamant(id);if(!this.ready(c)){Sound.play('tap');toast(`⏳ Encore ${this.left(c)} avant de l’ouvrir`);return;}
     queueModal(`<div class="cofbig t-${c.t}" id="cofbig" data-act="cofpop" data-arg="${c.id}">${chestSVG(c.t)}</div><h2>${COFT[c.t].n}</h2><p>Touche le coffre pour l’ouvrir !</p>`,()=>{if(S.settings.voice)Voice.say('Touche le coffre pour l’ouvrir !');});},
+  diamant(id){queueModal(`<div class="dmwrap" id="dmw" data-act="dmpop" data-arg="${id}">${diamantSVG(false)}<i class="am-hand dmh">👆</i></div><h2 class="dmh2">Coffre en diamant !</h2><p>Touche le coffre pour l’ouvrir !</p>`,()=>{try{Sound.play('epic');Confetti.burst(60);}catch(e){}if(S.settings.voice)Voice.say('Un coffre en diamant ! Touche-le pour l’ouvrir !');});},
+  dmPop(id){const w=$('#dmw');if(!w||w.dataset.busy)return;w.dataset.busy='1';Voice.stop();w.classList.add('dmshake');[0,300,560,780,950].forEach((t,i)=>setTimeout(()=>Sound.play(i<4?'tick':'level'),t));
+    setTimeout(()=>{const f=document.createElement('div');f.className='dmflash';document.body.appendChild(f);setTimeout(()=>f.remove(),900);
+      w.classList.remove('dmshake');w.innerHTML=diamantSVG(true);w.classList.add('dmopen');
+      for(let i=0;i<22;i++){const p=document.createElement('i');p.className='dmpart';p.textContent=['💎','✨','💠','⭐'][i%4];const a=Math.random()*Math.PI*2,d=90+Math.random()*120;p.style.cssText=`--x:${Math.cos(a)*d}px;--y:${Math.sin(a)*d-60}px;--r:${Math.random()*540-270}deg;animation-delay:${Math.random()*.25}s`;w.appendChild(p);}
+      try{Sound.play('epic');Confetti.burst(200);setTimeout(()=>Confetti.burst(140,innerWidth*.2,innerHeight*.35),300);setTimeout(()=>Confetti.burst(140,innerWidth*.8,innerHeight*.35),600);}catch(e){}},1150);
+    setTimeout(()=>this.reveal(id),2700);},
   pop(id){const el=$('#cofbig');if(!el||el.dataset.busy)return;el.dataset.busy='1';el.classList.add('shake3');Voice.stop();[0,380,760].forEach(t=>setTimeout(()=>Sound.play('tick'),t));setTimeout(()=>this.reveal(id),1150);},
   colle(id){S.album=S.album||{};const a=ALB[id],n=(S.album[id]||0)+1;S.album[id]=n;let bonus=0,serie=null;
     if(n>1)bonus=cc(ALBUM_R[a.r].dup);
@@ -2409,10 +2465,10 @@ const Coffre={plein:false,
       html=`<div class="cofres farce"><div class="bigemoji wob">${g.a.e}</div><span class="rtag" style="background:#9A8478">Farce !</span><h2>Oh non… ${esc(g.a.n.toLowerCase())} !</h2><p>Ça arrive ! Elle rejoint ta collection des farces 😄</p>${g.dup?'':'<p class="cofnote">Nouvelle farce dans ton album 📒</p>'}<div class="gainline">+${fmtP(coins)} 🪙</div></div>`;}
     else if(kind==='bon'){coins=cc(Math.round(rand(15,30)*T.m));if(Math.random()<.6){g=this.colle(pick(ALBUM.filter(a=>a.r===(Math.random()<.75?'c':'r'))).id);coins+=g.bonus;}
       html=`<div class="cofres bon"><div class="cofopen">${chestSVG(c.t,true)}</div><span class="rtag" style="background:#22C55E">Bien joué !</span><h2>+${fmtP(coins)} 🪙</h2>${g?this.stk(g):''}</div>`;}
-    else{coins=cc(Math.round(rand(40,80)*T.m));const rng2={bois:[200,1500],argent:[300,2500],or:[600,5000],epique:[1500,12000],legende:[4000,30000]}[c.t];
-      if(c.t==='legende'||Math.random()<.45)item=dropItem(rng2[0],rng2[1],true);
-      if(!item){g=this.colle(pick(ALBUM.filter(a=>a.r===(Math.random()<(c.t==='legende'?.6:.3)?'l':'e'))).id);coins+=g.bonus;}
-      html=`<div class="cofres epiq"><div class="cofopen">${chestSVG(c.t,true)}</div><span class="rtag rainbow">Épique !</span><h2>+${fmtP(coins)} 🪙</h2>${item?`<p>Et un objet rare : <b>${esc(item.name)}</b> !</p><div class="mav">${thumb(item)}</div>`:this.stk(g)}</div>`;}
+    else{coins=cc(Math.round(rand(40,80)*T.m));const rng2={bois:[200,1500],argent:[300,2500],or:[600,5000],epique:[1500,12000],legende:[4000,30000],diamant:[3000,20000]}[c.t];
+      if(c.t==='legende'||Math.random()<(c.t==='diamant'?.6:.45))item=dropItem(rng2[0],rng2[1],true);
+      if(!item){g=this.colle(pick(ALBUM.filter(a=>a.r===(Math.random()<(c.t==='legende'||c.t==='diamant'?.6:.3)?'l':'e'))).id);coins+=g.bonus;}
+      html=`<div class="cofres epiq"><div class="cofopen${c.t==='diamant'?' dm':''}">${chestSVG(c.t,true)}</div><span class="rtag rainbow">${c.t==='diamant'?'💎 Diamant !':'Épique !'}</span><h2>+${fmtP(coins)} 🪙</h2>${item?`<p>Et un objet rare : <b>${esc(item.name)}</b> !</p><div class="mav">${thumb(item)}</div>`:this.stk(g)}</div>`;}
     let cle=false;if(kind!=='farce'&&Math.random()<CFG.keyChest/100*(kind==='bon'?1:2)){S.cleN=(S.cleN||0)+1;cle=true;html+='<p class="cofkey">🔑 <b>Une clé !</b> Tu peux demander un cadeau à papa ou maman.</p>';}
     S.coins+=coins;save();
     const btn=cle?'<div class="stack"><button class="btn y block" data-act="demcat">Demander un cadeau 🎁</button><button class="btn sm o block" data-act="mclose">Plus tard</button></div>':item?`<div class="stack"><button class="btn p block" data-act="equipgift" data-arg="${item.id}">Le mettre tout de suite</button><button class="btn y block" data-act="mclose">Super !</button></div>`:`<button class="btn ${kind==='farce'?'w':'y'} block" data-act="mclose">${kind==='farce'?'Tant pis 😅':'Super !'}</button>`;
@@ -2975,7 +3031,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
   // objectif d'équipe atteint : on le dit dès l'accueil (une fois par salon et par semaine)
   recoModal(){const d=this.frais();if(!d||SCR!=='home'||modalOpen)return;const x=d.salons.find(s=>this.gagne(s)&&!s.recompense_prise);if(!x)return;
     const k=x.id+'|'+(x.manche||d.semaine),vu=this.lsGet('amis-reco-')||{};if(vu[k])return;vu[k]=1;this.lsSet('amis-reco-',vu);
-    queueModal(`<div style="${this.cols(x.createur)}"><div class="hero-duo">${this.av(this.moi(),'lg')}<span class="hx">🏆</span>${this.av(x.copain,'lg')}</div></div><h2>Partie gagnée ! 🏆</h2><p>Bravo à toi et ${esc(this.nom(x.copain))} : ${x.moi+x.lui} bonnes réponses ensemble. Ta récompense t’attend !</p><button class="btn y block am-go" data-act="amisreco" data-arg="${x.id}"><span class="am-ic">🎁</span> Récupérer ma récompense${this.main()}</button><button class="alink" data-act="mclose">Plus tard</button>`,()=>{try{Confetti.burst(120);}catch(e){}this.son('level');});},
+    queueModal(`<div style="${this.cols(x.createur)}"><div class="hero-duo">${this.av(this.moi(),'lg')}<span class="hx">🏆</span>${this.av(x.copain,'lg')}</div></div><h2>Partie gagnée ! 🏆</h2><p>Bravo à toi et ${esc(this.nom(x.copain))} : ${x.moi+x.lui} bonnes réponses ensemble. Ton coffre en diamant t’attend !</p><button class="btn y block am-go" data-act="amisreco" data-arg="${x.id}"><span class="am-ic">💎</span> Ouvrir le coffre${this.main()}</button><button class="alink" data-act="mclose">Plus tard</button>`,()=>{try{Confetti.burst(120);}catch(e){}this.son('level');});},
   // ----- en direct : ce qui s'est passé, présence, petit guide -----
   lsGet(k){try{return JSON.parse(localStorage.getItem(k+Acct.pid)||'null');}catch(e){return null;}},
   lsSet(k,o){try{localStorage.setItem(k+Acct.pid,JSON.stringify(o));}catch(e){}},
@@ -3007,15 +3063,15 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
       const et=this.etat(x);
       if(et==='attente'&&!x.pret)t=`${c} t’attend pour une nouvelle partie ! Touche « Je rejoins la partie ».`;
       else if(et==='attente')t=`On attend ${c}. Dès qu’il arrive, la partie commence !`;
-      else if(et==='gagne'&&!x.recompense_prise)t='Bravo ! Vous avez gagné la partie : ouvre ta récompense !';
+      else if(et==='gagne'&&!x.recompense_prise)t='Bravo ! Vous avez gagné : ouvre ton coffre en diamant !';
       else if(et==='gagne')t=`Partie terminée ! Lance une nouvelle partie avec ${c}.`;
       else if(D&&!D.expire&&!D.fini&&D.moi==null&&!D.lanceur)t=`${c} te défie ! Fais mieux que lui en 10 questions.`;
       else if(D&&D.fini)t='Le défi est terminé : regarde qui a gagné !';
       else if(tot<x.objectif&&this.deseq(x.moi,x.lui))t=`Tu es loin devant ! Laisse ${c} te rattraper : dis-lui que c’est à son tour de jouer.`;
       else if(tot<x.objectif&&this.deseq(x.lui,x.moi))t=`${c} a ramené plein de points ! À toi de jouer pour le rattraper !`;
       else if(x.copain.en_ligne&&x.copain.lieu==='jeu')t=`${c} joue en ce moment ! Joue toi aussi pour remplir la jauge plus vite.`;
-      else if(tot===0)t=`${c} est dans ton équipe ! Appuie sur Jouer : chaque bonne réponse remplit la jauge.`;
-      else t=`Encore ${Math.max(0,x.objectif-tot)} bonnes réponses ensemble pour gagner la partie !`;}
+      else if(tot===0)t=`${c} est dans ton équipe ! Remplissez la jauge ensemble pour gagner un coffre en diamant.`;
+      else t=`Encore ${Math.max(0,x.objectif-tot)} bonnes réponses ensemble pour gagner le coffre en diamant !`;}
     if(t!==this.dit){this.dit=t;if(S.settings.voice)setTimeout(()=>{try{if(SCR==='amis'&&!this.nOn&&!modalOpen)Voice.say(t);}catch(e){}},700);}
     return `<div class="coach"><img src="logo.svg" alt="" class="coach-i"><p>${esc(t)}</p></div>`;},
   vivre(){clearInterval(this.vT);this.vT=setInterval(()=>{if(SCR!=='amis'||!this.ok()){clearInterval(this.vT);return;}if(document.hidden||this.load)return;const av=JSON.stringify(this.frais());
@@ -3025,7 +3081,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
   // ----- partie d'équipe : jauge en haut, +1 à chaque bonne réponse, nouvelles du copain en direct -----
   cols(cre){const V=['#12B886','#0B7A56','#5FDDB0'],P=['#7B5CFF','#4F35C2','#A893FF'],m=cre?V:P,l=cre?P:V;return `--cm:${m[0]};--cmd:${m[1]};--cm2:${m[2]};--cl:${l[0]};--cld:${l[1]};--cl2:${l[2]}`;},
   jauge(moi,lui,o,id){const w=v=>Math.min(100,v/o*100),pm=w(moi),pl=Math.min(100-pm,w(lui)),t=moi+lui;
-    return `<div class="jg"><div class="amisg big"><i class="m" ${id?`id="${id}M"`:''} style="width:${pm}%"></i><i class="l" ${id?`id="${id}L"`:''} style="width:${pl}%"></i></div>${[25,50,75].map(f=>`<i class="jgp ${t>=o*f/100?'on':''}" style="left:${f}%">⭐</i>`).join('')}<span class="jgt ${t>=o?'on':''}">🏆</span></div>`;},
+    return `<div class="jg"><div class="amisg big"><i class="m" ${id?`id="${id}M"`:''} style="width:${pm}%"></i><i class="l" ${id?`id="${id}L"`:''} style="width:${pl}%"></i></div>${[25,50,75].map(f=>`<i class="jgp ${t>=o*f/100?'on':''}" style="left:${f}%">⭐</i>`).join('')}<span class="jgt ${t>=o?'on':''}">${diamantMini()}</span></div>`;},
   // une phrase courte avec une voix rigolote (au hasard parmi 5)
   direTexte(t,v){const V=AMIS_VOIX[v||['robot','souris','geant','rigolo','normale'][Math.floor(Math.random()*5)]];if(!Voice.ok||!t)return;const w=Math.max(120,(this.sonT||0)-Date.now()+150);try{if(speechSynthesis.speaking)return;setTimeout(()=>{const u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';if(Voice.v)u.voice=Voice.v;u.pitch=V[2];u.rate=V[3];speechSynthesis.speak(u);},w);}catch(e){}},
   // l'un a beaucoup plus avancé que l'autre : on propose une pause pour que le copain rattrape
@@ -3043,7 +3099,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     const p=Math.floor(t/(o/4));if(p>e.pal&&p<4){e.pal=p;this.palier(Math.round(p*o/4));}else if(p>e.pal)e.pal=p;
     if(!e.fete&&t>=o){e.fete=1;this.finPartie(e);}},
   // objectif atteint (par moi ou par le copain) : grande fête, puis la partie s'arrête toute seule
-  finPartie(e){this.grand('🏆',`${e.objectif}`,'Gagné !');this.direTexte('Partie gagnée !');if(!G||G.amisFin)return;G.amisFin=1;
+  finPartie(e){this.grand('💎',`${e.objectif}`,'Gagné !');this.direTexte('Partie gagnée !');if(!G||G.amisFin)return;G.amisFin=1;
     const b=$('#tbNote');if(b){b.innerHTML='🏆 <b>Objectif atteint !</b> La partie est terminée.';restart(b,'on');}
     setTimeout(()=>{if(G&&!G.ended&&SCR==='game')endGame();},2600);},
   // gros effet au milieu de l'écran (étape franchie, objectif, points du copain)
@@ -3085,7 +3141,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
   tuile(){if(!Acct.user)return '';const d=this.frais(),n=this.nonLus(),act=d?d.salons.filter(x=>this.actif(x)):[],a=act[0],T=a&&amisTh()[a.theme];
     const df=act.find(x=>x.defi&&!x.defi.lanceur&&x.defi.moi==null&&!x.defi.expire);
     const nv=act.map(x=>[x,this.nouvDuCopain(x)[0]]).find(z=>z[1]),rec=act.find(x=>this.gagne(x)&&!x.recompense_prise),inv=act.find(x=>this.invite(x)),fin=act.find(x=>this.gagne(x));
-    const sub=inv?`🎮 ${esc(this.nom(inv.copain))} t’attend pour jouer !`:rec?'🏆 Partie gagnée : ta récompense t’attend !':df?`⚔️ ${esc(this.nom(df.copain))} te défie !`:nv?this.evTxt(nv[1],nv[0].copain).join(' ').replace(/<[^>]+>/g,''):fin?`🔁 Relance une partie avec ${esc(this.nom(fin.copain))}`:a?`${a.moi+a.lui} / ${a.objectif} avec ${esc(this.nom(a.copain))}${T?' · '+T.e:''}`:d&&d.salons.length?'Ton salon se prépare…':'Joue en équipe avec un copain';
+    const sub=inv?`🎮 ${esc(this.nom(inv.copain))} t’attend pour jouer !`:rec?'💎 Ton coffre en diamant t’attend !':df?`⚔️ ${esc(this.nom(df.copain))} te défie !`:nv?this.evTxt(nv[1],nv[0].copain).join(' ').replace(/<[^>]+>/g,''):fin?`🔁 Relance une partie avec ${esc(this.nom(fin.copain))}`:a?`${a.moi+a.lui} / ${a.objectif} avec ${esc(this.nom(a.copain))}${T?' · '+T.e:''}`:d&&d.salons.length?'Ton salon se prépare…':'Joue en équipe avec un copain';
     const ico=a?`<span class="ico amisico ${a.copain.en_ligne?'on':''}">${avatarSVG(a.copain.avatar)}</span>`:'<span class="ico am-ic">👫</span>';
     return `<button class="play amisb ${n?'pulse':''}" style="--c:#12B886;--d:#0B8A61" data-act="amis">${ico}<span class="tx"><span class="t1">Entre amis</span><span class="t2">${sub}</span></span>${n?`<i class="dot">${n}</i>`:''}</button>`;},
   dire(mot,voix){const m=AMIS_MOTS[mot],v=AMIS_VOIX[voix]||AMIS_VOIX.normale;if(!m||!Voice.ok)return;try{Voice.hush();setTimeout(()=>{const u=new SpeechSynthesisUtterance(m[1]);u.lang='fr-FR';if(Voice.v)u.voice=Voice.v;u.pitch=v[2];u.rate=v[3];u.volume=1;speechSynthesis.speak(u);},120);}catch(e){}},
@@ -3096,10 +3152,10 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     const th=sess.type==='sprint'?'math':sess.type,b=sess.type==='sprint'?(sess.score||0):(sess.ok||0);if(!b)return;
     try{const {data}=await Acct.sb.rpc('amis_points',{p_profil:Acct.pid,p_theme:th,p_bonnes:b});if(Array.isArray(data)&&data.length){this.res=data.map(x=>Object.assign({plus:Math.min(b,60)},x));this.t=0;const el=$('#amisRes');if(el)el.innerHTML=this.resHTML();}}catch(e){}},
   recap(){const e=this.eqRes.e,c=e.copain,qui=esc(this.nom(c)),o=e.objectif,tot=e.moi+e.lui,tot0=Math.min(e.moi0+e.lui0,tot),gLui=Math.max(0,e.lui-e.lui0),gMoi=Math.max(0,e.moi-e.moi0),h=this.main();
-    const pal=[25,50,75,100].map(f=>Math.round(o*f/100)).find(v=>v>tot),etape=tot>=o?'🏆 <b>Partie gagnée !</b> La partie est terminée : ta récompense t’attend.':`Prochaine étape : <b>${pal===o?'🏆':'⭐'} ${pal}</b> · encore <b>${pal-tot}</b>`;
+    const pal=[25,50,75,100].map(f=>Math.round(o*f/100)).find(v=>v>tot),etape=tot>=o?'🏆 <b>Partie gagnée !</b> Ton 💎 coffre en diamant t’attend.':`Prochaine étape : <b>${pal===o?'💎':'⭐'} ${pal}</b> · encore <b>${pal-tot}</b>`;
     const bas=tot<o&&this.deseq(e.moi,e.lui)?`<div class="trec-pause">✋ <b>Pause !</b> Tu as ${e.moi} points, ${qui} ${e.lui}. Laisse-le te rattraper.</div>
         <button class="btn o block am-go" data-act="amisrelance" data-arg="${e.id}"><span class="am-ic">📣</span> Dire à ${qui} de jouer${h}</button><button class="alink" data-act="amisrejouer">Rejouer quand même</button>`
-      :tot>=o?`<button class="btn y block am-go" data-act="amis"><span class="am-ic">🎁</span> Ouvrir la récompense${h}</button>`
+      :tot>=o?`<button class="btn y block am-go" data-act="amis"><span class="am-ic">💎</span> Ouvrir le coffre${h}</button>`
       :`<button class="btn g block am-go" data-act="amisrejouer"><span class="am-ic">▶</span> Rejouer${h}</button>`;
     return `<div class="trec" style="${this.cols(e.cre)}">
       <div class="trec-duo"><div class="trec-p pm">${this.av(this.moi(),'sm')}<b>Toi</b><span class="trec-g">+${gMoi}</span></div>
@@ -3143,14 +3199,14 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
       +`<button class="smb" data-act="amismot" data-arg="${x.id}"><span class="am-ic">💬</span>Message</button>`;
     return `<div class="card sal act" style="${this.cols(x.createur)}">
       <div class="duo">${this.badge(this.moi(),'ab1'+(x.moi>x.lui?' top1':''))}<span class="duo-x">🤝</span>${this.badge(c,'ab2'+(x.lui>x.moi?' top1':''))}</div>
-      <div class="goal"><div class="goal-t"><span>🎯 Ensemble</span><b>${tot} / ${x.objectif}</b></div>${this.jauge(x.moi,x.lui,x.objectif)}<small>${T.e} ${esc(T.n)} · 1 bonne réponse = 1 point · encore <b>${Math.max(0,x.objectif-tot)}</b> pour gagner 🏆</small></div>
+      <div class="goal"><div class="goal-t"><span>🎯 Ensemble</span><b>${tot} / ${x.objectif}</b></div>${this.jauge(x.moi,x.lui,x.objectif)}<small>${T.e} ${esc(T.n)} · 1 bonne réponse = 1 point · encore <b>${Math.max(0,x.objectif-tot)}</b> pour le 💎 coffre en diamant</small></div>
       ${this.fil(x)}${mots}${info}${prim}<div class="sal-mini">${sec}</div></div>`;},
   // partie gagnée : elle est finie ; on ouvre la récompense, puis on relance une nouvelle partie
   victoire(x,T){const c=x.copain,qui=esc(this.nom(c)),tot=x.moi+x.lui,h=this.main(),pm=tot?Math.round(x.moi/tot*100):50,g=x.gagnees||1;
-    const prim=!x.recompense_prise?`<button class="btn y block am-go" data-act="amisreco" data-arg="${x.id}"><span class="am-ic">🎁</span> Ouvre ta récompense !${h}</button>`
+    const prim=!x.recompense_prise?`<button class="btn y block am-go" data-act="amisreco" data-arg="${x.id}"><span class="am-ic">💎</span> Ouvre ton coffre en diamant !${h}</button>`
       :`<button class="btn g block am-go" data-act="amisnouv" data-arg="${x.id}"><span class="am-ic">🔁</span> Nouvelle partie${h}</button>`;
-    return `<div class="card sal win" style="${this.cols(x.createur)}"><div class="win-tr"><span class="win-ray"></span><span class="win-cup">🏆</span></div>
-      <h3 class="win-h">Partie gagnée !</h3><p class="win-p">${T.e} ${esc(T.n)} · <b>${tot}</b> bonnes réponses à deux</p>
+    return `<div class="card sal win" style="${this.cols(x.createur)}"><div class="win-tr${x.recompense_prise?' pris':''}">${x.recompense_prise?'<span class="win-ray"></span><span class="win-cup">🏆</span>':diamantSVG(false)}</div>
+      <h3 class="win-h">Partie gagnée !</h3>${x.recompense_prise?'':'<p class="win-dm">Le coffre en diamant est à toi !</p>'}<p class="win-p">${T.e} ${esc(T.n)} · <b>${tot}</b> bonnes réponses à deux</p>
       <div class="win-duo"><div class="wd pm">${this.av(this.moi(),'sm')}<b>Toi</b><span>${x.moi}</span></div><div class="win-bar"><i class="m" style="width:${pm}%"></i><i class="l" style="width:${100-pm}%"></i></div><div class="wd pl">${this.av(c,'sm')}<b>${qui}</b><span>${x.lui}</span></div></div>
       <p class="win-n">${'🏆'.repeat(Math.min(5,g))}${g>5?' ×'+g:''} <span>${g} partie${g>1?'s':''} gagnée${g>1?'s':''} ensemble</span></p>
       ${prim}<div class="sal-mini"><button class="smb" data-act="amismot" data-arg="${x.id}"><span class="am-ic">💬</span>Message</button></div></div>`;},
@@ -3160,12 +3216,12 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
       <div class="lob-mid"><span class="dots"><i>.</i><i>.</i><i>.</i></span></div><div class="lob-p wait ${on?'on':''}">${this.av(c,'lg')}<span class="lob-t">${on?'en ligne':'⏳'}</span></div></div>
       <h3 class="prep-h"><span>On attend ${qui}<span class="dots"><i>.</i><i>.</i><i>.</i></span></span></h3>
       <p class="prep-p">${on?`${qui} est en ligne : la partie commence dès qu’il arrive !`:`${qui} a reçu un message. La partie commence dès qu’il arrive !`}</p>
-      <small class="prep-th">${T.e} ${esc(T.n)} · objectif ${x.objectif} à deux</small>
+      <small class="prep-th">${T.e} ${esc(T.n)} · objectif ${x.objectif} à deux · à gagner : 💎 coffre en diamant</small>
       <div class="sal-mini"><button class="smb" data-act="amisrelance" data-arg="${x.id}"><span class="am-ic">📣</span>Le prévenir</button><button class="smb" data-act="amisnouv" data-arg="${x.id}"><span class="am-ic">🎲</span>Changer de jeu</button></div></div>`;},
   // invitation : le copain a lancé une partie et m'attend
   invit(x,T){const c=x.copain,qui=esc(this.nom(c));
     return `<div class="card sal invite" style="${this.cols(x.createur)}"><div class="inv-av"><span class="inv-ring"></span><span class="inv-ring r2"></span>${this.av(c,'lg')}<span class="inv-b">🎮</span></div>
-      <h3 class="inv-h">${qui} t’attend !</h3><p class="inv-p">Nouvelle partie de <b>${T.e} ${esc(T.n)}</b> · objectif ${x.objectif} à deux</p>
+      <h3 class="inv-h">${qui} t’attend !</h3><p class="inv-p">Nouvelle partie de <b>${T.e} ${esc(T.n)}</b> · objectif ${x.objectif} à deux<br>À gagner : <b>💎 un coffre en diamant</b></p>
       <button class="btn g block am-go" data-act="amispret" data-arg="${x.id}"><span class="am-ic">▶</span> Je rejoins la partie !${this.main()}</button></div>`;},
   // nouvelle partie : on choisit le jeu, puis le copain la rejoint
   partieNouv(id){const d=this.frais(),x=d&&d.salons.find(s=>s.id===id);if(!x)return;this.sid=id;this.th=x.theme;const TH=amisTh(),ids=['math','fr'].concat(Object.keys(THEMES).filter(k=>thUnlocked(k)));if(TH[x.theme]&&!ids.includes(x.theme))ids.unshift(x.theme);
@@ -3234,8 +3290,8 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     Amis.son('coin');toast('Message envoyé ✅');},
   async reco(id){closeAllModals();const {data,error}=await Acct.sb.rpc('salon_recompense',{p_salon:id,p_profil:Acct.pid});
     if(error||!data||data.erreur)return toast(data&&data.erreur==='deja'?'Récompense déjà récupérée':'Pas encore : continuez !');
-    S.coins+=150;const c=Coffre.gagne('epique','duo');save();await this.charger();render();
-    queueModal(`<div class="bigemoji">🏆</div><h2>Partie gagnée !</h2><p>Bravo à vous deux ! Tu gagnes <b>+150 🪙</b>${c?' et un <b>coffre épique</b>':''}.</p><button class="btn g block am-go" data-act="amisnouv" data-arg="${id}"><span class="am-ic">🔁</span> Nouvelle partie${this.main()}</button><button class="alink" data-act="mclose">Plus tard</button>`,()=>{try{Confetti.burst(140);}catch(e){}});},
+    const c={id:'dm'+Date.now().toString(36),t:'diamant',won:Date.now(),ready:Date.now(),why:'duo'};Coffre.list().push(c);save();
+    this.charger().then(()=>{if(SCR==='amis'&&!modalOpen)render();});Coffre.diamant(c.id);},
   async lus(){const d=this.frais();if(!d)return;for(const x of d.salons)if((x.mots||[]).length)try{await Acct.sb.rpc('salon_mots_lus',{p_salon:x.id,p_profil:Acct.pid});}catch(e){}},
   defiLancer(id){const d=this.frais(),x=d&&d.salons.find(s=>s.id===id);if(!x)return;const T=amisTh()[x.theme]||{n:x.theme,e:'🎲'};this.sid=id;
     queueModal(`<div class="hero-duo">${this.av(this.moi(),'lg')}<span class="hx">⚔️</span>${this.av(x.copain,'lg')}</div><h2>Défier ${esc(this.nom(x.copain))} ?</h2><p><b>10 questions ${T.e} ${esc(T.n)}</b>, chacun à son niveau. Celui qui en réussit le plus du premier coup gagne une étoile ⭐ (égalité : une chacun).</p><p class="hint">Un seul essai. ${esc(this.nom(x.copain))} aura 48 h pour jouer à son tour.</p><button class="btn p block" data-act="defilancer2">C’est parti ! ⚔️</button><button class="alink" data-act="mclose">Annuler</button>`);},
@@ -3375,8 +3431,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.14';
+const VERSION='2.15';
 const VERSIONS=[
+ ['2.15','24/11/2026 00:55','Entre amis : à gagner ensemble, un coffre en diamant animé (rayons, halo, cristaux, diamants en orbite), affiché au bout de la jauge ; à la victoire, on le secoue et il s’ouvre tout de suite dans une pluie de diamants, pour une grosse récompense'],
  ['2.14','24/11/2026 00:45','Entre amis : le mode Défi est retiré (plus de bouton « Défier », plus de défis ni d’étoiles) ; on joue seulement en équipe, partie après partie'],
  ['2.13','24/11/2026 00:35','Entre amis : la fenêtre « X est là ! » ne reste plus devant une partie (elle ne s’affiche que pour celui qui attendait, et toute partie qui démarre ferme les fenêtres ouvertes)'],
  ['2.12','24/11/2026 00:25','Notifications au bon appareil : celles d’un enfant vont sur sa tablette (sinon sur le dernier appareil utilisé), les alertes admin jamais sur l’appareil d’un enfant ; code parent commun à toute la famille, demandé aussi depuis une notification et dans l’admin ; code oublié : code envoyé par e-mail au parent ; vibration et son différents pour l’enfant et pour les parents'],
@@ -3652,7 +3709,7 @@ const ACT={
   thlocked(k){const T=THEMES[k],n=T.unlock-levelInfo(S.xp).level;Sound.play('tap');toast(`🔒 ${T.n} se débloque au niveau ${T.unlock} : encore ${n} niveau${n>1?'x':''} !`);if(S.settings.voice)Voice.say(`${T.n} se débloque au niveau ${T.unlock}. Encore ${n} niveau${n>1?'x':''} !`);},
   setth(a){const [k,n]=a.split('|');if(+n>Plan.thMax(k))return Offre.open('theme');S.settings.lv[k]=+n;save();toast(`${THEMES[k].n} : monde ${n}`);keepScroll(render);},
   cofopen(id){Coffre.open(id);},
-  cofpop(id){Coffre.pop(id);},
+  cofpop(id){Coffre.pop(id);},dmpop(id){Coffre.dmPop(id);},
   album(){go('album');},
   pushon(){Promise.resolve(Push.enable()).then(()=>Etapes.redraw());},
   pushaide(){queueModal(`<div class="bigemoji sm">🔕</div><h2>Notifications bloquées</h2><p>Elles ont été refusées pour Malino sur cet appareil. Pour les autoriser :</p><ol class="insto"><li>Touche le <b>cadenas 🔒</b> (ou ⓘ) à gauche de l’adresse, ou ouvre les <b>réglages</b> de l’appli Malino</li><li>Choisis <b>Notifications</b> → <b>Autoriser</b></li><li>Reviens ici et touche <b>Activer les notifications</b></li></ol><button class="btn p block" data-act="mclose" style="margin-top:8px">J’ai compris</button>`);},
