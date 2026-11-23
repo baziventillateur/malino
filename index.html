@@ -2690,7 +2690,7 @@ function later(fn,ms){const g=G;if(!g)return;const t=setTimeout(()=>{if(G===g&&!
 function stopGame(){try{savePartial();}catch(e){}if(G){G.ended=true;G.timers.forEach(clearTimeout);if(G.clock)clearInterval(G.clock);}G=null;Voice.stop();Sound.stopReal();$('#tip').classList.add('hidden');}
 function frPreload(){try{FrAudio.preload([...FR_SND].filter(k=>k.startsWith('son:')));const L=FR_LEVELS[S.settings.frLevel-1];if(L&&L.items)FrAudio.preload(L.items.map(x=>typeof x==='string'?'syl:'+x.replace('|',''):''));}catch(e){}}
 function startGame(sub,mode,opt){opt=opt||{};if(sub==='fr')frPreload();
-  if(Acct.wall()){Acct.show('wall');return;}
+  if(Acct.wall()){Acct.show('wall');return;}if(modalOpen)closeAllModals();
   if(TimeT.limited()){queueModal(`<div class="bigemoji">🌙</div><h2>Bravo ${nm()} !</h2><p>Tu as bien joué aujourd’hui : <b>${fmtDur(TimeT.sec())}</b>. C’est fini pour aujourd’hui, à demain !</p><button class="btn y block" data-act="mclose">À demain 👋</button>`,()=>{if(S.settings.voice)Voice.say('Bravo ! C’est fini pour aujourd’hui. À demain !');});return;}
   if(THEMES[sub]&&!thUnlocked(sub)&&!opt.amis)return ACT.thlocked(sub);
   if(THEMES[sub]&&!S.settings.lv[sub]){S.settings.lv[sub]=1;}
@@ -3174,14 +3174,14 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
   async partieNouv2(){const id=this.sid;closeAllModals();let r;try{r=await Acct.sb.rpc('salon_nouvelle',{p_salon:id,p_profil:Acct.pid,p_theme:this.th});}catch(e){r={error:1};}
     if(r.error||!r.data||r.data.erreur)return toast(r.data&&r.data.erreur==='en_cours'?'Finissez d’abord la partie en cours 😉':'Réessaie dans un instant');
     this.son('go');await this.charger('salon');render();},
-  async pret(id){let r;try{r=await Acct.sb.rpc('salon_pret',{p_salon:id,p_profil:Acct.pid});}catch(e){r={error:1};}
+  async pret(id){this.joining=id;let r;try{r=await Acct.sb.rpc('salon_pret',{p_salon:id,p_profil:Acct.pid});}catch(e){r={error:1};}setTimeout(()=>{if(this.joining===id)this.joining=null;},15000);
     if(r.error||!r.data||r.data.erreur)return toast('Réessaie dans un instant');
     await this.charger('salon');const x=(this.frais()||{salons:[]}).salons.find(s=>s.id===id);
     if(r.data.etat==='jeu'&&x){this.direTexte('C’est parti !');startGame(x.theme,'train',{amis:1});}else render();},
   // ce qui a changé pendant qu'on regarde l'écran : le copain est arrivé, la partie est gagnée, une invitation…
   suivi(av){const d=this.frais();if(!d||!av)return;const A=new Map((av.salons||[]).map(x=>[x.id,x]));
     for(const x of d.salons){const a=A.get(x.id);if(!a||!this.actif(x))continue;const e0=this.etat(a),e1=this.etat(x),qui=this.nom(x.copain);
-      if(e0==='attente'&&e1==='jeu'&&!modalOpen){queueModal(`<div style="${this.cols(x.createur)}"><div class="hero-duo">${this.av(this.moi(),'lg')}<span class="hx am-ic">🤝</span>${this.av(x.copain,'lg')}</div></div><h2>${esc(qui)} est là ! 🚀</h2><p>La partie commence : chaque bonne réponse remplit votre jauge.</p><button class="btn g block am-go" data-act="amisjouer" data-arg="${x.theme}"><span class="am-ic">▶</span> Jouer !${this.main()}</button>`,()=>{try{Confetti.burst(90);}catch(z){}this.son('epic');this.direTexte(`${qui} est là ! C’est parti !`);});}
+      if(e0==='attente'&&a.pret&&e1==='jeu'&&!modalOpen&&SCR==='amis'&&this.joining!==x.id){queueModal(`<div style="${this.cols(x.createur)}"><div class="hero-duo">${this.av(this.moi(),'lg')}<span class="hx am-ic">🤝</span>${this.av(x.copain,'lg')}</div></div><h2>${esc(qui)} est là ! 🚀</h2><p>La partie commence : chaque bonne réponse remplit votre jauge.</p><button class="btn g block am-go" data-act="amisjouer" data-arg="${x.theme}"><span class="am-ic">▶</span> Jouer !${this.main()}</button><button class="alink" data-act="mclose">Plus tard</button>`,()=>{try{Confetti.burst(90);}catch(z){}this.son('epic');this.direTexte(`${qui} est là ! C’est parti !`);});}
       else if(e1==='attente'&&!x.pret&&(e0!=='attente'||a.pret)){this.son('epic');this.direTexte(`${qui} t’attend !`);}}},
   // une fois par partie gagnée : confettis, son et voix en ouvrant l'écran
   fetes(){const d=this.frais();if(!d||SCR!=='amis')return;const vu=this.lsGet('amis-win-')||{};let n=0;
@@ -3374,8 +3374,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.12';
+const VERSION='2.13';
 const VERSIONS=[
+ ['2.13','24/11/2026 00:35','Entre amis : la fenêtre « X est là ! » ne reste plus devant une partie (elle ne s’affiche que pour celui qui attendait, et toute partie qui démarre ferme les fenêtres ouvertes)'],
  ['2.12','24/11/2026 00:25','Notifications au bon appareil : celles d’un enfant vont sur sa tablette (sinon sur le dernier appareil utilisé), les alertes admin jamais sur l’appareil d’un enfant ; code parent commun à toute la famille, demandé aussi depuis une notification et dans l’admin ; code oublié : code envoyé par e-mail au parent ; vibration et son différents pour l’enfant et pour les parents'],
  ['2.11','24/11/2026 00:10','Entre amis : une partie a une fin (à l’objectif, la partie s’arrête et la victoire s’affiche), récompense puis « Nouvelle partie », salle d’attente et invitation « Je rejoins la partie », notifications « X t’attend »'],
  ['2.10','23/11/2026 23:55','Tableau de bord des parents : score de calcul et de lecture sur 1000 avec le niveau repère (CP, CE1, CE2), vitesse comparée aux repères du programme, calculs sus par cœur, réussite du premier coup, et l’évolution mois par mois'],
@@ -3621,7 +3622,7 @@ const ACT={
   amiscode(){Amis.code();},amiscode2(){Amis.code2();},
   amismot(id){Amis.motModal(id);},amismotc(k){Amis.mot=k;Amis.dire(k,Amis.voix);Amis.sel('amismotc',k);},amisvoix(k){Amis.voix=k;Amis.dire(Amis.mot,k);Amis.sel('amisvoix',k);},amisenvoi(){Amis.envoi();},
   amisdire(a){const [m,v]=String(a).split('|');Amis.dire(m,v);},
-  amisjouer(k){if(k!=='math'&&k!=='fr'&&!THEMES[k])return;startGame(k,'train',{amis:1});},
+  amisjouer(k){if(k!=='math'&&k!=='fr'&&!THEMES[k])return;closeAllModals();startGame(k,'train',{amis:1});},
   amisrejouer(){const k=G&&G.sub;closeAllModals();if(k)startGame(k,'train',{amis:1});else ACT.amis();},
   amisrelance(id){Amis.mot='atoi';Amis.motModal(id);},
   defilancer(id){Amis.defiLancer(id);},defilancer2(){Amis.defiLancer2();},defirelever(id){Amis.defiRelever(id);},defigo(id){Amis.defiGo(id);},defires(id){Amis.defiRes(id);},
