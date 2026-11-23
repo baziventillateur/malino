@@ -170,8 +170,8 @@ h1,h2,h3,h4{font-weight:700}
 .duo{display:flex;align-items:stretch;margin:0 0 14px}
 .duo-x{align-self:center;font-size:18px;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:#fff;box-shadow:0 3px 0 #E1E4EE,0 4px 10px rgba(0,0,0,.1);flex:none;z-index:1;margin:0 -10px}
 .abadge{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;padding:12px 8px 9px;border-radius:20px;position:relative;color:#fff;text-align:center}
-.abadge.ab1{background:linear-gradient(150deg,#1DC891,#0E9C6E);box-shadow:0 5px 0 #0B7A56,0 10px 18px rgba(14,156,110,.25)}
-.abadge.ab2{background:linear-gradient(150deg,#9177FF,#6A4CF0);box-shadow:0 5px 0 #4F35C2,0 10px 18px rgba(106,76,240,.25)}
+.abadge.ab1{background:linear-gradient(150deg,var(--cm2,#1DC891),var(--cm,#0E9C6E));box-shadow:0 5px 0 var(--cmd,#0B7A56),0 10px 18px rgba(20,30,60,.18)}
+.abadge.ab2{background:linear-gradient(150deg,var(--cl2,#9177FF),var(--cl,#6A4CF0));box-shadow:0 5px 0 var(--cld,#4F35C2),0 10px 18px rgba(20,30,60,.18)}
 .abadge::before{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.25),rgba(255,255,255,0) 45%);pointer-events:none}
 .abtop{position:relative;margin-bottom:10px}
 .ablv{position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);background:linear-gradient(180deg,#FFE066,#FFC61A);color:#5A3D00;font-weight:800;font-size:11px;padding:2px 8px;border-radius:99px;white-space:nowrap;box-shadow:0 2px 0 #D49B00}
@@ -193,7 +193,7 @@ h1,h2,h3,h4{font-weight:700}
 .sal-h{display:flex;align-items:center;gap:10px;margin-bottom:8px}.sal-h small{display:block;font-size:12.5px;color:var(--ink2)}.sal-h b{font-size:17px}
 .sal-t{font-size:24px;width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:var(--c);box-shadow:0 3px 0 rgba(0,0,0,.15);flex:none}
 .sal-w{margin:4px 0;font-size:14.5px}.sal-code{font-weight:800;font-size:38px;line-height:1;letter-spacing:3px;text-align:center;padding:12px;margin:8px 0;border:3px dashed #12B886;border-radius:16px;background:#F0FBF6;color:#0B6B4C}
-.amisg{height:12px;border-radius:99px;background:#E9EDF5;overflow:hidden;display:flex;margin:6px 0 4px}.amisg i{display:block;height:100%;background:#12B886}.amisg.big{height:18px;box-shadow:inset 0 2px 3px rgba(0,0,0,.08)}.amisg i.m{background:linear-gradient(90deg,#12B886,#5FDDB0)}.amisg i.l{background:linear-gradient(90deg,#7B5CFF,#A893FF)}
+.amisg{height:12px;border-radius:99px;background:#E9EDF5;overflow:hidden;display:flex;margin:6px 0 4px}.amisg i{display:block;height:100%;background:#12B886}.amisg.big{height:18px;box-shadow:inset 0 2px 3px rgba(0,0,0,.08)}.amisg i.m{background:linear-gradient(90deg,var(--cm,#12B886),var(--cm2,#5FDDB0))}.amisg i.l{background:linear-gradient(90deg,var(--cl,#7B5CFF),var(--cl2,#A893FF))}
 .sal-n{display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;font-size:13px;color:var(--ink2);align-items:center}.sal-n b{font-size:16px;color:var(--ink)}.sal-n i{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 4px 0 2px}.sal-n .pm{background:#12B886}.sal-n .pl{background:#7B5CFF}
 .sal-mots{margin:10px 0 2px;padding:8px;border-radius:14px;background:#F6F2FF}.sal-mots>small{display:block;font-size:12px;color:var(--ink2);margin:0 0 4px}
 .sal-mot{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:#fff;border-radius:12px;padding:7px 10px;margin-top:5px;box-shadow:0 2px 0 #E3DAFF}.sal-mot span{font-size:22px}.sal-mot b{flex:1}.sal-mot small{font-size:11.5px;color:var(--ink2)}
@@ -245,19 +245,37 @@ h1,h2,h3,h4{font-weight:700}
 .trec{margin:10px 0 4px;padding:12px;border-radius:20px;background:linear-gradient(160deg,#ECFDF5,#F1EDFF);border:2px solid #DCD3FF;box-shadow:0 5px 0 #DCD3FF;text-align:center;animation:coachIn .5s ease-out}
 .trec-h{font-weight:800;font-size:15px;margin-bottom:8px;color:var(--ink)}
 .trec-duo{display:flex;align-items:center;justify-content:space-between;gap:6px}
-.trec-p{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:76px}.trec-p b{font-size:13px;color:var(--ink)}.trec-g{font-weight:900;font-size:19px;color:#0E9C6E}.trec-p.p2 .trec-g{color:#6A4CF0}.trec-g.z{color:var(--ink2);font-size:14px}
+.trec-p{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:76px}.trec-p b{font-size:13px;color:var(--ink)}.trec-g{font-weight:900;font-size:19px;color:#0E9C6E}.trec-g.z{color:var(--ink2);font-size:14px}
 .trec-tot b{display:block;font-size:42px;font-weight:900;line-height:1;color:var(--ink)}.trec-tot b.pop{animation:tbpop .45s}.trec-tot small{display:block;font-size:13px;color:var(--ink2);font-weight:700}
 .trec-bar{position:relative;padding-right:34px;margin:10px 0 4px}.trec-bar .amisg{margin:0}.trec-bar .amisg i{transition:width 1.3s cubic-bezier(.3,1.3,.5,1)}
-.trec-buzz{margin:8px 0;padding:9px 10px;border-radius:14px;background:linear-gradient(135deg,#8C6BFF,#6A4CF0);color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;opacity:0;transform:scale(.6);box-shadow:0 4px 0 #4F35C2}.trec-buzz.on{animation:buzz .7s cubic-bezier(.2,1.6,.4,1) forwards}
+.trec-buzz{margin:8px 0;padding:9px 10px;border-radius:14px;background:linear-gradient(135deg,var(--cl2),var(--cl));color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;opacity:0;transform:scale(.6);box-shadow:0 4px 0 var(--cld)}.trec-buzz.on{animation:buzz .7s cubic-bezier(.2,1.6,.4,1) forwards}
 @keyframes buzz{to{opacity:1;transform:scale(1)}}
 .trec-r{margin:6px 0 2px;font-size:14.5px;color:var(--ink)}
 .trec-pause{margin:8px 0 0;padding:9px 10px;border-radius:14px;background:#FFF4D6;border:1px solid #FDE68A;font-size:14px;text-align:left;color:#6B4B00;line-height:1.35}
-.tboom{position:fixed;left:50%;top:20%;z-index:95;display:flex;align-items:center;gap:12px;padding:12px 20px 12px 12px;border-radius:26px;background:linear-gradient(135deg,#8C6BFF,#5B3FE0);color:#fff;box-shadow:0 8px 0 #4128B8,0 20px 40px rgba(40,20,120,.35);opacity:0;pointer-events:none;transform:translate(-50%,0) scale(.2)}
+.tboom{position:fixed;left:50%;top:20%;z-index:95;display:flex;align-items:center;gap:12px;padding:12px 20px 12px 12px;border-radius:26px;background:linear-gradient(135deg,var(--cl2,#8C6BFF),var(--cl,#5B3FE0));color:#fff;box-shadow:0 8px 0 var(--cld,#4128B8),0 20px 40px rgba(40,20,120,.35);opacity:0;pointer-events:none;transform:translate(-50%,0) scale(.2)}
 .tboom.on{animation:boom 2.4s cubic-bezier(.2,1.5,.4,1) forwards}
 @keyframes boom{0%{transform:translate(-50%,0) scale(.2);opacity:0}14%{transform:translate(-50%,0) scale(1.1);opacity:1}24%{transform:translate(-50%,0) scale(1)}78%{transform:translate(-50%,0) scale(1);opacity:1}100%{transform:translate(-50%,-140px) scale(.35);opacity:0}}
 .tboom b{display:block;font-size:15px}.tboom span{display:block;font-size:42px;font-weight:900;line-height:1;text-shadow:0 3px 0 rgba(0,0,0,.2)}
 .tluip{position:absolute;right:6px;top:-8px;font-style:normal;font-weight:900;color:#6A4CF0;font-size:16px;animation:tlui 1.2s ease-out forwards;pointer-events:none;z-index:3}
 @keyframes tlui{from{opacity:1;transform:translateY(0) scale(1.2)}to{opacity:0;transform:translateY(-26px) scale(.9)}}
+.jg{position:relative;margin-right:30px}.jg .amisg{margin:0}.jg .amisg i{transition:width 1.2s cubic-bezier(.3,1.3,.5,1)}
+.jgp{position:absolute;top:50%;transform:translate(-50%,-50%);font-style:normal;font-size:13px;line-height:1;filter:grayscale(1);opacity:.5;z-index:1;transition:.4s}.jgp.on{filter:none;opacity:1;transform:translate(-50%,-50%) scale(1.15)}
+.jgt{position:absolute;right:-30px;top:50%;transform:translateY(-50%);font-size:22px;line-height:1;filter:grayscale(1);opacity:.45}.jgt.on{filter:none;opacity:1;animation:pulse 1.6s infinite}
+.eqbar{position:relative;display:flex;align-items:center;gap:8px;margin:8px 0 0;padding:6px 8px;border-radius:16px;background:#fff;box-shadow:0 3px 0 rgba(0,0,0,.07)}
+.eqp{position:relative;display:flex;flex-direction:column;align-items:center;flex:none;width:42px}.eqp .amav{width:34px;height:34px}
+.eqp.pm .amav{box-shadow:0 0 0 3px var(--cm)}.eqp.pl .amav{box-shadow:0 0 0 3px var(--cl)}
+.eqp b{font-size:15px;font-weight:900;line-height:1.1;margin-top:2px}.eqp.pm b{color:var(--cmd)}.eqp.pl b{color:var(--cld)}.eqp b.pop{animation:tbpop .4s}
+.eqp.pl.live .amav{animation:liveR 1.1s infinite}@keyframes liveR{0%,100%{box-shadow:0 0 0 3px var(--cl)}50%{box-shadow:0 0 0 7px var(--cl2)}}
+.eqlv{display:none;position:absolute;top:-7px;right:-6px;font-style:normal;font-size:14px}.eqp.pl.live .eqlv{display:block;animation:amWig 1.6s infinite}
+.eqc{flex:1;min-width:0}.eqt{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;font-weight:800;color:var(--ink2);margin:0 30px 4px 0}.eqt b{font-size:14px;color:var(--ink)}.eqt b.pop{animation:tbpop .4s}
+.eqbar .tplus{left:52px;top:2px;color:var(--cmd)}.eqbar .tluip{right:52px;top:2px;color:var(--cld)}
+.game.eq .gprog i{background:linear-gradient(90deg,#FFC61A,#FFE066)}.game.eq .gav{visibility:hidden}.game.eq .gmid{margin-top:4px;margin-bottom:4px}
+.tbi{font-size:46px;line-height:1}
+.rteam .rt-top{display:flex;flex-direction:column;align-items:center}.rteam .stars.sm{font-size:40px;margin:0}.rteam h1{font-size:26px;margin:0 0 8px}
+.rt-chips{display:flex;justify-content:center;flex-wrap:wrap;gap:6px}.rt-chips span{background:#fff;border-radius:99px;padding:5px 12px;font-weight:800;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.07)}.rt-chips .rt-cof{background:#FFF4D6}
+.trec-att{min-height:220px;display:grid;place-items:center;color:var(--ink2)}
+.trec-tot small:first-child{font-size:12px}.trec-p b{margin-top:7px}.trec-p.pm .trec-g{color:var(--cmd)}.trec-p.pl .trec-g{color:var(--cld)}.trec-p .amav{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--cm)}.trec-p.pl .amav{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--cl)}
+#trJ{margin:10px 0 6px}
 .count.cgo{font-size:34px;display:flex;align-items:center;justify-content:center;gap:10px;color:#12B886}
 .amisico.on{box-shadow:0 0 0 3px #7CF5C8,0 0 0 2px rgba(255,255,255,.7)}
 @media (prefers-reduced-motion:reduce){.am-go,.am-hand,.am-ic,.duo-x,.rd,.coach-i,.abon::before{animation:none!important}}
@@ -2793,7 +2811,7 @@ function endGame(){
   if(badges.some(b=>b.r==='e'||b.r==='l'))cofs.push(Coffre.gagne('epique','badge'));
   if(after>before)setTimeout(()=>{after%10===0?Sons.exc():after%5===0?Sons.pal():Sons.lvl();},1000);else if(G.mode==='sprint'&&G.record&&G.score)setTimeout(()=>Sons.record(),800);else if(G.mode!=='sprint'&&G.stars>=3&&!G.wrong)setTimeout(()=>Sons.play('headshot',{max:2,fade:.3}),800);go('result');setTimeout(()=>{if(Acct.wall()&&SCR==='result')Acct.show('wall');},3800);Sound.play(G.mode==='sprint'?(G.record&&G.score?'level':Sound.custom('fail').length?'fail':'end'):'end');
   if(G.mode==='sprint'?G.record:G.stars>=2)setTimeout(()=>Confetti.burst(130),250);
-  if(S.settings.voice){const nmv=S.name||'';Voice.say(G.mode==='sprint'?`${G.score} calculs justes ! ${G.record?'Nouveau record !':''}`:`Bravo ! ${G.stars} étoile${G.stars>1?'s':''} !`);}
+  if(S.settings.voice&&!G.equipe){const nmv=S.name||'';Voice.say(G.mode==='sprint'?`${G.score} calculs justes ! ${G.record?'Nouveau record !':''}`:`Bravo ! ${G.stars} étoile${G.stars>1?'s':''} !`);}
   setTimeout(()=>{autoUpModal(ups);if(S.settings.pauseTip!==false&&TimeT.cont>=1200&&!TimeT.tipped&&!TimeT.limited()){TimeT.tipped=true;Sons.play('mario_pause',{max:3,fade:.4});queueModal(`<div class="bigemoji">🧃</div><h2>Une petite pause ?</h2><p>Ça fait 20 minutes que tu joues, bravo ! Bouge un peu, bois de l’eau, et reviens quand tu veux.</p><button class="btn y block" data-act="mclose">D’accord 👍</button>`);}if(thLock)Offre.lock(thT.n,thLock);if(thUp)queueModal(`<div class="bigemoji">${thT.e}</div><h2>${thT.n} : monde ${thUp} !</h2><p>${thT.levels[thUp-1].e} ${thT.levels[thUp-1].n}</p><button class="btn y block" data-act="mclose">Super ! 🎉</button>`,()=>{Sound.play('epic');Confetti.burst(100);});if(after>before)levelUpModal(before,after);badges.forEach(badgeModal);gifts.forEach(giftModal);Coffre.gainModal(cofs);Dem.apresNiveau(before,after);},1300);
 }
 
@@ -2875,7 +2893,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
   ilya(d){const m=Math.round((Date.now()-new Date(d))/6e4);return m<1?'à l’instant':m<60?`il y a ${m} min`:m<1440?`il y a ${Math.round(m/60)} h`:m<2880?'hier':`il y a ${Math.round(m/1440)} j`;},
   evTxt(e,c){const n=esc(this.nom(c)),M=AMIS_MOTS[e.detail];
     return ({cree:['🏠',e.moi?'Tu as créé le salon':`${n} a créé le salon`],rejoint:['🎉',e.moi?'Tu as rejoint le salon':`${n} a rejoint ton salon !`],
-      partie:['✅',`${e.moi?'Tu as':n+' a'} terminé une partie : <b>+${e.valeur}</b>`],defi:['⚔️',e.moi?'Tu as lancé un défi':`${n} te lance un défi !`],
+      partie:['✅',`${e.moi?'Tu as':n+' a'} fini une partie : <b>${e.valeur} bonne${e.valeur>1?'s':''} réponse${e.valeur>1?'s':''}</b>`],defi:['⚔️',e.moi?'Tu as lancé un défi':`${n} te lance un défi !`],
       defi_joue:['🏁',`${e.moi?'Tu as':n+' a'} joué le défi`],mot:['💬',e.moi?`Tu as envoyé « ${M?M[1]:''} »`:`${n} : « ${M?M[1]:''} »`],objectif:['🏆','Objectif d’équipe atteint !']})[e.type]||['•',''];},
   // nouveautés du copain depuis la dernière fois : bannière animée, son et voix
   nouveaux(){const d=this.frais();if(!d)return;let vu=this.lsGet('amis-vu-');const premier=!vu;vu=vu||{};const q=[];
@@ -2888,7 +2906,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     b.classList.remove('on');void b.offsetWidth;b.classList.add('on');
     try{const snd={rejoint:'badge',partie:'coin',defi:'epic',defi_joue:'tick',objectif:'level',mot:'coin'}[e.type];if(snd)Sound.play(snd);}catch(z){}
     if(e.type==='mot'){const m=(x.mots||[]).find(w=>w.mot===e.detail);setTimeout(()=>this.dire(e.detail,m?m.voix:'robot'),350);}
-    else if(S.settings.voice)setTimeout(()=>{try{Voice.say(t.replace(/<[^>]+>/g,'').replace(/[«»]/g,''));}catch(z){}},350);
+    else{const n=this.nom(x.copain),dit={rejoint:`${n} est là !`,partie:`Bravo ${n} !`,defi:`${n} te défie !`,defi_joue:`${n} a joué le défi !`,objectif:'Objectif atteint !'}[e.type];if(dit)setTimeout(()=>this.direTexte(dit),350);}
     if(e.type==='objectif'||e.type==='rejoint')try{Confetti.burst(90);}catch(z){}
     clearTimeout(this.nT);this.nT=setTimeout(()=>{b.classList.remove('on');setTimeout(()=>this.nSuite(),400);},3600);},
   // la chouette explique ce qu'il reste à faire (et le dit à voix haute quand ça change)
@@ -2911,15 +2929,29 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
   ouvert(){const d=this.frais();if(!d)return;const o={};d.salons.forEach(x=>o[x.id]=this.maxEv(x));this.lsSet('amis-ouv-',o);},
   nouvDuCopain(x){const o=this.lsGet('amis-ouv-')||{};return (x.evts||[]).filter(e=>!e.moi&&e.type!=='cree'&&e.id>(o[x.id]||0)&&Date.now()-new Date(e.le)<1728e5);},
   // ----- partie d'équipe : jauge en haut, +1 à chaque bonne réponse, nouvelles du copain en direct -----
+  cols(cre){const V=['#12B886','#0B7A56','#5FDDB0'],P=['#7B5CFF','#4F35C2','#A893FF'],m=cre?V:P,l=cre?P:V;return `--cm:${m[0]};--cmd:${m[1]};--cm2:${m[2]};--cl:${l[0]};--cld:${l[1]};--cl2:${l[2]}`;},
+  jauge(moi,lui,o,id){const w=v=>Math.min(100,v/o*100),pm=w(moi),pl=Math.min(100-pm,w(lui)),t=moi+lui;
+    return `<div class="jg"><div class="amisg big"><i class="m" ${id?`id="${id}M"`:''} style="width:${pm}%"></i><i class="l" ${id?`id="${id}L"`:''} style="width:${pl}%"></i></div>${[25,50,75].map(f=>`<i class="jgp ${t>=o*f/100?'on':''}" style="left:${f}%">⭐</i>`).join('')}<span class="jgt ${t>=o?'on':''}">🏆</span></div>`;},
+  // une phrase courte avec une voix rigolote (au hasard parmi 5)
+  direTexte(t,v){const V=AMIS_VOIX[v||['robot','souris','geant','rigolo','normale'][Math.floor(Math.random()*5)]];if(!Voice.ok||!t)return;try{Voice.hush();setTimeout(()=>{const u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';if(Voice.v)u.voice=Voice.v;u.pitch=V[2];u.rate=V[3];speechSynthesis.speak(u);},120);}catch(e){}},
   // l'un a beaucoup plus avancé que l'autre : on propose une pause pour que le copain rattrape
   deseq(m,l){return m>=2*l+15;},
-  equipe(sub){const d=this.frais();if(!d||!this.ok())return null;const L=d.salons.filter(x=>this.actif(x)&&x.theme===sub).map(x=>({id:x.id,objectif:x.objectif,moi:x.moi,lui:x.lui,copain:x.copain,pend:0,last:this.maxEv(x),fete:x.moi+x.lui>=x.objectif,moi0:x.moi,lui0:x.lui}));return L.length?L:null;},
-  barre(){const E=G&&G.equipe;if(!E)return '';const e=E[0];
-    return `<div class="eqbar" id="eqbar">${this.av(this.moi(),'xs')}<div class="tbg"><div class="amisg"><i class="m" id="tbM"></i><i class="l" id="tbL"></i></div><span class="tbn" id="tbN"></span></div>${this.av(e.copain,'xs tbc'+(e.copain&&e.copain.en_ligne?' on':''))}<div class="tbnote" id="tbNote"></div></div>`;},
-  barMaj(plus){const E=G&&G.equipe;if(!E)return;const e=E[0],o=e.objectif,pm=Math.min(100,e.moi/o*100),pl=Math.min(100-pm,e.lui/o*100),m=$('#tbM'),l=$('#tbL'),n=$('#tbN');if(!m)return;
-    m.style.width=pm+'%';l.style.width=pl+'%';n.textContent=`🤝 ${e.moi+e.lui} / ${o}`;
-    if(plus){const f=document.createElement('i');f.className='tplus';f.textContent='+1';$('#eqbar').appendChild(f);setTimeout(()=>f.remove(),900);restart(n,'pop');}
-    if(!e.fete&&e.moi+e.lui>=o){e.fete=1;this.jeuMsg('🏆 Objectif d’équipe atteint !');try{Confetti.burst(100);Sound.play('level');}catch(z){}}},
+  equipe(sub){const d=this.frais();if(!d||!this.ok())return null;const L=d.salons.filter(x=>this.actif(x)&&x.theme===sub).map(x=>({id:x.id,objectif:x.objectif,moi:x.moi,lui:x.lui,copain:x.copain,pend:0,last:this.maxEv(x),fete:x.moi+x.lui>=x.objectif,moi0:x.moi,lui0:x.lui,cre:x.createur,pal:Math.floor((x.moi+x.lui)/(x.objectif/4))}));return L.length?L:null;},
+  barre(){const E=G&&G.equipe;if(!E)return '';const e=E[0],c=e.copain;
+    return `<div class="eqbar" id="eqbar" style="${this.cols(e.cre)}"><div class="eqp pm">${this.av(this.moi(),'sm')}<b id="eqM">${e.moi}</b></div>
+      <div class="eqc"><div class="eqt"><span>🤝 Équipe</span><b id="tbN">${e.moi+e.lui} / ${e.objectif}</b></div><div id="eqJ">${this.jauge(e.moi,e.lui,e.objectif,'tb')}</div></div>
+      <div class="eqp pl ${c&&c.en_ligne&&c.lieu==='jeu'?'live':''}" id="eqPL">${this.av(c,'sm')}<b id="eqL">${e.lui}</b><i class="eqlv">🎮</i></div><div class="tbnote" id="tbNote"></div></div>`;},
+  barMaj(plus){const E=G&&G.equipe;if(!E)return;const e=E[0],o=e.objectif,t=e.moi+e.lui,pm=Math.min(100,e.moi/o*100),pl=Math.min(100-pm,e.lui/o*100),m=$('#tbM'),l=$('#tbL'),n=$('#tbN');if(!m)return;
+    m.style.width=pm+'%';l.style.width=pl+'%';n.textContent=`${t} / ${o}`;$('#eqM').textContent=e.moi;$('#eqL').textContent=e.lui;
+    document.querySelectorAll('#eqJ .jgp').forEach((x,i)=>x.classList.toggle('on',t>=o*(i+1)/4));const tr=$('#eqJ .jgt');if(tr)tr.classList.toggle('on',t>=o);
+    const pl2=$('#eqPL');if(pl2)pl2.classList.toggle('live',!!(e.copain&&e.copain.en_ligne&&e.copain.lieu==='jeu'));
+    if(plus){const f=document.createElement('i');f.className='tplus';f.textContent='+1';$('#eqbar').appendChild(f);setTimeout(()=>f.remove(),900);restart($('#eqM'),'pop');restart(n,'pop');}
+    const p=Math.floor(t/(o/4));if(p>e.pal&&p<4){e.pal=p;this.palier(Math.round(p*o/4));}else if(p>e.pal)e.pal=p;
+    if(!e.fete&&t>=o){e.fete=1;this.grand('🏆',`${o}`,'Objectif atteint !');}},
+  // gros effet au milieu de l'écran (étape franchie, objectif, points du copain)
+  grand(ic,t1,t2){let b=document.getElementById('tboom');if(!b){b=document.createElement('div');b.id='tboom';b.className='tboom';document.body.appendChild(b);}
+    b.innerHTML=`<span class="tbi">${ic}</span><div><b>${t2}</b><span>${t1}</span></div>`;b.setAttribute('style','--cl:#F59E0B;--cl2:#FFD23F;--cld:#B45309');restart(b,'on');try{Sound.play('level');Confetti.burst(120);}catch(z){}},
+  palier(v){this.grand('⭐',`${v}`,'Étape franchie !');this.direTexte('Étape franchie !');},
   jeuMsg(h){const b=$('#tbNote');if(!b)return;b.innerHTML=h;restart(b,'on');clearTimeout(this.tnT);this.tnT=setTimeout(()=>b.classList.remove('on'),3400);},
   plus1(){const E=G&&G.equipe;if(!E)return;E.forEach(e=>{e.moi++;e.pend++;});this.barMaj(true);if(E[0].pend>=6)this.jeuTick();},
   jeuDebut(){clearInterval(this.jT);if(!G||!G.equipe)return;setTimeout(()=>this.barMaj(),0);this.jT=setInterval(()=>this.jeuTick(),10000);this.jeuTick();},
@@ -2931,11 +2963,11 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
         ev.forEach(v=>{e.last=Math.max(e.last,v.id);if(!fin&&(!v.moi||v.type==='objectif'))this.jeuNote(e,v);});
         if(!fin&&e.lui>luiAv&&!ev.some(v=>!v.moi&&v.type==='partie'))this.luiPlus(e.lui-luiAv);
         if(!fin)this.barMaj();}catch(z){e.pend+=plus;}}},
-  luiPlus(n){const t=$('#eqbar');if(!t)return;const f=document.createElement('i');f.className='tluip';f.textContent='+'+n;t.appendChild(f);setTimeout(()=>f.remove(),1200);try{Sound.play('coin');}catch(z){}},
+  luiPlus(n){const t=$('#eqbar');if(!t)return;const f=document.createElement('i');f.className='tluip';f.textContent='+'+n;t.appendChild(f);setTimeout(()=>f.remove(),1200);restart($('#eqL'),'pop');try{Sound.play('coin');}catch(z){}},
   boom(e,v){let b=document.getElementById('tboom');if(!b){b=document.createElement('div');b.id='tboom';b.className='tboom';document.body.appendChild(b);}
-    b.innerHTML=`${this.av(e.copain,'lg')}<div><b>${esc(this.nom(e.copain))} a ramené</b><span>+${v.valeur}</span></div>`;restart(b,'on');try{Sound.play('epic');Confetti.burst(70);}catch(z){}},
-  jeuNote(e,v){if(v.type==='partie'){this.boom(e,v);this.jeuMsg(`${this.av(e.copain,'xs')} <b>${esc(this.nom(e.copain))}</b> +${v.valeur} pour l’équipe !`);}
-    else if(v.type==='objectif'){if(!e.fete){e.fete=1;this.jeuMsg('🏆 Objectif d’équipe atteint !');try{Confetti.burst(100);Sound.play('level');}catch(z){}}}
+    b.innerHTML=`${this.av(e.copain,'lg')}<div><b>${esc(this.nom(e.copain))} a fini sa partie !</b><span>${v.valeur} ✅</span></div>`;b.setAttribute('style',this.cols(e.cre));restart(b,'on');try{Sound.play('epic');Confetti.burst(70);}catch(z){}this.direTexte(`Bravo ${this.nom(e.copain)} !`);},
+  jeuNote(e,v){if(v.type==='partie'){this.boom(e,v);this.jeuMsg(`${this.av(e.copain,'xs')} <b>${esc(this.nom(e.copain))}</b> : ${v.valeur} bonnes réponses dans sa partie`);}
+    else if(v.type==='objectif'){if(!e.fete){e.fete=1;this.grand('🏆',`${e.objectif}`,'Objectif atteint !');}}
     else{const [ic,t]=this.evTxt(v,e.copain);this.jeuMsg(`${ic} ${t}`);}},
   compte(){const card=$('#qcard'),E=G.equipe&&G.equipe[0];let n=3;$('#answers').innerHTML='';
     const step=()=>{if(n>0){card.innerHTML=`<div class="count">${n}</div>`;restart(card,'in');Sound.play('tick');n--;later(step,750);}
@@ -2962,26 +2994,29 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     if(sess.eq){const E=G&&G.equipe;if(!E)return;await this.jeuTick({ok:sess.ok||0});this.t=0;if(sess.p)return;this.eqRes={e:E[0]};const el=$('#amisRes');if(el){el.innerHTML=this.resHTML();this.recAnim();}return;}
     const th=sess.type==='sprint'?'math':sess.type,b=sess.type==='sprint'?(sess.score||0):(sess.ok||0);if(!b)return;
     try{const {data}=await Acct.sb.rpc('amis_points',{p_profil:Acct.pid,p_theme:th,p_bonnes:b});if(Array.isArray(data)&&data.length){this.res=data.map(x=>Object.assign({plus:Math.min(b,60)},x));this.t=0;const el=$('#amisRes');if(el)el.innerHTML=this.resHTML();}}catch(e){}},
-  recap(){const e=this.eqRes.e,c=e.copain,qui=esc(this.nom(c)),o=e.objectif,tot=e.moi+e.lui,tot0=Math.min(e.moi0+e.lui0,tot),gLui=Math.max(0,e.lui-e.lui0),gMoi=Math.max(0,e.moi-e.moi0),reste=Math.max(0,o-tot),h=this.main(),w=v=>Math.min(100,v/o*100);
-    const pm0=w(e.moi0),pl0=Math.min(100-pm0,w(e.lui0)),pm=w(e.moi),pl=Math.min(100-pm,w(e.lui));
-    const bas=this.deseq(e.moi,e.lui)?`<div class="trec-pause"><b>✋ Pause, champion !</b> Tu as ramené ${e.moi} points et ${qui} ${e.lui}. Laisse-le te rattraper : dis-lui que c’est à son tour !</div>
+  recap(){const e=this.eqRes.e,c=e.copain,qui=esc(this.nom(c)),o=e.objectif,tot=e.moi+e.lui,tot0=Math.min(e.moi0+e.lui0,tot),gLui=Math.max(0,e.lui-e.lui0),gMoi=Math.max(0,e.moi-e.moi0),h=this.main();
+    const pal=[25,50,75,100].map(f=>Math.round(o*f/100)).find(v=>v>tot),etape=tot>=o?'🎉 Objectif atteint ! Votre récompense vous attend.':`Prochaine étape : <b>${pal===o?'🏆':'⭐'} ${pal}</b> · encore <b>${pal-tot}</b>`;
+    const bas=this.deseq(e.moi,e.lui)?`<div class="trec-pause">✋ <b>Pause !</b> Tu as ${e.moi} points, ${qui} ${e.lui}. Laisse-le te rattraper.</div>
         <button class="btn o block am-go" data-act="amisrelance" data-arg="${e.id}"><span class="am-ic">📣</span> Dire à ${qui} de jouer${h}</button><button class="alink" data-act="amisrejouer">Rejouer quand même</button>`
       :tot>=o?`<button class="btn y block am-go" data-act="amis"><span class="am-ic">🎁</span> Voir la récompense${h}</button>`
-      :`<button class="btn g block am-go" data-act="amisrejouer"><span class="am-ic">▶</span> Rejouer : encore ${reste} !${h}</button>`;
-    return `<div class="trec"><div class="trec-h">🤝 Ton équipe avec ${qui}</div>
-      <div class="trec-duo"><div class="trec-p">${this.av(this.moi(),'sm')}<b>Toi</b><span class="trec-g">+${gMoi}</span></div>
-        <div class="trec-tot"><b id="trN" data-a="${tot0}" data-b="${tot}">${tot0}</b><small>sur ${o}</small></div>
-        <div class="trec-p p2">${this.av(c,'sm')}<b>${qui}</b><span class="trec-g ${gLui?'':'z'}">${gLui?'+'+gLui:'—'}</span></div></div>
-      <div class="trec-bar"><div class="amisg big"><i class="m" id="trM" style="width:${pm0}%" data-w="${pm}"></i><i class="l" id="trL" style="width:${pl0}%" data-w="${pl}"></i></div><span class="gtro ${tot>=o?'on':''}">🏆</span></div>
-      ${gLui?`<div class="trec-buzz" id="trB">${this.av(c,'xs')} <span><b>${qui}</b> a ramené <b>+${gLui}</b> pendant ta partie ! 🎉</span></div>`:''}
-      <p class="trec-r">${tot>=o?'🎉 Objectif atteint ! Votre récompense vous attend.':`Encore <b>${reste}</b> bonnes réponses ensemble pour la récompense !`}</p>${bas}</div>`;},
-  // la jauge monte, le compteur défile, et les points du copain arrivent avec un gros effet
-  recAnim(){const n=$('#trN');if(!n)return;const a=+n.dataset.a,b=+n.dataset.b,t0=performance.now(),dur=1300;
-    setTimeout(()=>{['#trM','#trL'].forEach(k=>{const i=$(k);if(i)i.style.width=i.dataset.w+'%';});},250);
+      :`<button class="btn g block am-go" data-act="amisrejouer"><span class="am-ic">▶</span> Rejouer${h}</button>`;
+    return `<div class="trec" style="${this.cols(e.cre)}">
+      <div class="trec-duo"><div class="trec-p pm">${this.av(this.moi(),'sm')}<b>Toi</b><span class="trec-g">+${gMoi}</span></div>
+        <div class="trec-tot"><small>🤝 Équipe</small><b id="trN" data-a="${tot0}" data-b="${tot}">${tot0}</b><small>sur ${o}</small></div>
+        <div class="trec-p pl">${this.av(c,'sm')}<b>${qui}</b><span class="trec-g ${gLui?'':'z'}">${gLui?'+'+gLui:'—'}</span></div></div>
+      <div id="trJ">${this.jauge(e.moi0,e.lui0,o,'tr')}</div>
+      <p class="trec-r">${etape}</p>
+      ${gLui?`<div class="trec-buzz" id="trB">${this.av(c,'xs')} <span><b>${qui}</b> a ramené <b>+${gLui}</b> pendant ta partie !</span></div>`:''}${bas}</div>`;},
+  // la jauge monte, le compteur défile, les points du copain arrivent en grand, puis une phrase courte
+  recAnim(){const n=$('#trN');if(!n||!this.eqRes)return;const e=this.eqRes.e,o=e.objectif,a=+n.dataset.a,b=+n.dataset.b,t0=performance.now(),dur=1300,w=v=>Math.min(100,v/o*100);
+    setTimeout(()=>{const pm=w(e.moi),m=$('#trM'),l=$('#trL');if(m)m.style.width=pm+'%';if(l)l.style.width=Math.min(100-pm,w(e.lui))+'%';
+      document.querySelectorAll('#trJ .jgp').forEach((x,i)=>x.classList.toggle('on',b>=o*(i+1)/4));const tr=$('#trJ .jgt');if(tr)tr.classList.toggle('on',b>=o);},250);
     const step=t=>{const k=Math.min(1,(t-t0-250)/dur);if(k>=0)n.textContent=Math.round(a+(b-a)*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(step);else restart(n,'pop');};requestAnimationFrame(step);
     if(b>a)try{Sound.play('coin');}catch(z){}
-    const bz=$('#trB');if(bz)setTimeout(()=>{bz.classList.add('on');try{Sound.play('epic');Confetti.burst(80);}catch(z){}},1500);
-    const e=this.eqRes&&this.eqRes.e;if(e&&e.moi+e.lui>=e.objectif&&e.moi0+e.lui0<e.objectif)setTimeout(()=>{try{Sound.play('level');Confetti.burst(140);}catch(z){}},1600);},
+    const passe=[1,2,3].some(i=>a<o*i/4&&b>=o*i/4);
+    if(b>=o&&a<o)setTimeout(()=>this.grand('🏆',`${o}`,'Objectif atteint !'),1600);else if(passe)setTimeout(()=>{try{Sound.play('level');Confetti.burst(90);}catch(z){}},1600);
+    const bz=$('#trB');if(bz)setTimeout(()=>{bz.classList.add('on');try{Sound.play('epic');Confetti.burst(70);}catch(z){}},1700);
+    setTimeout(()=>this.direTexte(bz?`Bravo ${S.name||''} et ${this.nom(e.copain)} !`:`Bien joué ${S.name||''} !`),2300);},
   resHTML(){if(this.eqRes)return (this.dres?this.dresHTML():'')+this.recap();return this.dresHTML()+this.resPts();},
   dresHTML(){const r=this.dres,D=r&&r.defi,c=r&&r.copain;
     const dh=D?`<div class="cmp amisr defr">${D.fini?`⚔️ Le défi est terminé ! <button class="btn y sm" data-act="defires" data-arg="${D.id}">Voir le résultat 🏁</button>`:`⚔️ Défi : tu as <b>${D.moi} / ${D.n}</b>.<small>${esc(this.nom(c))} a jusqu’à 48 h pour faire mieux. Suspense !</small>`}</div>`:'';
@@ -3006,9 +3041,9 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     const sec=(jouerBas?`<button class="smb" data-act="amisjouer" data-arg="${x.theme}"><span class="am-ic">▶️</span>Jouer</button>`:'')
       +(this.defiOuvert(x)||(D&&(D.fini||D.expire))?'':`<button class="smb" data-act="defilancer" data-arg="${x.id}"><span class="am-ic">⚔️</span>Défier</button>`)
       +`<button class="smb" data-act="amismot" data-arg="${x.id}"><span class="am-ic">💬</span>Message</button>`;
-    return `<div class="card sal act">
+    return `<div class="card sal act" style="${this.cols(x.createur)}">
       <div class="duo">${this.badge(this.moi(),'ab1'+(e.moi>e.lui?' top1':''),e.moi)}<span class="duo-x">🤝</span>${this.badge(c,'ab2'+(e.lui>e.moi?' top1':''),e.lui)}</div>
-      <div class="goal"><div class="goal-t"><span>🎯 Ensemble</span><b>${tot} / ${x.objectif}</b></div><div class="gauge"><div class="amisg big"><i class="m" style="width:${pm}%"></i><i class="l" style="width:${pl}%"></i></div><span class="gtro ${fini?'on':''}">🏆</span></div><small>${T.e} ${esc(T.n)} · ${fini?'🎉 objectif atteint !':`encore ${this.joursRestants()} j`}</small></div>
+      <div class="goal"><div class="goal-t"><span>🎯 Ensemble</span><b>${tot} / ${x.objectif}</b></div>${this.jauge(x.moi,x.lui,x.objectif)}<small>${T.e} ${esc(T.n)} · 1 bonne réponse = 1 point · ${fini?'🎉 objectif atteint !':`encore ${this.joursRestants()} j`}</small></div>
       ${this.fil(x)}${mots}${info}${prim}<div class="sal-mini">${sec}</div></div>`;},
   fil(x){const L=(x.evts||[]).filter(e=>e.type!=='cree'&&e.type!=='mot').slice(0,3);if(!L.length)return '';const N=this.nouv||new Set();
     return `<ul class="fil">${L.map(e=>{const [ic,t]=this.evTxt(e,x.copain);return `<li class="${N.has(e.id)?'nv':''}"><span>${ic}</span><p>${t}</p><small>${this.ilya(e.le)}</small></li>`;}).join('')}</ul>`;},
@@ -3118,12 +3153,16 @@ function renderHome(){Dem.sync();try{Amis.maj();}catch(e){}
   <div class="parentrow"><button class="parentbtn" data-act="parent">🔒 Espace parents</button><a class="parentbtn" href="aide.html" target="_blank" rel="noopener">💬 Aide</a>${Plan.pill()}<button class="parentbtn" data-act="offrir">🎁 Offrir</button></div></div></div>`;
 }
 function renderGame(){
-  return `<div class="game"><div class="gtop"><button class="xbtn" data-act="quit" aria-label="Arrêter">✕</button>${G.mode==='sprint'?`<div class="clock" id="clock">⏱ ${S.settings.sprintSec}</div>`:'<div class="gprog"><i id="gprog"></i></div>'}<div class="combo" id="combo"></div></div>${Amis.barre()}
+  return `<div class="game${G.equipe?' eq':''}"><div class="gtop"><button class="xbtn" data-act="quit" aria-label="Arrêter">✕</button>${G.mode==='sprint'?`<div class="clock" id="clock">⏱ ${S.settings.sprintSec}</div>`:'<div class="gprog"><i id="gprog"></i></div>'}<div class="combo" id="combo"></div></div>${Amis.barre()}
   <div class="gmid"><div class="gav" id="gav">${avatarSVG(S.avatar)}</div><div class="sscore" id="sscore">${G.mode==='sprint'?'✅ 0':'🪙 0'}</div></div>
   <div class="praise" id="praise"></div><div class="qcard" id="qcard"></div><div class="answers" id="answers"></div><div class="fix hidden" id="fix"></div></div>`;
 }
 function renderResult(){
   const s=G.sess;
+  if(s.eq&&s.type!=='sprint'){const tt=s.stars===3?`Parfait ${nm()} !`:s.stars===2?`Bravo ${nm()} !`:`Bien joué ${nm()} !`;if(Amis.eqRes)setTimeout(()=>Amis.recAnim(),60);
+    return `<div class="result rteam"><div class="rt-top"><div class="stars sm">${[1,2,3].map(i=>`<span class="st ${i<=s.stars?'on':''}" style="animation-delay:${i*.2}s">⭐</span>`).join('')}</div><h1>${tt}</h1></div>
+      <div class="rt-chips"><span>✅ ${s.ok}/${s.n}</span><span>+${s.xp} XP</span><span>+${fmtP(s.coins)} 🪙</span>${chestAvailable()?'<span class="rt-cof">🎁 Coffre</span>':''}</div>
+      <div id="amisRes">${Amis.resHTML()||'<div class="trec trec-att"><p>🤝 On compte les points de l’équipe…</p></div>'}</div><button class="alink" data-act="amis">👫 Voir l’équipe</button></div>`;}
   if(s.type==='sprint')return `<div class="result"><div class="bigemoji">⚡</div><h1>Défi éclair terminé !</h1><div class="bigscore">${s.score}</div><div class="rsub">calculs justes en ${s.sec} secondes</div>${G.record&&s.score?'<div class="newrec">🏆 Nouveau record !</div>':G.prevBest?`<div class="cmp">Ton record : ${G.prevBest} calculs</div>`:''}<div class="rgrid"><div class="rtile"><b>${s.wrong}</b><span>erreurs</span></div><div class="rtile"><b>${s.avgMs?sec(s.avgMs):'–'}</b><span>par calcul</span></div></div><div class="gains"><span>+${s.xp} XP</span><span>+${fmtP(s.coins)} 🪙</span></div><div class="stack"><button class="btn o block" data-act="startsprint">Rejouer ⚡</button><button class="btn g block" data-act="home">Accueil 🏠</button></div></div>`;
   const t=today();let cmp='';
   if(G.prevAvg&&s.avgMs){const d=G.prevAvg-s.avgMs;cmp=d>150?`🚀 Plus rapide que la dernière fois !<br><small>${sec(G.prevAvg)} → ${sec(s.avgMs)} par réponse</small>`:d<-300?`🐢 Un peu plus lent que la dernière fois<br><small>${sec(G.prevAvg)} → ${sec(s.avgMs)} — on s’entraîne et ça va accélérer !</small>`:`⚖️ Même vitesse que la dernière fois<br><small>${sec(s.avgMs)} par réponse</small>`;}
@@ -3177,8 +3216,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.04';
+const VERSION='2.05';
 const VERSIONS=[
+ ['2.05','23/11/2026 22:00','Entre amis plus clair : chaque enfant garde sa couleur sur les deux téléphones, tableau d’équipe en partie (avatars, points de chacun, étapes ⭐), gros effet à chaque étape, fin de partie sur un seul écran et phrase courte avec une voix rigolote'],
  ['2.04','23/11/2026 21:40','Entre amis : notifications sur le téléphone quand le copain arrive, lance un défi, marque des points ou envoie un message ; toucher la notification ouvre directement le salon'],
  ['2.03','23/11/2026 21:45','Entre amis en direct : la chouette explique quoi faire, nouvelles animées du copain, présence en ligne, radar quand on attend, 3-2-1 au lancement, jauge d’équipe en haut de la partie. À la fin d’une partie d’équipe, un récap animé (la jauge monte, les points du copain arrivent en grand) et une pause proposée si l’un est loin devant. Plus besoin de l’accord des parents'],
  ['2.02','23/11/2026 21:30','Entre amis plus simple pour les petits : une grande action animée à la fois (une main montre où appuyer), codes à 6 chiffres tapés sur un pavé dans l’appli, « Ajouter un copain » rangé en bas'],
