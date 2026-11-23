@@ -2771,8 +2771,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.89';
+const VERSION='1.90';
 const VERSIONS=[
+ ['1.90','23/11/2026 17:55','Admin : pastilles « appli installée » et « notifications activées » pour chaque famille ; graphique des minutes avec échelle, valeurs et détail au toucher'],
  ['1.89','23/11/2026 17:45','Correction : le choix Garçon / Fille au démarrage fonctionne et s’enregistre ; à la connexion, le profil du même prénom est proposé en premier (plus de doublon) ; admin : historique des enfants et bouton Actualiser dans la fiche'],
  ['1.88','22/11/2026 22:15','Admin : ajouter ses propres sons de notification (MP3, M4A), les écouter et les supprimer'],
  ['1.87','22/11/2026 22:05','Admin : où est la famille en ligne (enfant et jeu en cours, accueil ou espace parents) et depuis quand'],
@@ -3070,8 +3071,11 @@ const Presence={t:0,last:'',tm:0,
   lieu(){try{if(SCR==='admin'||SCR==='pin')return ['parents',''];const nm=(S&&S.name)||'';
     if(SCR==='game'||SCR==='result'){let th='';try{if(G)th=G.mode==='sprint'?'Défi éclair':G.sub==='math'?'Maths':G.sub==='fr'?'Lecture':((THEMES[G.sub]&&THEMES[G.sub].n)||'');}catch(e){}return ['jeu',[nm,th].filter(Boolean).join(' · ')];}
     return ['accueil',nm];}catch(e){return ['accueil',''];}},
-  ping(force){try{if(document.visibilityState!=='visible'||!Acct.user||!Acct.sb)return;const [l,d]=this.lieu(),k=l+'|'+d,n=Date.now();if(!force&&k===this.last&&n-this.t<45000)return;this.t=n;this.last=k;Acct.sb.rpc('malino_ping',{p_lieu:l,p_detail:d}).then(()=>{},()=>{});}catch(e){}},
-  maj(){clearTimeout(this.tm);this.tm=setTimeout(()=>{try{const [l,d]=this.lieu();if(l+'|'+d!==this.last)this.ping();}catch(e){}},1500);}};
+  inst(){try{return Install.autonome()||localStorage.getItem('malino-installe')==='1';}catch(e){return false;}},
+  push(){try{if(Push.st==null){if(!this.pc){this.pc=1;Push.check().then(()=>this.maj()).catch(()=>{});}return null;}return Push.st==='denied'?'refuse':Push.st;}catch(e){return null;}},
+  cle(){const [l,d]=this.lieu();return [l,d,this.inst(),this.push()];},
+  ping(force){try{if(document.visibilityState!=='visible'||!Acct.user||!Acct.sb)return;const [l,d,inst,ps]=this.cle(),k=[l,d,inst,ps].join('|'),n=Date.now();if(!force&&k===this.last&&n-this.t<45000)return;this.t=n;this.last=k;Acct.sb.rpc('malino_ping',{p_lieu:l,p_detail:d,p_installe:inst,p_push:ps}).then(()=>{},()=>{});}catch(e){}},
+  maj(){clearTimeout(this.tm);this.tm=setTimeout(()=>{try{if(this.cle().join('|')!==this.last)this.ping();}catch(e){}},1500);}};
 setInterval(()=>Presence.ping(),60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Presence.ping();});
 const Acct={sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:'email',email:'',forgot:false,wait:0,_l:null,note:'',
   guestN(){return S.sessions.length-(S.gs0||0);},
