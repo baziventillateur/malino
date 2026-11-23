@@ -283,6 +283,9 @@ h1,h2,h3,h4{font-weight:700}
 .swo,.swn{width:130px;height:130px;border-radius:50%;overflow:hidden;background:#fff;box-shadow:0 0 0 6px rgba(255,255,255,.6),0 14px 30px rgba(0,0,0,.3)}.swo svg,.swn svg{width:100%;height:100%;display:block}
 .swo{position:absolute;animation:swOut .8s ease-in forwards}.swn{transform:scale(0);animation:swNew .7s .65s cubic-bezier(.2,1.6,.4,1) forwards}
 @keyframes swIn{from{opacity:0}to{opacity:1}}@keyframes swOut{0%{transform:scale(1) rotate(0)}100%{transform:translateX(-120vw) scale(.4) rotate(-40deg)}}@keyframes swNew{to{transform:scale(1)}}
+.majb{position:fixed;z-index:110;left:50%;top:calc(env(safe-area-inset-top) + 8px);transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:5px 6px 5px 12px;border-radius:14px;background:#fff;border:2px solid #7B5CFF;box-shadow:0 6px 16px rgba(40,20,120,.25);font-weight:700;font-size:13px;white-space:nowrap;animation:coachIn .4s ease-out}
+.majb button{background:#7B5CFF;color:#fff;border-radius:10px;padding:6px 10px;font-weight:800;font-size:13px}
+.vtag2{display:block;margin:6px auto 0;background:none;border:0;color:var(--ink2);font-size:11px;opacity:.55;padding:4px 8px}.vtag2.perimee{opacity:1;color:#7B5CFF;font-weight:800}
 .count.cgo{font-size:34px;display:flex;align-items:center;justify-content:center;gap:10px;color:#12B886}
 .amisico.on{box-shadow:0 0 0 3px #7CF5C8,0 0 0 2px rgba(255,255,255,.7)}
 @media (prefers-reduced-motion:reduce){.am-go,.am-hand,.am-ic,.duo-x,.rd,.coach-i,.abon::before{animation:none!important}}
@@ -3164,7 +3167,7 @@ function renderHome(){Dem.sync();try{Amis.maj();}catch(e){}
   ${frOnNow()?`<button class="play ${frLocked?'locked':''} ${!frLocked&&!t.fr?'pulse':''}" style="--c:var(--p);--d:var(--pd)" data-act="startfr"><span class="ico">📖</span><span class="tx"><span class="t1">Lecture</span><span class="t2">${frLocked?'Après ton entraînement de maths':`Monde ${st.frLevel} · ${fl.n}`}</span></span>${frLocked?'<span class="lock">🔒</span>':''}</button>`:''}
   </div><div class="hcol">${themesHTML()}
   <div class="minis"><button class="mini" data-act="shop"><span>🎨</span>Mon perso</button><button class="mini" data-act="badges"><span>🏆</span>Badges ${nb}/${BADGES.length}</button><button class="mini ${S.gifts.some(g=>g.reached&&!g.given)||(Dem.dispo()&&!Dem.attente())?'blink':''}" data-act="gifts"><span>🎁</span>Cadeaux${S.gifts.some(g=>g.reached&&!g.given)?`<i class="dot">${S.gifts.filter(g=>g.reached&&!g.given).length}</i>`:Dem.dispo()&&!Dem.attente()?'<i class="dot">🔑</i>':''}</button></div>
-  <div class="parentrow"><button class="parentbtn" data-act="parent">🔒 Espace parents</button><a class="parentbtn" href="aide.html" target="_blank" rel="noopener">💬 Aide</a>${Plan.pill()}<button class="parentbtn" data-act="offrir">🎁 Offrir</button></div></div></div>`;
+  <div class="parentrow"><button class="parentbtn" data-act="parent">🔒 Espace parents</button><a class="parentbtn" href="aide.html" target="_blank" rel="noopener">💬 Aide</a>${Plan.pill()}<button class="parentbtn" data-act="offrir">🎁 Offrir</button></div><button class="vtag2 ${Maj.dispo?'perimee':''}" data-act="versions">v${VERSION}${Maj.dispo?' · nouvelle version':''}</button></div></div>`;
 }
 function renderGame(){
   return `<div class="game${G.equipe?' eq':''}"><div class="gtop"><button class="xbtn" data-act="quit" aria-label="Arrêter">✕</button>${G.mode==='sprint'?`<div class="clock" id="clock">⏱ ${S.settings.sprintSec}</div>`:'<div class="gprog"><i id="gprog"></i></div>'}<div class="combo" id="combo"></div></div>${Amis.barre()}
@@ -3230,8 +3233,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.06';
+const VERSION='2.07';
 const VERSIONS=[
+ ['2.07','23/11/2026 22:10','Mises à jour : Malino vérifie tout seul s’il y a une nouvelle version (bandeau « Mettre à jour »), numéro de version discret en bas de l’accueil et bouton « Vérifier les mises à jour »'],
  ['2.06','23/11/2026 22:10','L’appareil garde l’enfant : plus de « Qui joue ? » ni de demande de connexion à chaque retour. Changer d’enfant se fait par « Changer », avec un appui long puis une animation. Entre amis plus haut sur l’accueil, récompense d’équipe annoncée, sons à la suite'],
  ['2.05','23/11/2026 22:00','Entre amis plus clair : chaque enfant garde sa couleur sur les deux téléphones, tableau d’équipe en partie (avatars, points de chacun, étapes ⭐), gros effet à chaque étape, fin de partie sur un seul écran et phrase courte avec une voix rigolote'],
  ['2.04','23/11/2026 21:40','Entre amis : notifications sur le téléphone quand le copain arrive, lance un défi, marque des points ou envoie un message ; toucher la notification ouvre directement le salon'],
@@ -3434,7 +3438,8 @@ const ACT={
     +sec('🎁 Cadeaux à gagner (les vrais)',['Dans l’onglet <b>Cadeaux</b>, vous fixez de vraies récompenses : une glace, une sortie, choisir le dessert…','Vous choisissez l’objectif (jours d’affilée, niveau, bonnes réponses, minutes de jeu…). L’enfant voit sa progression, et une fête s’affiche quand il l’atteint.','Conseil : récompensez la régularité plutôt que la durée.'])
     +sec('👨‍👩‍👧 Parents et famille',['Au lancement, l’écran <b>Qui joue ?</b> liste les enfants. L’Espace parents est protégé par un code.','Un second parent peut être invité (Famille et compte) : il voit les mêmes enfants et la même progression.','Les <b>rapports par e-mail</b> (nouveau niveau, récap de la semaine) se coupent d’une case dans Famille et compte.','L’onglet <b>Progrès</b> détaille la réussite, la vitesse, le temps de jeu et les calculs à retravailler. Une partie arrêtée avant la fin y est marquée ⏸️.'])
     +`</div><button class="btn y block" data-act="mclose">Fermer</button>`);},
-  versions(){queueModal(`<h2>Malino v${VERSION}</h2><div class="vlist">${VERSIONS.map(v=>`<div><b>v${v[0]}</b><small>${v[1]}</small>${window.MLANG==='fr'?`<span>${v[2]}</span>`:''}</div>`).join('')}</div><button class="btn y block" data-act="mclose">Fermer</button>`);},
+  majcheck(a,el){Maj.manuel(el);},majgo(){Maj.go();},
+  versions(){queueModal(`<h2>Malino v${VERSION}</h2><p class="hint" id="majSt" style="margin:-4px 0 8px">${Maj.dispo?`🔄 La version ${Maj.dispo} est disponible`:`Version ${VERSION}`}</p><div class="vlist">${VERSIONS.map(v=>`<div><b>v${v[0]}</b><small>${v[1]}</small>${window.MLANG==='fr'?`<span>${v[2]}</span>`:''}</div>`).join('')}</div><button class="btn w sm block" style="margin-bottom:8px" data-act="${Maj.dispo?'majgo':'majcheck'}">${Maj.dispo?'🔄 Mettre à jour maintenant':'🔄 Vérifier les mises à jour'}</button><button class="btn y block" data-act="mclose">Fermer</button>`);},
   lvmore(id){LVOPEN[id]=!LVOPEN[id];keepScroll(render);},thgo(k){const e=document.getElementById('th-'+k);if(e)e.scrollIntoView({behavior:'smooth',block:'start'});},
   togth(k){S.settings.thOn[k]=S.settings.thOn[k]===false;save();keepScroll(render);},
   shop(){shopPrev=null;shopSeen=S.shopSeen||1;S.shopSeen=levelInfo(S.xp).level;save();shopAnim=true;go('shop');},badges(){go('badges');},gifts(){go('gifts');},
@@ -4174,6 +4179,22 @@ setTimeout(()=>{if(localStorage.getItem('malino_invite')&&!Acct.user&&typeof ACT
 try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
 setInterval(()=>{try{Coffre.tick();}catch(e){}},20000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(()=>{try{Coffre.tick();}catch(e){}},400);});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')try{ckpt();}catch(e){}});addEventListener('pagehide',()=>{try{ckpt();}catch(e){}});
+// ---------- Mises à jour (comme NexBim) : vérification discrète, bandeau, bouton « Vérifier » ----------
+// Un téléphone garde souvent l'appli ouverte des heures : sans ça, il ne verrait pas les nouvelles versions.
+const Maj={dispo:null,dernier:0,
+  cmp(a,b){const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d;}return 0;},
+  async enLigne(){const t=await fetch('./?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'');const m=t.match(/const VERSION='([0-9.]+)'/);return m?m[1]:null;},
+  async verifier(){if(this.dispo||document.hidden||Date.now()-this.dernier<60000)return;this.dernier=Date.now();try{const v=await this.enLigne();if(v&&this.cmp(v,VERSION)>0){this.dispo=v;this.annoncer();}}catch(e){}},
+  annoncer(){if(document.getElementById('majb'))return;const b=document.createElement('div');b.id='majb';b.className='majb';b.innerHTML=`<span>🔄 Nouvelle version disponible</span><button data-act="majgo">Mettre à jour</button>`;document.body.appendChild(b);if(SCR==='home'&&!modalOpen)render();},
+  go(){try{save();}catch(e){}try{Acct.push();}catch(e){}try{localStorage.setItem('malino-maj-de',VERSION);}catch(e){}setTimeout(()=>location.replace(location.pathname+'?maj='+Date.now()),300);},
+  async manuel(el){const st=$('#majSt');if(el){el.disabled=true;el.textContent='Vérification…';}
+    try{const v=await this.enLigne();if(v&&this.cmp(v,VERSION)>0){this.dispo=v;if(st)st.textContent=`🔄 Mise à jour vers la version ${v}…`;this.go();return;}if(st)st.textContent=`Version ${VERSION} : vous êtes à jour ✅`;}
+    catch(e){toast('Vérification impossible : pas de connexion ?');}
+    if(el){el.disabled=false;el.textContent='🔄 Vérifier les mises à jour';}},
+  init(){try{const q=new URLSearchParams(location.search);if(q.has('maj')){q.delete('maj');history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:''));}}catch(e){}
+    try{const de=localStorage.getItem('malino-maj-de');if(de){localStorage.removeItem('malino-maj-de');if(de!==VERSION)setTimeout(()=>toast(`Malino est à jour : v${VERSION} ✅`),1500);}}catch(e){}
+    document.addEventListener('visibilitychange',()=>this.verifier());addEventListener('focus',()=>this.verifier());setInterval(()=>this.verifier(),5*60000);setTimeout(()=>this.verifier(),4000);}};
+Maj.init();
 Rec.load();Pack.load();load();recoverPartial();Voice.init();VoixC.init();Plan.load();Confetti.init();TimeT.init();render();autoUpModal(autoUp());Acct.init().then(()=>{Offre.fromUrl();cfgLoad();});
 if(S.refund){const r=S.refund;S.refund=0;save();queueModal(`<div class="bigemoji sm">🛍️</div><h2>Nouvelle boutique !</h2><p>Des objets en bois, cuivre, argent, or… jusqu’au <b>Plasma</b> !</p><p>Certains anciens objets sont partis : tu récupères <b>${fmtP(r)} 🪙</b>.</p><button class="btn y block" data-act="mclose">Super !</button>`);}
 if(!S.welcomed){S.welcomed=true;save();queueModal(`<div class="mav">${avatarSVG(S.avatar)}</div><h2>Salut ${nm()} ! 👋</h2>${S.name?'':'<label class="fld" style="text-align:left">Comment tu t’appelles ?<input id="wname" maxlength="20" autocomplete="off" placeholder="Ton prénom"></label>'}<p>Chaque jour :<br><b>1.</b> Entraîne-toi en maths 🔢<br><b>2.</b> Fais ta lecture 📖<br><b>3.</b> Ouvre ton coffre 🎁</p><p>Gagne des pièces 🪙 pour habiller ton personnage et débloquer des surprises !</p><button class="btn g block" data-act="wstart">C’est parti ! 🚀</button>`);}

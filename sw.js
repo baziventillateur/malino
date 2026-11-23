@@ -1,14 +1,17 @@
 const C='malino-v1';
 self.addEventListener('install',()=>self.skipWaiting());
-self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{
   const r=e.request;if(r.method!=='GET')return;
   if(new URL(r.url).origin!==location.origin)return;
-  e.respondWith(fetch(r).then(res=>{
+  // La page est toujours revérifiée auprès du serveur : une nouvelle version s'affiche dès sa publication (comme NexBim).
+  const req=r.mode==='navigate'?fetch(r.url,{cache:'no-cache',credentials:'same-origin'}):fetch(r);
+  e.respondWith(req.then(res=>{
     if(r.mode==='navigate'){if(res.ok&&/\/(index\.html)?$/.test(new URL(r.url).pathname)){const c=res.clone();caches.open(C).then(k=>k.put('./',c));}} // seule l'appli sert de page hors ligne (pas l'admin ni les contributions)
     else if(res.ok&&/\/(lang-[a-z]+\.js|ar\/[0-9a-f]{8}\.mp3)$/.test(new URL(r.url).pathname)){const c=res.clone();caches.open(C).then(k=>k.put(r,c));} // dictionnaires de langue : disponibles hors ligne
     return res;
-  }).catch(()=>caches.match(r).then(m=>m||caches.match('./'))));
+  }).catch(()=>caches.match(r).then(m=>m||(r.mode==='navigate'?caches.match('./'):Response.error()))));
+  // Hors ligne, seule la navigation retombe sur la page en cache : la vérification des mises à jour ne doit pas lire l'ancienne page et conclure « à jour ».
 });
 // Notifications : coffre prêt
 // Alertes admin : son choisi par type. Si l'admin est ouverte à l'écran, elle joue le son elle-même (notification muette) ;
