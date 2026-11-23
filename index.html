@@ -141,6 +141,22 @@ h1,h2,h3,h4{font-weight:700}
 .abox{position:relative;background:#fff;border-radius:24px;padding:18px 16px;width:100%;max-width:400px;margin:auto;text-align:center;box-shadow:0 6px 0 #D9D0FF,0 20px 40px rgba(20,8,90,.35)}
 .alogo{width:60px;height:60px;border-radius:15px}
 .abox h2{font-size:22px;margin:6px 0}.abox p{color:var(--ink2);font-size:15px;line-height:1.4;margin:4px 0 12px}
+.chx{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:2px solid #ECEAF7;border-radius:18px;padding:11px 12px;margin-bottom:9px;box-shadow:0 4px 0 #E6E2F7;font:inherit;color:inherit;cursor:pointer}
+.chx>i{font-style:normal;font-size:24px;width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#FFFFFF,#E7E0FF);box-shadow:0 3px 8px rgba(75,47,214,.16),inset 0 -3px 0 rgba(123,92,255,.16);flex:none}
+.chx>span:not(.pkgo){flex:1;min-width:0}.chx b{display:block;font-size:16.5px}.chx small{display:block;font-size:12.5px;color:var(--ink2);line-height:1.3;margin-top:2px}
+.chx.c1{border-color:#7B5CFF;background:linear-gradient(180deg,#FBFAFF,#F1ECFF);box-shadow:0 4px 0 #CFC4FF,0 10px 22px rgba(75,47,214,.12)}.chx:active,.pkc:active,.dvr:active{transform:translateY(2px)}
+.pkinfo{font-size:12.5px;background:#FFF7E0;border-radius:12px;padding:7px 10px;margin:9px 0 7px;text-align:left}
+.pkpart{display:flex;gap:9px;align-items:flex-start;text-align:left;margin-top:10px;padding:9px 10px;border-radius:14px;background:#F4F6FA;cursor:pointer}.pkpart input{width:20px;height:20px;flex:none;margin-top:2px;accent-color:#7B5CFF}.pkpart b{display:block;font-size:14px}.pkpart small{display:block;font-size:12px;color:var(--ink2);line-height:1.3}
+.abox .kp-d{margin:8px 0 12px}
+.dvr{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#FAFAFD;border:1.5px solid #ECEAF7;border-radius:14px;padding:7px 10px;margin-bottom:6px;font:inherit;color:inherit;cursor:pointer}
+.dvr>i{font-style:normal;font-size:22px;flex:none;width:36px;height:36px;border-radius:11px;background:linear-gradient(180deg,#fff,#EEF0F7);box-shadow:0 2px 5px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center}.dvr>span:not(.pkgo){flex:1;min-width:0}
+.dvr b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dvr b em{font-style:normal;font-size:10.5px;font-weight:800;color:#0E9F72;background:#E3F9F0;border-radius:99px;padding:1px 7px;margin-left:6px;vertical-align:2px}.dvr small{display:block;font-size:12px;color:var(--ink2)}
+.dvseg{flex-wrap:wrap;justify-content:center}.dvbig{display:flex;justify-content:center;margin:2px 0 4px}.dvr>i .dvic{display:block}
+.dvst{list-style:none;padding:0;margin:8px 0;text-align:left}.dvst li{display:flex;gap:9px;align-items:flex-start;font-size:14px;margin-bottom:7px;line-height:1.35}.dvst i{font-style:normal;flex:none;width:22px;height:22px;border-radius:50%;background:#7B5CFF;color:#fff;font-weight:800;font-size:12.5px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.dvcode{font-size:42px;font-weight:900;letter-spacing:5px;color:#2B2160;background:linear-gradient(180deg,#fff,#F1ECFF);border:2px solid #E4DCFF;border-radius:20px;padding:8px 6px;margin:6px 0 10px;box-shadow:0 6px 0 #DCD3FF,0 14px 26px rgba(75,47,214,.16);display:flex;justify-content:center;align-items:center;font-variant-numeric:tabular-nums}.dvcode s{width:16px}
+.dvt{height:6px;border-radius:99px;background:#ECEAF7;overflow:hidden}.dvt i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#7B5CFF,#12B886);border-radius:99px;transition:width 1s linear}
+.dvwait{display:flex;align-items:center;justify-content:center;gap:8px;font-size:13.5px;font-weight:700;color:#6F679C;margin:10px 0 4px}.dvdot{width:10px;height:10px;border-radius:50%;background:#12B886;animation:dvp 1.2s infinite}
+@keyframes dvp{0%{box-shadow:0 0 0 0 rgba(18,184,134,.55)}100%{box-shadow:0 0 0 12px rgba(18,184,134,0)}}
 .pkh{margin:2px 0 4px;font-size:20px}.abox .pkh+p{font-size:13.5px;margin-bottom:6px}
 .pksec{text-align:left;font-size:11px;font-weight:800;color:var(--ink2);text-transform:uppercase;letter-spacing:.04em;margin:10px 2px 5px}
 .pkc{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:2px solid #ECEAF7;border-radius:16px;padding:8px 10px;margin-bottom:7px;box-shadow:0 3px 0 #E6E2F7;font:inherit;color:inherit}
@@ -3162,7 +3178,7 @@ function renderAmis(){
 function renderHome(){Dem.sync();try{Amis.maj();}catch(e){}
   const li=levelInfo(S.xp),st=S.settings,t=today(),ml=MATH_LEVELS[st.mathLevel-1],mm=levelMastery('math',st.mathLevel),mf=mathFacts(st.mathLevel).length,fl=FR_LEVELS[st.frLevel-1];
   const sprintLocked=!t.math,frLocked=st.frAfterMath&&!t.math,best=S.stats.sprintBest[st.mathLevel]||0,reached=S.gifts.filter(g=>g.reached&&!g.given),nb=Object.keys(S.badges).length,ready=chestAvailable();
-  return `<div class="home"><div class="hcol"><div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills">${Acct.user||Acct.restoring?'':'<button class="loginbtn" data-act="openlogin"><b>Se connecter</b><small>💾 Garder mes progrès</small></button>'}<span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">🔄 Changer</button>':''}</div></div>
+  return `<div class="home"><div class="hcol"><div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills">${Acct.user||Acct.restoring?'':'<button class="loginbtn" data-act="openlogin"><b>Se connecter</b><small>💾 Garder mes progrès</small></button>'}<span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1&&Dev.partage()?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">🔄 Changer</button>':''}</div></div>
   ${Etapes.home()}<div class="week card">${weekHTML()}</div>${Plan.banner()}
   
   <div class="mission card"><div class="mtx"><h3>Mission du jour</h3><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${frOnNow()?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'🎉':'🎁'}</button></div>
@@ -3239,8 +3255,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.08';
+const VERSION='2.09';
 const VERSIONS=[
+ ['2.09','23/11/2026 23:30','Connexion simplifiée : ajouter une tablette avec un code à 6 chiffres affiché sur le téléphone du parent ; « Cet appareil est pour… » (l’invité rejoint l’enfant choisi, sans doublon) ; appareil personnel ou partagé ; page « 📱 Appareils » pour voir, régler et retirer chaque appareil'],
  ['2.08','23/11/2026 22:20','Espace parents plus clair : l’essentiel en 3 lignes, chaque réglage replié avec sa valeur visible, réglages avancés rangés à l’intérieur ; guide « Comment marche Malino » raccourci et mis à jour (Entre amis, mises à jour)'],
  ['2.07','23/11/2026 22:10','Mises à jour : Malino vérifie tout seul s’il y a une nouvelle version (bandeau « Mettre à jour »), numéro de version discret en bas de l’accueil et bouton « Vérifier les mises à jour »'],
  ['2.06','23/11/2026 22:10','L’appareil garde l’enfant : plus de « Qui joue ? » ni de demande de connexion à chaque retour. Changer d’enfant se fait par « Changer », avec un appui long puis une animation. Entre amis plus haut sur l’accueil, récompense d’équipe annoncée, sons à la suite'],
@@ -3440,7 +3457,7 @@ const ACT={
     +sec('⭐ Récompenses',['Les bonnes réponses font monter le <b>niveau du joueur</b>. Les <b>pièces 🪙</b> achètent des objets pour le personnage (jamais d’argent réel).','La <b>série 🔥</b> compte les jours joués de suite. La mission du jour ouvre le <b>coffre du jour</b>.',`Les <b>coffres magiques</b> se gagnent en jouant et s’ouvrent après ${CFG.cofH} h : pièces, autocollants pour l’album, objets… ou une farce.`])
     +sec('🎁 Vrais cadeaux',['Dans l’onglet <b>Cadeaux</b>, fixez une vraie récompense (une glace, une sortie…) et l’objectif pour l’obtenir.','L’enfant voit sa progression, et une fête s’affiche quand il l’atteint.'])
     +sec('👫 Entre amis',['L’enfant joue en équipe avec un copain grâce à un <b>code à 6 chiffres</b>. Ils voient le prénom et l’avatar de l’autre.','<b>1 bonne réponse = 1 point</b> dans une jauge commune. Objectif atteint avant dimanche : une récompense chacun.','<b>Défi</b> : 10 questions chacun à son niveau, le meilleur gagne une étoile.','Messages tout faits lus par une voix rigolote : aucun message libre. Un salon se retire dans Famille et compte.'])
-    +sec('👨‍👩‍👧 Parents et famille',['L’appareil garde l’enfant qui joue. Pour passer à un frère ou une sœur : <b>Changer</b>, puis rester appuyé.','Invitez un second parent dans Famille et compte : il voit les mêmes enfants.','L’onglet <b>Progrès</b> montre la réussite, la vitesse et le temps de jeu. Les rapports par e-mail se coupent dans Famille et compte.'])
+    +sec('👨‍👩‍👧 Parents et famille',['Chaque tablette s’ouvre sur son enfant. Pour en ajouter une : <b>📱 Appareils → Ajouter un appareil</b>, puis taper le code sur la tablette (« Se connecter » → « J’ai un code »).','Sur un appareil <b>partagé</b>, on passe à un frère ou une sœur avec <b>Changer</b>, en restant appuyé.','Invitez un second parent dans Famille et compte : il voit les mêmes enfants.','L’onglet <b>Progrès</b> montre la réussite, la vitesse et le temps de jeu. Les rapports par e-mail se coupent dans Famille et compte.'])
     +sec('🔄 Mises à jour',['Malino vérifie seul les nouvelles versions : un bandeau propose « Mettre à jour ».','Le numéro de version est en bas de l’accueil : touchez-le pour voir les nouveautés ou vérifier.'])
     +`</div><button class="btn y block" data-act="mclose">Fermer</button>`);},
   majcheck(a,el){Maj.manuel(el);},majgo(){Maj.go();},
@@ -3494,7 +3511,7 @@ const ACT={
   setlang(l){if(l===(window.MLANG||'fr'))return;if(window.I18N)I18N.set(l);},
   newgenre(g){Acct.newG=g;const v=($('#newprof')||{}).value||'';keepScroll(render);const e=$('#newprof');if(e)e.value=v;},
   setgenre(g){S.genre=g;S.avatar=Object.assign({},S.avatar,g==='f'?{hair:'hair_long',shirt:'sh_rouge'}:{hair:'hair_court',shirt:'sh_bleu'});save();toast(g==='f'?'Profil : fille 👧':'Profil : garçon 👦');keepScroll(render);},
-  authview(v){Acct.view=v;Acct.draw();},authpw(){Acct.pwLogin();},authforgot(){Acct.forgotSend();},authpick(id){Acct.pick(id);},
+  authview(v){Acct.view=v;Acct.draw();},authpw(){Acct.pwLogin();},authforgot(){Acct.forgotSend();},authpick(id){Acct.pick(id);},authkp(k){Acct.kpTape(k);},devajout(){DevP.ajout();},devreg(id){DevP.reg(id);},devpour(a){DevP.pour(a);},devretirer(id){DevP.retirer(id);},devtout(){DevP.tout=1;DevP.draw();},
   acctlogout(){Acct.logout();},acctsetpw(id){Acct.setPw(id);},acctadd(){Acct.addProfile();},acctswitch(id){Acct.switchTo(id).then(()=>{SCR='admin';render();});},
   wstart(){const e=$('#wname');if(e&&e.value.trim()){S.name=e.value.trim().slice(0,20);save();}nextModal();render();},
   chest(){const t=today();if(!chestAvailable()){toast(t.chest?'Coffre déjà ouvert aujourd’hui. Reviens demain ! 🌙':'Termine ta mission du jour pour ouvrir le coffre 🎁');return;}queueModal('<div class="chestbig" data-act="chestopen">🎁</div><h2>Coffre du jour</h2><p>Touche le coffre pour l’ouvrir !</p>');},
@@ -3583,6 +3600,74 @@ const Presence={t:0,last:'',tm:0,
   ping(force){try{if(document.visibilityState!=='visible'||!Acct.user||!Acct.sb)return;const [l,d,inst,ps]=this.cle(),k=[l,d,inst,ps].join('|'),n=Date.now();if(!force&&k===this.last&&n-this.t<45000)return;this.t=n;this.last=k;Acct.sb.rpc('malino_ping',{p_lieu:l,p_detail:d,p_installe:inst,p_push:ps,p_app:this.app()}).then(()=>{},()=>{});}catch(e){}},
   maj(){clearTimeout(this.tm);this.tm=setTimeout(()=>{try{if(this.cle().join('|')!==this.last)this.ping();}catch(e){}},1500);}};
 setInterval(()=>Presence.ping(),60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Presence.ping();});
+// ---------- Appareils : chaque tablette ou téléphone est relié au compte parent et, sauf s'il est partagé, à un enfant ----------
+const Dev={
+  id(){let v=null;try{v=localStorage.getItem('malino-appareil');}catch(e){}
+    if(!v||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v)){v=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16);});try{localStorage.setItem('malino-appareil',v);}catch(e){}}return v;},
+  st(){try{return JSON.parse(localStorage.getItem('malino-appareil-st')||'null')||{};}catch(e){return {};}},
+  set(o){try{localStorage.setItem('malino-appareil-st',JSON.stringify(o||{}));}catch(e){}},
+  nom(){return {'ios:tel':'iPhone','ios:tab':'iPad','android:tel':'Téléphone Android','android:tab':'Tablette Android','mac:ordi':'Mac','windows:ordi':'PC Windows','linux:ordi':'Ordinateur'}[Presence.app()]||'Appareil';},
+  ic(n,big){n=String(n||'');const t=/iPad|Tablette/.test(n)?'tab':/iPhone|Téléphone/.test(n)?'tel':'pc',z=big?52:26;
+    const f=t==='tel'?'<rect x="7" y="1.5" width="10" height="21" rx="2.8" fill="url(#dvg)"/><rect x="8.5" y="3.8" width="7" height="14.6" rx="1.2" fill="url(#dvs)"/><circle cx="12" cy="20.4" r=".85" fill="#fff"/>'
+      :t==='tab'?'<rect x="3" y="2" width="18" height="20" rx="2.8" fill="url(#dvg)"/><rect x="4.8" y="3.8" width="14.4" height="14.8" rx="1.2" fill="url(#dvs)"/><circle cx="12" cy="20.3" r=".8" fill="#fff"/>'
+      :'<rect x="3" y="4" width="18" height="12.5" rx="2" fill="url(#dvg)"/><rect x="4.6" y="5.6" width="14.8" height="9.3" rx="1" fill="url(#dvs)"/><path d="M1.2 18h21.6l-1.6 2.4H2.8z" fill="#4B33C9"/>';
+    return `<svg class="dvic" width="${z}" height="${z}" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="dvg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9580FF"/><stop offset="1" stop-color="#5B3FE0"/></linearGradient><linearGradient id="dvs" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F0FFF9"/><stop offset="1" stop-color="#B5ECDB"/></linearGradient></defs><g style="filter:drop-shadow(0 1.5px 1.5px rgba(75,47,214,.3))">${f}</g></svg>`;},
+  // appareil partagé : plusieurs enfants y jouent (bouton « Changer » sur l'accueil)
+  partage(){const s=this.st();return s.lie?!!s.partage:true;},
+  async lier(pid,part){this.set({lie:1,profil_id:pid||null,partage:!!part});if(!Acct.sb||!Acct.user)return;
+    try{await Acct.sb.rpc('appareil_lier',{p_id:this.id(),p_profil:pid||null,p_partage:!!part,p_nom:this.nom()});}catch(e){}},
+  async sync(force){if(!Acct.user||!Acct.sb||this.busy)return;const n=Date.now();if(!force&&n-(this.t||0)<60000)return;this.t=n;this.busy=1;
+    try{const {data,error}=await Acct.sb.rpc('appareil_ping',{p_id:this.id()});if(error||!data)return;
+      if(data.retire){await Acct.retire();return;}
+      if(!data.connu){await this.lier(Acct.pid,(Acct.list||[]).length>1);if(SCR==='home')render();return;}   // appareil déjà connecté avant les « appareils » : on garde le même fonctionnement
+      const s=this.st(),part=!!data.partage;this.set({lie:1,profil_id:data.profil_id||null,partage:part});
+      // le parent a relié cet appareil à un autre enfant, depuis son téléphone
+      if(!part&&data.profil_id&&data.profil_id!==Acct.pid&&data.profil_id!==s.profil_id&&SCR!=='game'&&(Acct.list||[]).some(r=>r.id===data.profil_id)){await Acct.switchTo(data.profil_id);return;}
+      if(SCR==='home'&&(!s.lie||!!s.partage!==part))render();
+    }catch(e){}finally{this.busy=0;}}
+};
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Dev.sync();});
+document.addEventListener('keydown',ev=>{if(!$('#pkD')||Acct.view!=='pair')return;if(/^\d$/.test(ev.key))Acct.kpTape(ev.key);else if(ev.key==='Backspace')Acct.kpTape('x');else if(ev.key==='Enter')Acct.kpTape('ok');});
+// page parent : la liste des appareils, l'ajout par code, les réglages de chacun
+const DevP={L:[],tout:0,
+  rel(t){const m=Math.round((Date.now()-(Date.parse(t)||0))/60000);return m<3?'en ligne':m<60?`vu il y a ${m} min`:m<1440?`vu il y a ${Math.round(m/60)} h`:`vu il y a ${Math.round(m/1440)} j`;},
+  async liste(){const e=$('#devL');if(!e||!Acct.sb)return;const {data,error}=await Acct.sb.rpc('appareils_liste');
+    if(error){e.innerHTML='<p class="hint">Liste indisponible pour le moment.</p>';return;}this.L=Array.isArray(data)?data:[];this.draw();},
+  qui(a){return a.partage?'👨‍👩‍👧 Partagé':a.enfant?`🧒 ${esc(a.enfant)}`:'Pas encore d’enfant';},
+  ligne(a){const moi=a.id===Dev.id();return `<button class="dvr" data-act="devreg" data-arg="${a.id}"><i>${Dev.ic(a.nom)}</i><span><b>${esc(a.nom||'Appareil')}${moi?'<em>cet appareil</em>':''}</b><small>${this.qui(a)} · ${this.rel(a.vu_le)}</small></span><span class="pkgo">›</span></button>`;},
+  draw(){const e=$('#devL');if(!e)return;const L=this.L;
+    if(!L.length){e.innerHTML='<p class="hint">Aucun appareil relié pour le moment.</p>';return;}
+    e.innerHTML=(this.tout?L:L.slice(0,5)).map(a=>this.ligne(a)).join('')+(L.length>5&&!this.tout?`<button class="alink" data-act="devtout">Tout voir (${L.length})</button>`:'');},
+  reg(id){const a=this.L.find(x=>x.id===id);if(!a)return;const moi=id===Dev.id();
+    const opt=(Acct.list||[]).map(r=>`<button class="${!a.partage&&a.profil_id===r.id?'on':''}" data-act="devpour" data-arg="${id}|${r.id}">🧒 ${esc(r.nom)}</button>`).join('')+`<button class="${a.partage?'on':''}" data-act="devpour" data-arg="${id}|p">👨‍👩‍👧 Partagé</button>`;
+    queueModal(`<div class="dvbig">${Dev.ic(a.nom,1)}</div><h2>${esc(a.nom||'Appareil')}</h2><p class="hint">${moi?'C’est cet appareil · ':''}ajouté le ${fmtDate(a.cree_le)} · ${this.rel(a.vu_le)}</p>
+      <div class="pksec" style="text-align:center">Il s’ouvre directement sur…</div><div class="seg dvseg">${opt}</div><p class="hint" style="font-size:12px;margin-top:6px">« Partagé » : plusieurs enfants y jouent, avec le bouton « Changer ».</p>
+      <button class="btn r sm block" style="margin-top:12px" data-act="devretirer" data-arg="${id}">Retirer cet appareil</button><button class="alink" data-act="mclose">Fermer</button>`);},
+  async pour(arg){const [id,p]=String(arg).split('|'),part=p==='p',a=this.L.find(x=>x.id===id),pid=part?((a&&a.profil_id)||null):p;
+    const {error}=await Acct.sb.rpc('appareil_regler',{p_id:id,p_profil:pid,p_partage:part});if(error)return toast('Réessaie dans un instant');
+    if(a){a.partage=part;a.profil_id=pid;const r=(Acct.list||[]).find(x=>x.id===pid);a.enfant=r?r.nom:a.enfant;}
+    closeAllModals();toast('Enregistré ✅');this.draw();
+    if(id===Dev.id()){Dev.set({lie:1,profil_id:pid,partage:part});if(!part&&pid&&pid!==Acct.pid){await Acct.switchTo(pid);SCR='admin';render();}}},
+  async retirer(id){const a=this.L.find(x=>x.id===id),moi=id===Dev.id();closeAllModals();
+    if(!(await Ask.open({e:'📱',t:'Retirer cet appareil ?',p:moi?'Cet appareil sera déconnecté du compte. Les progrès restent enregistrés dans le compte.':`« ${esc(a?a.nom:'Appareil')} » sera déconnecté dès sa prochaine ouverture. Les progrès restent enregistrés dans le compte.`,ok:'Retirer',cls:'r',no:'Annuler'})))return;
+    const {error}=await Acct.sb.rpc('appareil_retirer',{p_id:id});if(error)return toast('Réessaie dans un instant');
+    if(moi){await Acct.retire(true);return;}
+    this.L=this.L.filter(x=>x.id!==id);this.draw();toast('Appareil retiré');},
+  async ajout(){closeAllModals();clearInterval(this.ti);let r;try{r=await Acct.sb.rpc('appareil_code');}catch(e){r={error:1};}
+    if(r.error||!r.data)return toast('Réessaie dans un instant');
+    const c=String(r.data.code),fin=Date.now()+600000,avant=new Set(this.L.map(a=>a.id));let k=0;
+    queueModal(`<div class="dvadd"><div class="bigemoji sm">📲</div><h2>Ajouter un appareil</h2>
+      <ol class="dvst"><li><i>1</i><span>Sur la tablette de l’enfant, ouvrez <b>Malino</b> et touchez <b>Se connecter</b>.</span></li><li><i>2</i><span>Touchez <b>🔢 J’ai un code</b> et tapez :</span></li></ol>
+      <div class="dvcode">${c.slice(0,3)}<s></s>${c.slice(3)}</div><div class="dvt"><i id="dvBar"></i></div><p class="hint" id="dvTm" style="font-size:12px;margin-top:4px">Valable 10 min</p>
+      <p class="dvwait" id="dvW"><span class="dvdot"></span>En attente de l’appareil…</p><button class="alink" data-act="mclose">Fermer</button></div>`,()=>{
+      this.ti=setInterval(async()=>{const b=$('#dvBar');if(!b){clearInterval(this.ti);return;}const rr=fin-Date.now();
+        if(rr<=0){clearInterval(this.ti);const t=$('#dvTm');if(t)t.textContent='Code expiré';const w=$('#dvW');if(w)w.innerHTML='<button class="btn sm p" data-act="devajout">Nouveau code</button>';return;}
+        b.style.width=(rr/6000)+'%';const t=$('#dvTm');if(t)t.textContent=`Valable encore ${Math.floor(rr/60000)} min ${pad2(Math.floor(rr/1000)%60)} s`;
+        if(++k%3)return;const q=await Acct.sb.rpc('appareils_liste');
+        if(!q.error&&Array.isArray(q.data)){const n=q.data.find(a=>!avant.has(a.id));if(n&&$('#dvBar')){clearInterval(this.ti);this.L=q.data;this.ok(n);}}},1000);});},
+  ok(a){closeAllModals();this.draw();
+    queueModal(`<div class="bigemoji">✅</div><h2>${esc(a.nom||'Appareil')} ajouté !</h2><p>${a.partage?'Appareil partagé : chaque enfant choisit son profil avec « Changer ».':`Il s’ouvrira directement sur <b>${esc(a.enfant||'')}</b>, à chaque fois.`}</p><button class="btn g block" data-act="mclose">Super 🎉</button>`,()=>{try{Confetti.burst(120);Sound.play('level');}catch(e){}});}
+};
 const Acct={restoring:(()=>{try{return Object.keys(localStorage).some(k=>/^sb-.*-auth-token$/.test(k));}catch(e){return false;}})(),sb:null,user:null,pid:null,list:[],t:null,tk:null,mode:'login',view:'email',email:'',forgot:false,wait:0,_l:null,note:'',
   guestN(){return S.sessions.length-(S.gs0||0);},
   wall(){return !this.user&&!this.restoring&&this.guestN()>=CFG.wall;},
@@ -3606,35 +3691,36 @@ const Acct={restoring:(()=>{try{return Object.keys(localStorage).some(k=>/^sb-.*
         if(r.error||!r.data.session){this.view='email';this.draw();this.setMsg('Ce lien a expiré : demande un nouveau code');return;}
         this.user=r.data.session.user;await this.signedIn();return;}
       const {data}=await sb.auth.getSession();
-      if(data&&data.session){this.user=data.session.user;await this.afterLogin(false);Plan.refresh();}
+      if(data&&data.session){this.user=data.session.user;await this.afterLogin(false);Plan.refresh();Dev.sync(true);}
     }catch(e){}finally{this.restoring=false;if(SCR==='home'&&!this.user)render();}
   },
   // ----- écran de connexion -----
-  show(mode){this.mode=mode;this.view='email';this.forgot=false;this.draw();},
+  show(mode){this.mode=mode;this.view='choix';this.forgot=false;this.kp='';this.draw();},
   hide(){clearInterval(this.tk);this.note='';const el=$('#auth');el.className='auth hidden';el.innerHTML='';},
   setMsg(t,ok){const m=$('#amsg');if(!m)return;m.textContent=t||'';m.className='amsg'+(ok?' ok':'');},
   draw(){
     const el=$('#auth'),w=this.mode==='wall'&&!this.user;el.className='auth';
-    const head=`<img class="alogo" src="logo.svg" alt="">`+(w?`<h2>Bravo ! 🎉</h2><p>Pour continuer à jouer, <b>un parent</b> se connecte (gratuit, 1 minute) : <b>14 jours de Malino+ offerts</b>, sans carte bancaire.</p>`:(this.user?(this.view==='pick'?'':`<h2>Connexion</h2><p>Un parent se connecte pour retrouver la progression sur tous les appareils.</p>`):`<h2>Garder les progrès 💾</h2><p>Un parent se connecte avec son e-mail (gratuit, 1 minute) : les niveaux, les pièces et les cadeaux sont enregistrés, sur tous les appareils. <b>14 jours de Malino+ offerts.</b></p>`));
+    const head=`<img class="alogo" src="logo.svg" alt="">`+(w?`<h2>Bravo ! 🎉</h2><p>Pour continuer à jouer, <b>un parent</b> se connecte (gratuit, 1 minute) : <b>14 jours de Malino+ offerts</b>, sans carte bancaire.</p>`:(this.user?(this.view==='pour'?'':`<h2>Connexion</h2><p>Un parent se connecte pour retrouver la progression sur tous les appareils.</p>`):this.view==='pair'?'':`<h2>Garder les progrès 💾</h2><p>Les niveaux, les pièces et les cadeaux sont enregistrés, sur tous vos appareils. Gratuit : <b>14 jours de Malino+ offerts.</b></p>`));
     let body=this.note?`<p class="anote">${esc(this.note)}</p>`:'';const v=this.view;
-    if(v==='email')body=`<label class="fld">E-mail du parent<input id="aEmail" type="email" inputmode="email" autocomplete="email" placeholder="parent@exemple.fr" value="${esc(this.email)}"></label><button class="btn p sm block" data-act="authsend">Recevoir mon code ✉️</button><button class="alink" data-act="authview" data-arg="pw">J’ai un mot de passe</button>`;
+    const back=`<button class="alink" data-act="authview" data-arg="choix">‹ Retour</button>`;
+    if(v==='choix')body=`<button class="chx c1" data-act="authview" data-arg="pair"><i>🔢</i><span><b>J’ai un code</b><small>Le parent a déjà un compte : le code est sur son téléphone</small></span><span class="pkgo">›</span></button><button class="chx" data-act="authview" data-arg="email"><i>✉️</i><span><b>Je suis le parent</b><small>Connexion ou création du compte par e-mail</small></span><span class="pkgo">›</span></button>`;
+    else if(v==='pair')body=`<h3 class="pkh">🔢 Tape le code</h3><p>Sur le téléphone du parent : Espace parents → <b>📱 Ajouter un appareil</b>.</p><div class="kp-d" id="pkD">${[0,1,2,3,4,5].map(i=>`<i class="${i<(this.kp||'').length?'on':''}">${(this.kp||'')[i]||''}</i>`).join('')}</div>
+      <div class="kp">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-act="authkp" data-arg="${n}">${n}</button>`).join('')}<button class="kpx" data-act="authkp" data-arg="x" aria-label="Effacer">⌫</button><button data-act="authkp" data-arg="0">0</button><button class="kpok" data-act="authkp" data-arg="ok" aria-label="Valider">✓</button></div>${back}`;
+    else if(v==='email')body=`<label class="fld">E-mail du parent<input id="aEmail" type="email" inputmode="email" autocomplete="email" placeholder="parent@exemple.fr" value="${esc(this.email)}"></label><button class="btn p sm block" data-act="authsend">Recevoir mon code ✉️</button><button class="alink" data-act="authview" data-arg="pw">J’ai un mot de passe</button>${back}`;
     else if(v==='code')body=`<p>Un code a été envoyé à <b>${esc(this.email)}</b>.<br>Pense à regarder les courriers indésirables.</p><label class="fld">Code reçu par e-mail<input id="aCode" class="acode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="········"></label><button class="btn p sm block" data-act="authverify">Valider</button><button class="alink" id="aResend" data-act="authsend" data-arg="again" ${this.wait>0?'disabled':''}>${this.wait>0?`Renvoyer le code (${this.wait} s)`:'Renvoyer le code'}</button><button class="alink" data-act="authview" data-arg="email">Changer d’adresse</button>`;
     else if(v==='pw')body=`<label class="fld">E-mail<input id="aEmail" type="email" inputmode="email" autocomplete="email" value="${esc(this.email)}"></label><label class="fld">Mot de passe<input id="aPw" type="password" autocomplete="current-password"></label><button class="btn p sm block" data-act="authpw">Se connecter</button><button class="alink" data-act="authforgot">Mot de passe oublié ? Recevoir un code</button><button class="alink" data-act="authview" data-arg="email">Connexion par code e-mail</button>`;
-    else if(v==='pick'){const ln=this.norm(S.name||'Champion'),same=this.list.find(r=>this.norm(r.nom)===ln),dt=x=>x?new Date(x).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'}):'';
-      const nP=n=>`${n} partie${n>1?'s':''}`,dbl=n=>this.list.filter(r=>this.norm(r.nom)===this.norm(n)).length>1;
+    else if(v==='pour'){const loc=this.hasLocal(),same=loc&&this.list.find(r=>this.norm(r.nom)===this.norm(S.name||'')),nP=n=>`${n} partie${n>1?'s':''}`;
       const card=(av,nom,sub,tag,arg,cls)=>`<button class="pkc ${cls||''}" data-act="authpick" data-arg="${arg}"><span class="pkav">${avatarSVG(av)}</span><span class="pkt"><b>${esc(nom)}</b><small>${sub}</small></span>${tag?`<i class="pktag">${tag}</i>`:''}<span class="pkgo">›</span></button>`;
-      const comptes=(same?[same].concat(this.list.filter(r=>r!==same)):this.list).map(r=>{const d=r.data||{},n=(d.sessions||[]).length;
-        return card(d.avatar,r.nom||'Champion',r===same?`Niv. ${levelInfo(d.xp||0).level} · ${nP(n)} · les parties de cet appareil s’y ajoutent`:`Niv. ${levelInfo(d.xp||0).level} · ${nP(n)}${dbl(r.nom)?` · créé le ${dt(r.created_at)}`:''}`,r===same?'✓ C’est lui':'',r===same?'m:'+r.id:r.id,r===same?'pkr':'');}).join('');
-      const nl=(S.sessions||[]).length;
-      body=`<h3 class="pkh">Qui joue sur cet appareil ?</h3><p>Choisis le profil de l’enfant : sa progression sera enregistrée sur tous vos appareils.</p>
-        <div class="pksec">Profils de votre compte</div>${comptes}
-        <div class="pksec">Sur cet appareil · pas encore enregistré</div>${card(S.avatar,S.name||'Champion',same?`Niv. ${levelInfo(S.xp).level} · ${nP(nl)} · seulement si c’est un autre enfant`:`Niv. ${levelInfo(S.xp).level} · ${nP(nl)} · l’ajouter au compte comme nouveau profil`,'➕ Nouveau','local','pkl')}`;}
+      const L=(same?[same].concat(this.list.filter(r=>r!==same)):this.list).map(r=>{const d=r.data||{};return card(d.avatar,r.nom||'Champion',`Niv. ${levelInfo(d.xp||0).level} · ${nP((d.sessions||[]).length)}`,r===same?(S.genre==='f'?'✓ C’est elle':'✓ C’est lui'):'',r.id,r===same?'pkr':'');}).join('');
+      body=`<h3 class="pkh">Cet appareil est pour…</h3><p>Touchez le prénom de l’enfant qui joue ici : Malino s’ouvrira directement sur son profil.</p>${L}
+        ${loc?`<p class="pkinfo">🎮 Les ${nP((S.sessions||[]).length)} jouées ici par <b>${esc(S.name||'l’invité')}</b> s’ajoutent à l’enfant choisi.</p>${card(S.avatar,'Nouvel enfant',`Ajouter « ${esc(S.name||'Champion')} » au compte`,'➕','local','pkl')}`:''}
+        <label class="pkpart"><input type="checkbox" id="pkPart"><span><b>👨‍👩‍👧 Appareil partagé</b><small>Plusieurs enfants y jouent (ou téléphone d’un parent) : bouton « Changer » sur l’accueil.</small></span></label>`;}
     else body=`<p>Connexion en cours…</p>`;
-    const close=w||v==='load'?'':`<button class="xbtn aclose" data-act="authclose" aria-label="Fermer">✕</button>`;
+    const close=w||v==='load'||v==='pour'?'':`<button class="xbtn aclose" data-act="authclose" aria-label="Fermer">✕</button>`;
     const lg=window.MLANG==='en'?['fr','Français']:['en','English'];
     el.innerHTML=`<div class="abox">${close}${head}<div id="amsg" class="amsg"></div>${body}<button data-noi18n data-act="setlang" data-arg="${lg[0]}" style="display:block;margin:10px auto 0;border:0;background:none;font:inherit;font-size:12px;color:var(--ink2);text-decoration:underline">🌐 ${lg[1]}</button></div>`;
     clearInterval(this.tk);if(v==='code'&&this.wait>0)this.tk=setInterval(()=>{this.wait--;const b=$('#aResend');if(!b){clearInterval(this.tk);return;}if(this.wait<=0){clearInterval(this.tk);b.disabled=false;b.textContent='Renvoyer le code';}else b.textContent=`Renvoyer le code (${this.wait} s)`;},1000);
-    const f=$('#aEmail')||$('#aCode');if(f&&v!=='load')setTimeout(()=>{try{f.focus();}catch(e){}},50);
+    const f=v==='pair'?null:($('#aEmail')||$('#aCode'));if(f&&v!=='load')setTimeout(()=>{try{f.focus();}catch(e){}},50);
   },
   // ----- envoi et vérification du code -----
   async send(again){
@@ -3669,11 +3755,21 @@ const Acct={restoring:(()=>{try{return Object.keys(localStorage).some(k=>/^sb-.*
       this.user=r.data.session.user;await this.signedIn();
     }catch(e){this.setMsg('Pas de connexion internet.');}
   },
+  kpTape(k){if(this.kpBusy)return;try{Sound.play('tap');}catch(e){}let c=this.kp||'';
+    if(k==='x')c=c.slice(0,-1);else if(k==='ok'){if(c.length===6)this.pair(c);else this.kpMaj(true);return;}else if(c.length<6)c+=k;
+    this.kp=c;this.kpMaj();if(c.length===6)setTimeout(()=>{if(this.kp===c)this.pair(c);},250);},
+  kpMaj(err){const d=$('#pkD');if(!d)return;const c=this.kp||'';d.innerHTML=[0,1,2,3,4,5].map(i=>`<i class="${i<c.length?'on':''}">${c[i]||''}</i>`).join('');d.classList.toggle('err',!!err);if(err){d.classList.remove('shake');void d.offsetWidth;d.classList.add('shake');}},
+  async pair(code){if(this.kpBusy)return;this.kpBusy=1;this.setMsg('Vérification…',1);let ok=false;
+    try{const r=await fetch(SB_URL+'/functions/v1/malino-appairage',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY},body:JSON.stringify({code})});const j=await r.json().catch(()=>({}));
+      if(j.ok&&j.token_hash){const sb=await this.lib();const v=await sb.auth.verifyOtp({token_hash:j.token_hash,type:j.type||'magiclink'});if(!v.error&&v.data&&v.data.session){this.user=v.data.session.user;ok=true;}}
+      if(!ok){this.kp='';this.kpMaj(true);this.setMsg(j.erreur==='trop'?'Trop d’essais : attends quelques minutes.':j.erreur==='code'?'Ce code ne marche pas. Vérifie-le, ou demande un nouveau code au parent.':'Connexion impossible pour le moment. Réessaie.');}
+    }catch(e){this.kp='';this.kpMaj(true);this.setMsg('Pas de connexion internet.');}
+    this.kpBusy=0;if(ok)await this.signedIn();},
   async forgotSend(){this.forgot=true;this.email=(($('#aEmail')||{}).value||this.email||'').trim().toLowerCase();await this.send(true);},
   async signedIn(){
     this.view='load';this.draw();
     await this.afterLogin(true);
-    if(this.view==='pick')return;
+    if(this.view==='pour')return;
     this.hide();toast('Connecté ✅');Plan.refresh();
     if(Offre.after){const fn=Offre.after;Offre.after=null;setTimeout(fn,400);}
     if(this.forgot){this.forgot=false;queueModal(`<div class="bigemoji">🔑</div><h2>Nouveau mot de passe</h2><p>Choisis un mot de passe pour te connecter plus facilement la prochaine fois (facultatif).</p><label class="fld" style="text-align:left"><input id="npw" type="password" autocomplete="new-password" placeholder="8 caractères minimum"></label><button class="btn p sm block" style="margin-top:10px" data-act="acctsetpw" data-arg="npw">Enregistrer</button><button class="alink" data-act="mclose">Plus tard</button>`);}
@@ -3684,9 +3780,10 @@ const Acct={restoring:(()=>{try{return Object.keys(localStorage).some(k=>/^sb-.*
     if(error){toast('Connecté, mais la sauvegarde est indisponible pour le moment');return;}
     this.list=data||[];
     const saved=localStorage.getItem('malino_pid');
-    if(!this.list.length){await this.createFromLocal();return;}
-    if(fresh&&this.hasLocal()){this.view='pick';this.draw();return;}
-    const m=this.list.find(r=>r.id===saved),n=!m&&S.name&&this.list.find(r=>this.norm(r.nom)===this.norm(S.name));
+    if(!this.list.length){await this.createFromLocal();if(fresh)Dev.lier(this.pid,false);return;}
+    if(fresh){this.view='pour';this.draw();return;}
+    const ds=Dev.st(),dp=ds.lie&&!ds.partage&&ds.profil_id&&this.list.find(r=>r.id===ds.profil_id);
+    const m=dp||this.list.find(r=>r.id===saved),n=!m&&S.name&&this.list.find(r=>this.norm(r.nom)===this.norm(S.name));
     if(n){this.use(n,false,true);return;}
     this.use(m||this.list[0],!fresh&&!!m);
   },
@@ -3719,17 +3816,18 @@ const Acct={restoring:(()=>{try{return Object.keys(localStorage).some(k=>/^sb-.*
   },
   use(row,cmp,fus){
     this.pid=row.id;localStorage.setItem('malino_pid',row.id);
-    if(fus&&row.data){try{localStorage.setItem(STORE_KEY,JSON.stringify(fusionEtat(JSON.parse(JSON.stringify(S)),row.data)));load();recoverPartial();save();this.push();if(SCR!=='game'){SCR='home';render();}return;}catch(e){}}
+    if(fus&&row.data){try{const fm=fusionEtat(JSON.parse(JSON.stringify(S)),row.data);['avatar','genre'].forEach(k=>{if(row.data[k]!=null)fm[k]=row.data[k];});if(row.nom&&row.nom!=='Champion')fm.name=row.nom;localStorage.setItem(STORE_KEY,JSON.stringify(fm));load();recoverPartial();save();this.push();if(SCR!=='game'){SCR='home';render();}return;}catch(e){}}
     if(cmp&&(S.ts||0)>(Date.parse(row.updated_at)||0)+1500){this.push();return;}   // l'appareil a des changements plus récents
     localStorage.setItem(STORE_KEY,JSON.stringify(row.data||{}));load();recoverPartial();
     if(!S.name&&row.nom&&row.nom!=='Champion'){S.name=row.nom;}
     save();SCR='home';render();
   },
-  async pick(id){
-    if(id==='local'){await this.createFromLocal(true);}
-    else if(String(id).startsWith('m:')){const r=this.list.find(x=>x.id===id.slice(2));if(r)this.use(r,false,true);}
-    else{const r=this.list.find(x=>x.id===id);if(r)this.use(r,false);}
-    this.hide();toast('Connecté ✅');Plan.refresh();if(Offre.after){const fn=Offre.after;Offre.after=null;setTimeout(fn,400);}
+  async pick(id){if(this.picking)return;this.picking=1;
+    try{const part=!!(($('#pkPart')||{}).checked);
+      if(id==='local'){await this.createFromLocal(true);}
+      else{const r=this.list.find(x=>x.id===id);if(r)this.use(r,false,this.hasLocal());}
+      await Dev.lier(this.pid,part);}finally{this.picking=0;}
+    this.hide();if(SCR==='home')render();toast('Connecté ✅');Plan.refresh();if(Offre.after){const fn=Offre.after;Offre.after=null;setTimeout(fn,400);}
   },
   dirty(){clearTimeout(this.t);this.t=setTimeout(()=>this.push(),2500);},
   push(){if(!this.user||!this.pid||!this.sb)return;const id=this.pid;this.sb.from('profils').update({data:S,nom:S.name||'Champion'}).eq('id',id).select('id').then(r=>{if(r.error)console.warn('sync',r.error.message);else if(Array.isArray(r.data)&&!r.data.length&&id===this.pid)this.refresh(true);});},
@@ -3738,6 +3836,7 @@ const Acct={restoring:(()=>{try{return Object.keys(localStorage).some(k=>/^sb-.*
     const {data,error}=await this.sb.from('profils').select('id,nom,data,updated_at,created_at').eq('id',id).single();
     if(error||!data)return toast('Profil introuvable');
     this.use(data,false);toast(`Profil : ${data.nom}`);
+    const ds=Dev.st();if(ds.lie&&!ds.partage&&ds.profil_id!==id)Dev.lier(id,false);
   },
   async addProfile(){
     const el=$('#newprof'),nom=((el&&el.value)||'').trim().slice(0,20);if(!nom)return toast('Écris un prénom');
@@ -3765,9 +3864,14 @@ const Acct={restoring:(()=>{try{return Object.keys(localStorage).some(k=>/^sb-.*
   },
   async logout(){
     if(!(await Ask.open({e:'👋',t:'Se déconnecter ?',p:'Les profils restent enregistrés dans le compte.',ok:'Se déconnecter',cls:'r',no:'Rester connecté'})))return;
-    this.push();try{await this.sb.auth.signOut({scope:'local'});}catch(e){}
+    this.push();try{await this.sb.rpc('appareil_retirer',{p_id:Dev.id()});}catch(e){}Dev.set({});try{await this.sb.auth.signOut({scope:'local'});}catch(e){}
     this.user=null;this.pid=null;this.list=[];Plan.clear();localStorage.removeItem('malino_pid');localStorage.removeItem(STORE_KEY);
     S=defaultState();S.gs0=0;save();adminOk=false;go('home');toast('Déconnecté');
+  },
+  async retire(moi){try{await this.sb.auth.signOut({scope:'local'});}catch(e){}
+    this.user=null;this.pid=null;this.list=[];Plan.clear();Dev.set({});localStorage.removeItem('malino_pid');localStorage.removeItem(STORE_KEY);
+    S=defaultState();S.gs0=0;save();adminOk=false;closeAllModals();go('home');
+    if(moi)toast('Appareil retiré');else queueModal(`<div class="bigemoji sm">📱</div><h2>Appareil retiré</h2><p>Un parent a retiré cet appareil du compte. Les progrès restent enregistrés dans le compte.</p><p class="hint">Pour le relier à nouveau : <b>Se connecter</b>, puis <b>J’ai un code</b>.</p><button class="btn block" data-act="mclose">OK</button>`);
   }
 };
 // Astuce « 2e parent » : proposée à l'ouverture de l'Espace parents (3 fois au plus, tous les 3 jours, jusqu'à ce que ce soit fait)
@@ -3818,7 +3922,8 @@ function paneAccount(){return paneAccount0()+Install.card()+`<section class="aca
 function paneAccount0(){
   if(!Acct.user)return `<section class="acard"><h3>👤 Compte parent</h3><p class="hint">Sans compte, la progression reste sur cet appareil. Avec un compte (gratuit), elle est sauvegardée et on la retrouve sur toutes les tablettes. Après ${CFG.wall} séances, la connexion est demandée pour continuer.</p><button class="btn p sm" data-act="openlogin">Se connecter / créer un compte</button></section>`;
   const k=Plan.kind(),pi=Plan.info||{};
-  return `<section class="acard"><h3>👤 Compte parent</h3><p class="hint">Connecté : <b>${esc(Acct.user.email||'')}</b>. La progression est sauvegardée automatiquement.</p></section>${Push.card()}
+  return `<section class="acard"><h3>👤 Compte parent</h3><p class="hint">Connecté : <b>${esc(Acct.user.email||'')}</b>. La progression est sauvegardée automatiquement.</p></section>
+  <section class="acard" id="devSec"><h3>📱 Appareils</h3><p class="hint">Les tablettes et téléphones reliés au compte. Chacun s’ouvre directement sur son enfant.</p><div id="devL">${DevP.L.length?DevP.L.map(a=>DevP.ligne(a)).slice(0,DevP.tout?99:5).join(''):'<p class="hint">Chargement…</p>'}</div><button class="btn p sm" style="margin-top:4px" data-act="devajout">➕ Ajouter un appareil</button></section>${(setTimeout(()=>DevP.liste(),0),'')}${Push.card()}
   <section class="acard"><h3>👑 Malino+</h3><p class="hint">${k==='plus'?(pi.abonne?`Abonnement actif${pi.abo_fin?` · prochain renouvellement le ${fmtDate(pi.abo_fin)}`:''}.`:`Offert jusqu’au ${pi.plus_jusqua?fmtDate(pi.plus_jusqua):'—'}.`):k==='essai'?`Essai gratuit : encore ${Plan.jours()} jour${Plan.jours()>1?'s':''}.`:'Version gratuite.'} Profils : ${Acct.list.length}/${Plan.maxProfils()}.</p><div class="btnrow"><button class="btn sm" data-act="offre">${k==='plus'?'Voir mon offre':'Passer à Malino+'}</button>${pi.abonne?'<button class="btn sm o" data-act="portail">Gérer l’abonnement</button>':''}<button class="btn sm o" data-act="parrain">👥 Inviter</button><button class="btn sm o" data-act="offrir">🎁 Offrir</button></div><p style="margin-top:8px"><button class="alink" style="margin:0;padding:0" data-act="onbstart">👋 Revoir la présentation</button></p>${pi.admin?'<p style="margin-top:10px"><a class="btn sm y" href="admin.html" target="_blank" rel="noopener">🛠️ Panel admin</a></p>':''}</section>
   <section class="acard" id="famSec"><h3>👨‍👩‍👧 Espace famille</h3>${famCard()}</section>
   <section class="acard" id="amisSec"><h3>👫 Jouer entre amis</h3><p class="hint">Votre enfant joue en équipe avec un copain grâce à un code à 6 chiffres. Chacun voit le prénom et l’avatar de l’autre ; ils ne s’envoient que des encouragements tout faits (voix de synthèse), aucun message libre. Vous pouvez retirer un salon à tout moment.</p><div id="amisP"><p class="hint">Chargement…</p></div></section>${(setTimeout(()=>Amis.parents(),0),'')}

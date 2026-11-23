@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#7B5CFF">
+<title>Contacts · Admin</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<style>
+:root{--v:#7B5CFF;--vd:#5A3BE0;--ink:#24263A;--ink2:#5B5E78;--mut:#9094AE;--bg:#F4F1FF;--line:#ECE8F8;--g:#16A34A;--r:#E03A45}
+*{box-sizing:border-box}html,body{margin:0}body{font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%}
+button,select,input,textarea{font:inherit;color:inherit}button{cursor:pointer;border:0;border-radius:8px;padding:5px 9px;background:var(--v);color:#fff;font-weight:600;font-size:13px}
+button.o{background:#EEE9FF;color:var(--vd)}button.r{background:#FFE4E6;color:var(--r)}button.g{background:#DCFCE7;color:#15803D}button:disabled{opacity:.5}
+input,select,textarea{border:1px solid #D9D3F3;border-radius:8px;padding:6px 8px;background:#fff;min-width:0;font-size:14px}textarea{width:100%;resize:vertical}
+header{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:6px;padding:7px 10px;padding-top:max(7px,env(safe-area-inset-top));background:#fff;box-shadow:0 1px 0 #E3DEF8}
+header img{width:26px;height:26px;border-radius:7px}header h1{font-size:15px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}header h1 small{color:var(--mut);font-weight:600;font-size:12px}
+main{max-width:1000px;margin:0 auto;padding:8px 10px 90px}
+.hidden{display:none!important}.mut{color:var(--mut)}.small{font-size:12px}
+.bar{position:sticky;top:41px;z-index:9;background:var(--bg);padding:6px 0 4px;display:flex;gap:6px;align-items:center}
+.bar input{flex:1;padding:8px 10px;font-size:15px;border-radius:10px}.bar select{font-size:13px;padding:7px 6px;border-radius:10px;max-width:42%}
+.chips{display:flex;gap:4px;flex-wrap:wrap;margin:4px 0}.chip{background:#fff;color:var(--ink2);font-weight:600;font-size:12px;padding:3px 8px;border-radius:99px;border:1px solid var(--line)}
+.chip b{font-weight:800;color:var(--ink);margin-left:3px}.chip.on{background:var(--v);border-color:var(--v);color:#fff}.chip.on b{color:#fff}
+.flt{background:#fff;border-radius:12px;padding:6px 9px;margin:4px 0 8px}.flt summary{cursor:pointer;font-weight:700;font-size:13px;color:var(--ink2);list-style:none}.flt summary::-webkit-details-marker{display:none}
+.flt summary .n{background:var(--v);color:#fff;border-radius:99px;padding:0 6px;font-size:11px;margin-left:4px}.flt h4{margin:7px 0 2px;font-size:11.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.tgl{display:flex;align-items:center;gap:6px;font-size:13px;margin-top:6px;color:var(--ink2)}
+.list{background:#fff;border-radius:12px;overflow:hidden}.ct{display:flex;gap:9px;padding:8px 10px;border-top:1px solid var(--line);cursor:pointer;align-items:flex-start}.ct:first-child{border-top:0}.ct:active{background:#FAF8FF}
+.av{flex:0 0 34px;height:34px;border-radius:50%;background:#EEE9FF;color:var(--vd);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+.ct .m{flex:1;min-width:0}.ct .l1{display:flex;gap:6px;align-items:baseline}.ct .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ct .dt{margin-left:auto;font-size:11px;color:var(--mut);white-space:nowrap}
+.ct .l2{font-size:12.5px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ct .bd{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}.ct.x{opacity:.55}
+.b{display:inline-block;border-radius:99px;padding:0 6px;font-size:10.5px;font-weight:700;line-height:17px;white-space:nowrap;background:#EEF0F5;color:#5B5E78}
+.b-client{background:#DCFCE7;color:#15803D}.b-utilisateur{background:#DBEAFE;color:#1D4ED8}.b-contacte{background:#FFEDD5;color:#C2410C}.b-prospect{background:#F1F5F9;color:#64748B}
+.b-pro{background:#E0E7FF;color:#4338CA}.b-particulier{background:#FCE7F3;color:#BE185D}.b-etablissement{background:#CCFBF1;color:#0F766E}
+.b-malino{background:#EFE4FF;color:#6D28D9}.b-paceapp{background:#1E293B;color:#fff}.b-beecook{background:#FEF3C7;color:#92400E}.b-linkedin{background:#DBEAFE;color:#0A66C2}
+.b-clay{background:#CCFBF1;color:#0F766E}.b-ecole{background:#DCFCE7;color:#166534}.b-rouge{background:#FFE4E6;color:#BE123C}.b-orange{background:#FFF7ED;color:#C2410C}.b-plus{background:#F3E8FF;color:#7E22CE}
+.more{display:block;margin:8px auto;font-size:13px}
+.kp{display:flex;gap:5px;margin:2px -10px 4px;padding:0 10px 2px;overflow-x:auto;scrollbar-width:none}.kp::-webkit-scrollbar{display:none}.kp button{flex:0 0 auto;min-width:64px;background:#fff;color:var(--ink);border-radius:10px;padding:4px 8px;text-align:center;font-weight:600;font-size:11px;border:1px solid var(--line)}
+.kp button b{display:block;font-size:15px;font-weight:800}.kp button.on{background:var(--v);color:#fff;border-color:var(--v)}
+#login{max-width:340px;margin:40px auto;text-align:center;background:#fff;border-radius:14px;padding:16px}#login input{width:100%;margin:8px 0;padding:10px;font-size:16px}#login button{width:100%;padding:10px;font-size:15px}
+.msg{min-height:18px;color:var(--r);font-weight:600;font-size:13px}.msg.ok{color:var(--g)}
+.sheet{position:fixed;inset:0;z-index:30;background:rgba(30,20,70,.35);display:flex;justify-content:flex-end}
+.sheet .pn{background:var(--bg);width:min(560px,100%);height:100%;overflow:auto;padding-bottom:calc(80px + env(safe-area-inset-bottom))}
+.pn .ph{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:6px;background:#fff;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));box-shadow:0 1px 0 #E3DEF8}.pn .ph h2{flex:1;font-size:15px;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sec{background:#fff;border-radius:12px;margin:8px 10px;padding:8px 10px}.sec h3{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}.grid input,.grid select,.f1 input{width:100%}.grid input[type=checkbox]{width:auto;margin:0 3px 0 0;vertical-align:-2px}.grid label span{white-space:nowrap}.grid label,.f1 label{display:flex;flex-direction:column;font-size:11.5px;color:var(--ink2);font-weight:600;gap:2px}.grid .w{grid-column:1/-1}
+.f1 label{margin-bottom:6px}
+.tags{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.tags .b{font-size:12px;line-height:20px;padding:0 4px 0 8px}.tags .b i{font-style:normal;cursor:pointer;margin-left:3px;opacity:.6;padding:0 3px}
+.tags input{border:1px dashed #CFC6F3;border-radius:99px;padding:2px 8px;font-size:12px;width:120px}
+.sug{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}.sug button{background:#F4F1FF;color:var(--ink2);font-size:11.5px;padding:2px 7px;border-radius:99px;font-weight:600}
+.hist{font-size:12.5px;margin:0;padding-left:16px}.hist li{margin:2px 0}.kv{font-size:12px;color:var(--ink2);word-break:break-word}.kv b{color:var(--ink)}
+.act{position:fixed;left:0;right:0;bottom:0;z-index:31;display:flex;gap:6px;justify-content:flex-end;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);box-shadow:0 -1px 0 #E3DEF8;backdrop-filter:blur(6px)}
+.act.side{left:auto;width:min(560px,100%)}.act button{padding:8px 12px;font-size:14px}
+.fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:8;display:flex;gap:8px}.fab button{border-radius:99px;padding:11px 15px;font-size:14px;box-shadow:0 8px 22px rgba(90,59,224,.35)}
+.ocr{background:#F8F6FF;border:1px dashed #CFC6F3;border-radius:12px;padding:8px;margin-top:6px}.ocr img{max-width:100%;max-height:180px;border-radius:8px;display:block;margin:0 auto 6px}
+.det{display:flex;gap:6px;align-items:flex-start;padding:6px 0;border-top:1px solid var(--line)}.det:first-child{border-top:0}.det input[type=checkbox]{margin-top:4px}.det .m{flex:1;min-width:0}.det .m b{word-break:break-all}
+.prog{height:6px;background:#EEE9FF;border-radius:99px;overflow:hidden;margin:6px 0}.prog i{display:block;height:100%;width:0;background:var(--v);transition:width .2s}
+.toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#24263A;color:#fff;padding:7px 12px;border-radius:10px;font-size:13px;z-index:50;max-width:90%}
+.empty{padding:20px;text-align:center;color:var(--mut)}
+.vers{text-align:center;color:var(--mut);font-size:11px;margin:12px 0}
+@media (min-width:760px){.kp{flex-wrap:wrap;overflow:visible;margin:2px 0 4px;padding:0}.kp button{flex:1 1 0}}
+</style>
+</head>
+<body>
+<header><img src="logo.svg" alt=""><h1>Contacts <small id="cnt"></small></h1>
+<button class="o hidden" id="bCsv" title="Exporter la liste filtrée en CSV">⬇︎ CSV</button><button class="o hidden" id="bRef" title="Actualiser">↻</button><button class="o hidden" id="bOut" title="Se déconnecter">Sortir</button></header>
+<main id="app"><p class="mut">Chargement…</p></main>
+<div class="fab hidden" id="fab"><button class="o" id="bPhoto">📷 Photo</button><button id="bAdd">＋ Ajouter</button></div>
+<input type="file" id="fPhoto" accept="image/*" capture="environment" class="hidden">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const CRM_V='1.0';
+const SB_URL='https://fcfkfuqzgsmckkxqfwuo.supabase.co',SB_KEY='sb_publishable_a3SNrQOSCH20T5sKsJxuAA_s7H4yCSR';
+const sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+const $=s=>document.querySelector(s),app=$('#app');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s??'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const dd=x=>x?new Date(x).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'}):'';
+const toast=(t,ms=2200)=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),ms);};
+const EMRE=/[a-z0-9._%+\-]+@[a-z0-9\-]+(?:\.[a-z0-9\-]+)*\.[a-z]{2,}/gi;
+const PERSO=/@(gmail|hotmail|yahoo|outlook|live|icloud|msn|orange|free|sfr|laposte|wanadoo|aol|gmx|protonmail|me|neuf|bbox)\./i;
+
+// ---------- Connexion admin : e-mail + code ----------
+let email='';
+function loginView(step,msg){
+  ['bCsv','bRef','bOut','fab'].forEach(i=>$('#'+i).classList.add('hidden'));
+  app.innerHTML=`<div id="login"><img src="logo.svg" width="52" height="52" style="border-radius:13px"><h2 style="margin:6px 0">Contacts · accès admin</h2>
+  ${step==='code'?`<p class="small mut">Code envoyé à <b>${esc(email)}</b></p><input id="code" inputmode="numeric" autocomplete="one-time-code" placeholder="Code reçu par e-mail" maxlength="10"><button id="go">Valider</button><p><button class="o" id="back" style="width:auto">Changer d’e-mail</button></p>`
+  :`<input id="mail" type="email" placeholder="ton e-mail admin" value="${esc(email)}" autocomplete="email"><button id="go">Recevoir un code</button>`}
+  <p class="msg" id="msg">${esc(msg||'')}</p></div>`;
+  const go=async()=>{
+    if(step!=='code'){email=$('#mail').value.trim().toLowerCase();if(!/@/.test(email))return $('#msg').textContent='E-mail invalide';$('#msg').textContent='Envoi…';
+      const r=await fetch(SB_URL+'/functions/v1/code-connexion',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY},body:JSON.stringify({email})}).then(r=>r.json()).catch(()=>({}));
+      if(r.ok||r.error==='trop_vite')return loginView('code',r.ok?'':'Un code vient déjà d’être envoyé');return $('#msg').textContent='Envoi impossible';}
+    const code=$('#code').value.replace(/\D/g,'');let r={error:1};$('#msg').textContent='Vérification…';
+    for(const t of ['email','magiclink','signup']){r=await sb.auth.verifyOtp({email,token:code,type:t});if(!r.error)break;}
+    if(r.error)return $('#msg').textContent='Code incorrect ou expiré';load();};
+  $('#go').onclick=go;const i=$('#mail')||$('#code');i.focus();i.onkeydown=e=>{if(e.key==='Enter')go();};
+  if($('#back'))$('#back').onclick=()=>loginView('mail');
+}
+
+// ---------- Données ----------
+let ALL=[],VIEW=[],SHOWN=60;
+const F={q:'',st:'',ty:new Set(),ap:new Set(),tg:new Set(),u:new Set(),hideX:true,sort:'recent'};
+try{const s=JSON.parse(localStorage.getItem('crm_f')||'{}');if(s.sort)F.sort=s.sort;if(s.hideX===false)F.hideX=false;}catch(e){}
+const saveF=()=>{try{localStorage.setItem('crm_f',JSON.stringify({sort:F.sort,hideX:F.hideX}));}catch(e){}};
+const STATS=['Client','Utilisateur','Contacté','Prospect'],TYPES=['Pro','Particulier','Établissement'],APPS=[['malino','🦉 Malino'],['paceapp','⚡ PaceApp']];
+const USES=['Oui (pro)','À vérifier (particulier)','Déjà fait','Non'];
+const TAGSKIP=new Set([]);
+function prep(c){c.ap=c.ap||[];c.tg=c.tg||[];c.so=c.so||[];
+  c._nm=[c.p,c.n].filter(Boolean).join(' ')||'';c._s=norm([c.e,c._nm,c.en,c.m,c.v,c.cp,c.t,c.tg.join(' '),c.or,c.no,c.ca,c.st,c.ty].join(' '));
+  c._d=c.ml||c.de||'';c._k=norm(c._nm||c.e||'').replace(/^[^a-z]+/,'')||'~';return c;}
+async function load(){
+  const {data:{session}}=await sb.auth.getSession();if(!session)return loginView('mail');
+  app.innerHTML='<p class="mut">Chargement des contacts…</p>';
+  const {data,error}=await sb.rpc('crm_liste');
+  if(error){app.innerHTML=`<div id="login"><h2>Accès refusé</h2><p class="small">Le compte <b>${esc(session.user.email)}</b> n’est pas administrateur.</p><button id="out">Changer de compte</button></div>`;$('#out').onclick=async()=>{await sb.auth.signOut();loginView('mail');};return;}
+  ALL=(data||[]).map(prep);['bCsv','bRef','bOut','fab'].forEach(i=>$('#'+i).classList.remove('hidden'));render();
+}
+// ---------- Badges ----------
+const slug=s=>norm(s).replace(/[^a-z]+/g,'');
+function tagCls(t){const s=slug(t);if(s==='beecook')return 'b-beecook';if(s==='linkedin'||s==='contactelinkedin')return 'b-linkedin';if(s==='clay')return 'b-clay';if(s==='ecole')return 'b-ecole';
+  if(/desinscrit|blacklist|chantier/.test(s))return 'b-rouge';if(/^contacte/.test(s))return 'b-orange';if(/malinoplus|paceapppro|affilie|contributeur/.test(s))return 'b-plus';if(s==='malino')return 'b-malino';if(s==='paceapp')return 'b-paceapp';return '';}
+const B=(t,c)=>`<span class="b ${c||''}">${esc(t)}</span>`;
+function badges(c,full){let h='';
+  if(c.st)h+=B(c.st,'b-'+slug(c.st));if(c.ty)h+=B(c.ty,'b-'+slug(c.ty));
+  if(c.ap.includes('malino'))h+=B('🦉 Malino','b-malino');if(c.ap.includes('paceapp'))h+=B('⚡ PaceApp','b-paceapp');
+  const tg=c.tg.filter(t=>!['Malino','PaceApp'].includes(t));(full?tg:tg.slice(0,4)).forEach(t=>h+=B(t,tagCls(t)));if(!full&&tg.length>4)h+=B('+'+(tg.length-4));
+  if(c.x)h+=B('Exclu','b-rouge');return h;}
+// ---------- Filtres ----------
+function count(f){return ALL.reduce((n,c)=>n+(f(c)?1:0),0);}
+function passes(c,skip){
+  if(F.hideX&&c.x&&skip!=='x')return false;
+  if(skip!=='st'&&F.st&&c.st!==F.st)return false;
+  if(skip!=='ty'&&F.ty.size&&!F.ty.has(c.ty))return false;
+  if(skip!=='ap'&&F.ap.size&&![...F.ap].some(a=>c.ap.includes(a)))return false;
+  if(skip!=='tg'&&F.tg.size&&![...F.tg].every(t=>c.tg.includes(t)))return false;
+  if(skip!=='u'&&F.u.size&&!F.u.has(c.u))return false;
+  if(F.q){const ws=norm(F.q).split(/\s+/).filter(Boolean);if(!ws.every(w=>c._s.includes(w)))return false;}
+  return true;}
+const SORTS={recent:['Récents',(a,b)=>String(b.up||'').localeCompare(String(a.up||''))],nom:['Nom A→Z',(a,b)=>a._k.localeCompare(b._k,'fr')],
+  email:['E-mail',(a,b)=>String(a.e||'').localeCompare(String(b.e||''))],envoi:['Dernier envoi',(a,b)=>String(b._d).localeCompare(String(a._d))],
+  statut:['Statut',(a,b)=>STATS.indexOf(a.st)-STATS.indexOf(b.st)],ville:['Ville',(a,b)=>String(a.v||'~').localeCompare(String(b.v||'~'),'fr')],ajout:['Ajoutés',(a,b)=>String(b.cr||'').localeCompare(String(a.cr||''))]};
+function nFilt(){return (F.st?1:0)+F.ty.size+F.ap.size+F.tg.size+F.u.size;}
+function render(keep){
+  const allTags={};ALL.forEach(c=>c.tg.forEach(t=>{if(!['Malino','PaceApp'].includes(t))allTags[t]=(allTags[t]||0)+1;}));
+  const tagList=Object.entries(allTags).sort((a,b)=>b[1]-a[1]);
+  VIEW=ALL.filter(c=>passes(c)).sort(SORTS[F.sort][1]);if(!keep)SHOWN=60;
+  $('#cnt').textContent=`· ${VIEW.length.toLocaleString('fr-FR')} / ${ALL.length.toLocaleString('fr-FR')}`;
+  const ch=(grp,v,lab,n,on)=>`<button class="chip${on?' on':''}" data-f="${grp}" data-v="${esc(v)}">${esc(lab)}<b>${n}</b></button>`;
+  const stc=s=>count(c=>passes(c,'st')&&(!s||c.st===s));
+  const openF=document.querySelector('.flt')?document.querySelector('.flt').open:false;
+  app.innerHTML=`<div class="bar"><input id="q" type="search" placeholder="🔎 Nom, e-mail, entreprise, ville, badge…" value="${esc(F.q)}" autocomplete="off" enterkeyhint="search">
+    <select id="sort">${Object.entries(SORTS).map(([k,[l]])=>`<option value="${k}"${F.sort===k?' selected':''}>${l}</option>`).join('')}</select></div>
+  <div class="kp"><button data-f="st" data-v="" class="${F.st?'':'on'}"><b>${stc('')}</b>Tous</button>${STATS.map(s=>`<button data-f="st" data-v="${s}" class="${F.st===s?'on':''}"><b>${stc(s)}</b>${s}s</button>`).join('')}
+    ${APPS.map(([k,l])=>`<button data-f="ap" data-v="${k}" class="${F.ap.has(k)?'on':''}"><b>${count(c=>passes(c,'ap')&&c.ap.includes(k))}</b>${l}</button>`).join('')}
+    <button data-f="ty" data-v="Pro" class="${F.ty.has('Pro')?'on':''}"><b>${count(c=>passes(c,'ty')&&c.ty==='Pro')}</b>Pros</button><button data-f="ty" data-v="Particulier" class="${F.ty.has('Particulier')?'on':''}"><b>${count(c=>passes(c,'ty')&&c.ty==='Particulier')}</b>Particuliers</button></div>
+  <details class="flt"${openF?' open':''}><summary>⚙︎ Filtres${nFilt()?`<span class="n">${nFilt()}</span>`:''}${nFilt()?' · <a href="#" id="raz" style="color:var(--v)">tout effacer</a>':''}</summary>
+    <h4>Type</h4><div class="chips">${TYPES.map(t=>ch('ty',t,t,count(c=>passes(c,'ty')&&c.ty===t),F.ty.has(t))).join('')}</div>
+    <h4>Utilisable pour une campagne</h4><div class="chips">${USES.map(t=>ch('u',t,t,count(c=>passes(c,'u')&&c.u===t),F.u.has(t))).join('')}</div>
+    <h4>Badges et sources</h4><div class="chips">${tagList.map(([t,n])=>ch('tg',t,t,count(c=>passes(c,'tg')&&c.tg.includes(t)),F.tg.has(t))).join('')}</div>
+    <label class="tgl"><input type="checkbox" id="hideX"${F.hideX?' checked':''}> Masquer les contacts exclus (${ALL.filter(c=>c.x).length})</label></details>
+  <div class="list" id="list"></div><div class="vers">Contacts v${CRM_V} · base unique Malino, PaceApp, Drive, Clay</div>`;
+  drawList();
+  const q=$('#q');let t=0;q.oninput=()=>{clearTimeout(t);t=setTimeout(()=>{F.q=q.value;const p=q.selectionStart;render();const n=$('#q');n.focus();try{n.setSelectionRange(p,p);}catch(e){}},140);};
+  $('#sort').onchange=e=>{F.sort=e.target.value;saveF();render();};
+  $('#hideX').onchange=e=>{F.hideX=e.target.checked;saveF();render();};
+  if($('#raz'))$('#raz').onclick=e=>{e.preventDefault();F.st='';['ty','ap','tg','u'].forEach(k=>F[k].clear());render();};
+  app.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{const f=b.dataset.f,v=b.dataset.v;
+    if(f==='st')F.st=F.st===v?'':v;else{F[f].has(v)?F[f].delete(v):F[f].add(v);}render();});
+}
+function drawList(){
+  const L=$('#list');if(!VIEW.length){L.innerHTML='<div class="empty">Aucun contact ne correspond.</div>';return;}
+  L.innerHTML=VIEW.slice(0,SHOWN).map(c=>{const nm=c._nm||c.e||'(sans e-mail)';const ini=(c._nm||c.e||'?').split(/[\s.@_-]+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const l2=[c._nm?c.e:'',c.en||c.m,c.v].filter(Boolean).join(' · ');
+    return `<div class="ct${c.x?' x':''}" data-id="${c.id}"><div class="av">${esc(ini)}</div><div class="m"><div class="l1"><span class="nm">${esc(nm)}</span>${c._d?`<span class="dt">✉︎ ${dd(c._d)}</span>`:''}</div>
+      ${l2?`<div class="l2">${esc(l2)}</div>`:''}<div class="bd">${badges(c)}</div></div></div>`;}).join('')
+    +(VIEW.length>SHOWN?`<button class="o more" id="more">Voir plus (${(VIEW.length-SHOWN).toLocaleString('fr-FR')} restants)</button>`:'');
+  L.querySelectorAll('.ct').forEach(e=>e.onclick=()=>openFiche(+e.dataset.id));
+  if($('#more'))$('#more').onclick=()=>{SHOWN+=100;drawList();};
+}
+
+// ---------- Fiche ----------
+const FIELDS=[['prenom','Prénom','p'],['nom','Nom','n'],['email','E-mail','e','w'],['telephone','Téléphone','t'],['ville','Ville','v'],['entreprise','Entreprise','en'],['metier','Métier / poste','m'],['code_postal','Code postal','cp']];
+function closeSheet(){document.querySelectorAll('.sheet,.act').forEach(e=>e.remove());document.body.style.overflow='';}
+function sheet(title,body,actions){closeSheet();const s=document.createElement('div');s.className='sheet';
+  s.innerHTML=`<div class="pn"><div class="ph"><button class="o" data-close>✕</button><h2>${title}</h2></div>${body}</div>`;
+  document.body.appendChild(s);document.body.style.overflow='hidden';s.onclick=e=>{if(e.target===s||e.target.closest('[data-close]'))closeSheet();};
+  if(actions){const a=document.createElement('div');a.className='act'+(innerWidth>=760?' side':'');a.innerHTML=actions;document.body.appendChild(a);}
+  return s;}
+function tagEditor(id,tags){const all=[...new Set(ALL.flatMap(c=>c.tg))].sort((a,b)=>a.localeCompare(b,'fr'));
+  return `<div class="tags" id="${id}">${tags.map(t=>`<span class="b ${tagCls(t)}" data-t="${esc(t)}">${esc(t)}<i>✕</i></span>`).join('')}<input placeholder="+ badge" list="${id}-dl"><datalist id="${id}-dl">${all.map(t=>`<option value="${esc(t)}">`).join('')}</datalist></div>
+  <div class="sug">${['Prospect chaud','À relancer','Client potentiel','Famille','Ami','Partenaire'].filter(t=>!tags.includes(t)).map(t=>`<button type="button" data-add="${esc(t)}">+ ${esc(t)}</button>`).join('')}</div>`;}
+function bindTags(root,id){const box=root.querySelector('#'+id),inp=box.querySelector('input');
+  const add=t=>{t=t.trim();if(!t||[...box.querySelectorAll('[data-t]')].some(x=>x.dataset.t===t))return;const s=document.createElement('span');s.className='b '+tagCls(t);s.dataset.t=t;s.innerHTML=esc(t)+'<i>✕</i>';box.insertBefore(s,inp);};
+  box.onclick=e=>{if(e.target.tagName==='I')e.target.parentNode.remove();};
+  inp.onkeydown=e=>{if(e.key==='Enter'||e.key===','){e.preventDefault();add(inp.value);inp.value='';}};inp.onchange=()=>{add(inp.value);inp.value='';};
+  root.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{add(b.dataset.add);b.remove();});
+  return ()=>{if(inp.value.trim())add(inp.value);return [...box.querySelectorAll('[data-t]')].map(x=>x.dataset.t);};}
+async function openFiche(id){
+  const c=ALL.find(x=>x.id===id);if(!c)return;
+  const s=sheet(esc(c._nm||c.e||'Contact'),'<p class="mut" style="padding:10px">Chargement…</p>');
+  const {data:d,error}=await sb.rpc('crm_detail',{p_id:id});if(error||!d){s.querySelector('.pn').insertAdjacentHTML('beforeend','<p class="msg" style="padding:10px">Impossible de charger la fiche</p>');return;}
+  const hist=(d.historique||[]).slice().sort((a,b)=>String(b.d).localeCompare(String(a.d)));
+  const orig=d.donnees_origine?Object.entries(d.donnees_origine):[];
+  const body=`<div class="sec"><div class="bd" style="display:flex;gap:3px;flex-wrap:wrap">${badges(c,true)}</div>
+      <div class="row" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${d.email?`<a class="b b-pro" style="font-size:12px;line-height:22px;padding:0 9px;text-decoration:none" href="mailto:${esc(d.email)}">✉︎ Écrire</a>`:''}${d.telephone?`<a class="b b-client" style="font-size:12px;line-height:22px;padding:0 9px;text-decoration:none" href="tel:${esc(String(d.telephone).replace(/[^\d+]/g,'').replace(/^33/,'+33'))}">📞 Appeler</a>`:''}</div></div>
+    <div class="sec"><h3>Coordonnées</h3><div class="grid">${FIELDS.map(([k,l,,w])=>`<label class="${w||''}">${l}<input data-k="${k}" value="${esc(d[k]||'')}"${k==='email'?' type="email"':k==='telephone'?' inputmode="tel"':''}></label>`).join('')}</div></div>
+    <div class="sec"><h3>Suivi</h3><div class="grid">
+      <label>Statut<select data-k="statut">${STATS.map(x=>`<option${d.statut===x?' selected':''}>${x}</option>`).join('')}</select></label>
+      <label>Type<select data-k="type_contact"><option value=""></option>${TYPES.map(x=>`<option${d.type_contact===x?' selected':''}>${x}</option>`).join('')}</select></label>
+      <label class="w">Utilisable pour une campagne<select data-k="utilisable"><option value=""></option>${USES.map(x=>`<option${d.utilisable===x?' selected':''}>${x}</option>`).join('')}</select></label>
+      <label class="w" style="flex-direction:row;align-items:center;gap:12px;font-size:13px">Applis : ${APPS.map(([k,l])=>`<span><input type="checkbox" data-app="${k}"${(d.apps||[]).includes(k)?' checked':''}> ${l}</span>`).join('')}</label>
+      <label class="w" style="flex-direction:row;align-items:center;gap:6px;font-size:13px"><input type="checkbox" data-k="a_exclure"${d.a_exclure?' checked':''}> Exclure des campagnes</label>
+      <label class="w">Motif d’exclusion<input data-k="motif_exclusion" value="${esc(d.motif_exclusion||'')}"></label></div></div>
+    <div class="sec"><h3>Badges</h3>${tagEditor('tgE',d.tags||[])}</div>
+    <div class="sec"><h3>Notes</h3><textarea data-k="notes" rows="3" placeholder="Ce que tu sais de ce contact…">${esc(d.notes||'')}</textarea></div>
+    <div class="sec"><h3>Historique</h3>${hist.length?`<ul class="hist">${hist.map(h=>`<li><b>${dd(h.d)}</b> · ${esc(h.quoi||'')}${h.app?` <span class="b ${h.app==='malino'?'b-malino':h.app==='paceapp'?'b-paceapp':''}">${esc(h.app)}</span>`:''}</li>`).join('')}</ul>`:'<p class="small mut">Rien pour l’instant.</p>'}
+      ${d.campagne?`<p class="kv">Campagne : <b>${esc(d.campagne)}</b></p>`:''}${d.suivi_malino?`<p class="kv">Suivi Malino : <b>${esc(d.suivi_malino)}</b></p>`:''}${d.accroche?`<p class="kv">Accroche : ${esc(d.accroche)}</p>`:''}</div>
+    <div class="sec"><h3>Origine</h3><p class="kv">Source principale : <b>${esc(d.origine||'')}</b></p><p class="kv">Fichiers et bases : ${esc((d.sources||[]).join(' · '))}</p>
+      <p class="kv">Ajouté le ${dd(d.created_at)} · modifié le ${dd(d.updated_at)}${d.date_premier_contact?` · 1er contact ${dd(d.date_premier_contact)}`:''}</p>
+      ${(d.profils_beecook||[]).length?`<p class="kv">Profil Beecook : <b>${esc(d.profils_beecook.join(', '))}</b></p>`:''}
+      ${orig.length?`<details><summary class="small" style="cursor:pointer;color:var(--v);font-weight:700">Données d’origine</summary>${orig.map(([f,v])=>`<p class="kv" style="margin:6px 0 2px"><b>${esc(f)}</b></p>${Object.entries(v||{}).map(([a,b])=>`<div class="kv">${esc(a)} : <b>${esc(b)}</b></div>`).join('')}`).join('')}</details>`:''}</div>`;
+  const s2=sheet(esc(c._nm||c.e||'Contact'),body,`<button class="r" id="del">Supprimer</button><span style="flex:1"></span><button class="o" data-close2>Fermer</button><button id="save">Enregistrer</button>`);
+  const getTags=bindTags(s2,'tgE');
+  document.querySelector('[data-close2]').onclick=closeSheet;
+  $('#save').onclick=async()=>{const p={};s2.querySelectorAll('[data-k]').forEach(i=>{const k=i.dataset.k;const v=i.type==='checkbox'?i.checked:i.value;if(String(v)!==String(d[k]??(i.type==='checkbox'?false:'')))p[k]=v;});
+    const tags=getTags();if(JSON.stringify(tags)!==JSON.stringify(d.tags||[]))p.tags=tags;
+    const apps=[...s2.querySelectorAll('[data-app]')].filter(i=>i.checked).map(i=>i.dataset.app);if(JSON.stringify(apps)!==JSON.stringify(d.apps||[]))p.apps=apps;
+    if(p.email&&!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(p.email))return toast('E-mail invalide');
+    if(!Object.keys(p).length){closeSheet();return;}
+    $('#save').disabled=true;const {data:r,error}=await sb.rpc('crm_maj',{p_id:id,p});$('#save').disabled=false;
+    if(error)return toast(/duplicate|unique/.test(error.message)?'Cet e-mail existe déjà sur une autre fiche':'Erreur : '+error.message);
+    Object.assign(c,{e:r.email,p:r.prenom,n:r.nom,t:r.telephone,v:r.ville,cp:r.code_postal,en:r.entreprise,m:r.metier,ty:r.type_contact,st:r.statut,u:r.utilisable,x:r.a_exclure,mx:r.motif_exclusion,tg:r.tags||[],ap:r.apps||[],no:r.notes,up:r.updated_at});prep(c);
+    closeSheet();render(true);toast('✅ Fiche enregistrée');};
+  $('#del').onclick=async()=>{if(!confirm('Supprimer définitivement ce contact ?'))return;const {error}=await sb.rpc('crm_supprimer',{p_id:id});if(error)return toast('Erreur : '+error.message);
+    ALL=ALL.filter(x=>x.id!==id);closeSheet();render(true);toast('Contact supprimé');};
+}
+
+// ---------- Ajout (avec photo) ----------
+function addForm(pre={}){
+  const body=`<div class="sec"><h3>Nouveau contact</h3><div class="grid">${FIELDS.filter(f=>f[0]!=='code_postal').map(([k,l,,w])=>`<label class="${w||''}">${l}<input data-k="${k}" value="${esc(pre[k]||'')}"${k==='email'?' type="email"':k==='telephone'?' inputmode="tel"':''}></label>`).join('')}
+      <label>Type<select data-k="type_contact">${TYPES.map(x=>`<option${(pre.type_contact||'Pro')===x?' selected':''}>${x}</option>`).join('')}</select></label>
+      <label>Origine<input data-k="origine" value="${esc(pre.origine||'Ajout manuel')}"></label></div>
+      <button class="o" id="scan" style="margin-top:8px;width:100%">📷 Prendre une photo (carte de visite, liste, signature…)</button><div id="ocrZone"></div></div>
+    <div class="sec"><h3>Badges</h3>${tagEditor('tgA',pre.tags||[])}</div>
+    <div class="sec"><h3>Notes</h3><textarea data-k="notes" rows="3" placeholder="Où tu l’as rencontré, ce qu’il fait…">${esc(pre.notes||'')}</textarea></div>`;
+  const s=sheet('Ajouter un contact',body,`<span style="flex:1"></span><button class="o" data-close2>Annuler</button><button id="addOk">Ajouter</button>`);
+  const getTags=bindTags(s,'tgA');document.querySelector('[data-close2]').onclick=closeSheet;
+  $('#scan').onclick=()=>{$('#fPhoto').value='';$('#fPhoto').click();};
+  $('#addOk').onclick=async()=>{const p={};s.querySelectorAll('[data-k]').forEach(i=>p[i.dataset.k]=i.value.trim());p.tags=getTags();
+    if(!p.email&&!p.telephone&&!p.nom&&!p.prenom)return toast('Indique au moins un e-mail, un nom ou un téléphone');
+    if(p.email&&!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(p.email))return toast('E-mail invalide');
+    $('#addOk').disabled=true;const r=await ajouter(p);$('#addOk').disabled=false;if(!r)return;closeSheet();await reload();toast(r.fusionne?'Déjà dans la base : fiche complétée':'✅ Contact ajouté');};
+  return s;}
+async function ajouter(p){const {data,error}=await sb.rpc('crm_ajouter',{p});if(error){toast('Erreur : '+error.message);return null;}return data;}
+async function reload(){const {data}=await sb.rpc('crm_liste');if(data){ALL=data.map(prep);render(true);}}
+
+// Lecture d'une photo : Tesseract.js dans le navigateur (rien n'est envoyé ailleurs)
+let tessP=null;
+function tess(){return tessP||(tessP=new Promise((ok,ko)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=()=>ok(window.Tesseract);s.onerror=()=>{tessP=null;ko(new Error('chargement'));};document.head.appendChild(s);}));}
+function shrink(file,max=2000){return new Promise(ok=>{const img=new Image();img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
+  const x=c.getContext('2d');x.drawImage(img,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.9));URL.revokeObjectURL(img.src);};img.src=URL.createObjectURL(file);});}
+function fixOcr(t){return t.replace(/\s*@\s*/g,'@').replace(/\(at\)|\[at\]/gi,'@').replace(/@([a-z0-9\-]+)\s*[.,]\s*(fr|com|net|org|eu|io|be|ch|info)\b/gi,'@$1.$2').replace(/[|]/g,'l');}
+function guess(email,text){const [loc,dom]=email.split('@');const parts=loc.split(/[._-]+/).filter(w=>/^[a-z]{2,}$/i.test(w));
+  const cap=w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();let prenom='',nom='';
+  if(parts.length>=2){prenom=cap(parts[0]);nom=cap(parts[parts.length-1]);}
+  const ent=PERSO.test(email)?'':cap(dom.split('.').slice(-2,-1)[0]||'');
+  const ph=(text.match(/(?:\+33\s?|0)[1-9](?:[\s.\-]?\d{2}){4}/)||[''])[0].replace(/\s+/g,' ');
+  return {email:email.toLowerCase(),prenom,nom,entreprise:ent,telephone:ph,type_contact:PERSO.test(email)?'Particulier':'Pro'};}
+$('#fPhoto').onchange=async e=>{const f=e.target.files[0];if(!f)return;
+  if(!document.querySelector('#ocrZone'))addForm();
+  const z=$('#ocrZone');const url=await shrink(f);
+  z.innerHTML=`<div class="ocr"><img src="${url}" alt=""><div class="small" id="ocrSt">Lecture de la photo…</div><div class="prog"><i id="ocrP"></i></div></div>`;
+  try{const T=await tess();
+    const r=await T.recognize(url,'fra+eng',{logger:m=>{if(m.status==='recognizing text'&&$('#ocrP'))$('#ocrP').style.width=Math.round(m.progress*100)+'%';else if($('#ocrSt')&&m.status)$('#ocrSt').textContent=m.status==='loading language traineddata'?'Préparation de la lecture (1re fois : quelques secondes)…':'Lecture de la photo…';}});
+    const txt=fixOcr(r.data.text||'');const ems=[...new Set((txt.match(EMRE)||[]).map(x=>x.toLowerCase().replace(/[.,;:]+$/,'')))];
+    const known=new Set(ALL.map(c=>(c.e||'').toLowerCase()));const G=ems.map(m=>guess(m,txt));
+    z.innerHTML=`<div class="ocr"><img src="${url}" alt="">${ems.length?`<div class="small"><b>${ems.length} e-mail${ems.length>1?'s':''} trouvé${ems.length>1?'s':''}</b> · coche ceux à ajouter</div>
+      <div id="dets">${G.map((g,i)=>`<label class="det"><input type="checkbox" data-i="${i}" ${known.has(g.email)?'':'checked'}><div class="m"><b>${esc(g.email)}</b><div class="small mut">${esc([g.prenom+' '+g.nom,g.entreprise,g.telephone].map(s=>s.trim()).filter(Boolean).join(' · '))}${known.has(g.email)?' · <span class="b b-orange">déjà dans la base</span>':''}</div></div></label>`).join('')}</div>
+      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">${G.length===1?'<button class="o" id="useOne">Remplir le formulaire</button>':''}<button id="addAll">Ajouter la sélection</button></div>`
+      :`<p class="small"><b>Aucun e-mail lu sur la photo.</b> Reprends-la plus nette et bien droite, ou recopie le texte ci-dessous.</p>`}
+      <details style="margin-top:6px"><summary class="small" style="cursor:pointer;color:var(--v);font-weight:700">Texte lu</summary><textarea id="ocrTxt" rows="5">${esc(txt)}</textarea><button class="o" id="reread" style="margin-top:4px">Chercher les e-mails dans ce texte</button></details></div>`;
+    const bindRes=()=>{if($('#useOne'))$('#useOne').onclick=()=>{const g=G[0];document.querySelectorAll('.sheet [data-k]').forEach(i=>{if(g[i.dataset.k]&&!i.value)i.value=g[i.dataset.k];});toast('Formulaire rempli : vérifie et ajoute');};
+      if($('#addAll'))$('#addAll').onclick=async()=>{const sel=[...document.querySelectorAll('#dets input:checked')].map(i=>G[+i.dataset.i]);if(!sel.length)return toast('Coche au moins un e-mail');
+        const base={};document.querySelectorAll('.sheet [data-k]').forEach(i=>base[i.dataset.k]=i.value.trim());const tags=[...document.querySelectorAll('#tgA [data-t]')].map(x=>x.dataset.t);
+        $('#addAll').disabled=true;let n=0,fu=0;for(const g of sel){const p=Object.assign({},g,{origine:base.origine||'Photo',notes:base.notes||'',tags:[...tags,'Photo']});if(sel.length===1)['prenom','nom','entreprise','metier','telephone','ville'].forEach(k=>{if(base[k])p[k]=base[k];});
+          const r=await ajouter(p);if(r){n++;if(r.fusionne)fu++;}}
+        closeSheet();await reload();toast(`✅ ${n-fu} ajouté${n-fu>1?'s':''}${fu?` · ${fu} déjà dans la base (complété${fu>1?'s':''})`:''}`,3200);};};
+    bindRes();
+    $('#reread').onclick=()=>{const t2=fixOcr($('#ocrTxt').value);const em2=[...new Set((t2.match(EMRE)||[]).map(x=>x.toLowerCase()))];if(!em2.length)return toast('Toujours aucun e-mail');
+      G.length=0;em2.forEach(m=>G.push(guess(m,t2)));$('#dets')?($('#dets').innerHTML=G.map((g,i)=>`<label class="det"><input type="checkbox" data-i="${i}" checked><div class="m"><b>${esc(g.email)}</b></div></label>`).join('')):(z.querySelector('.ocr p').innerHTML=`<b>${em2.length} e-mail(s) trouvé(s)</b><div id="dets">${G.map((g,i)=>`<label class="det"><input type="checkbox" data-i="${i}" checked><div class="m"><b>${esc(g.email)}</b></div></label>`).join('')}</div><button id="addAll" style="margin-top:6px">Ajouter la sélection</button>`);bindRes();};
+  }catch(err){z.innerHTML=`<div class="ocr"><img src="${url}" alt=""><p class="msg">Lecture impossible (${esc(err.message||err)}). Vérifie la connexion et réessaie.</p></div>`;}
+};
+
+// ---------- Export CSV ----------
+$('#bCsv').onclick=()=>{const H=['E-mail','Prénom','Nom','Téléphone','Ville','Entreprise','Métier','Type','Statut','Applis','Badges','Utilisable','Exclu','Dernier envoi','Notes'];
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const rows=VIEW.map(c=>[c.e,c.p,c.n,c.t,c.v,c.en,c.m,c.ty,c.st,c.ap.join(' '),c.tg.join(', '),c.u,c.x?'oui':'',c._d,c.no].map(q).join(';'));
+  const blob=new Blob(['﻿'+H.map(q).join(';')+'\n'+rows.join('\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`contacts-${new Date().toISOString().slice(0,10)}.csv`;a.click();};
+$('#bRef').onclick=()=>load();
+$('#bOut').onclick=async()=>{if(!confirm('Se déconnecter ?'))return;await sb.auth.signOut();loginView('mail');};
+$('#bAdd').onclick=()=>addForm();
+$('#bPhoto').onclick=()=>{addForm();$('#fPhoto').value='';$('#fPhoto').click();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
+load();
+</script>
+</body>
+</html>
