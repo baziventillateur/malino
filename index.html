@@ -636,6 +636,14 @@ h1,h2,h3,h4{font-weight:700}
 .hrow{display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #e6e8f0;filter:grayscale(.7);opacity:.7}
 .hrow .gt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.hrow .ge{font-size:18px}.hrow small{color:#9aa0b5;font-size:11px}
 .kidsw{background:#fff;border-radius:14px;padding:8px 10px;margin-bottom:8px}.tlab{font-size:12px;font-weight:700;color:#6F679C;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px}.kids{display:flex;flex-wrap:wrap;gap:6px}.kids button{border:0;border-radius:999px;padding:6px 12px;background:#F1EDFF;font-size:14px;font-weight:700;color:#2B2160}.kids button.on{background:#7B5CFF;color:#fff}.tgrp{margin-bottom:6px}.cmp{overflow-x:auto}.cmp table{width:100%;border-collapse:collapse;font-size:14px}.cmp th,.cmp td{padding:6px 8px;text-align:center;border-bottom:1px solid #EEE}.cmp .cl{text-align:left;color:#6F679C;font-weight:600}
+.etapes{background:linear-gradient(135deg,#FFF7D6,#FFE9F0);border:2px solid #FFD66B;border-radius:16px;padding:8px 10px;margin:0 0 10px;box-shadow:0 6px 16px rgba(255,170,60,.25)}
+.etapes .etit{font-size:13px;line-height:1.3;color:#5B3A00;margin-bottom:6px}.etapes .etr{display:flex;flex-wrap:wrap;gap:6px}
+.etb{flex:1;min-width:140px;background:#7B5CFF;color:#fff;border-radius:12px;padding:7px 8px;font-weight:700;font-size:12.5px;white-space:nowrap;box-shadow:0 3px 0 #5A3FD9;animation:etpulse 2.2s ease-in-out infinite}
+.etok{flex:1;min-width:120px;text-align:center;background:#E7F9EE;color:#166534;border-radius:12px;padding:8px 10px;font-weight:700;font-size:13px}
+@keyframes etpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+.oapp{display:flex;flex-direction:column;gap:8px;margin:10px 0}.oapp>div{display:flex;align-items:center;gap:10px;background:#F6F3FF;border-radius:14px;padding:8px 10px}
+.oapp>div>span{flex:none;width:26px;height:26px;border-radius:50%;background:#7B5CFF;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
+.oapp>div>div{flex:1;min-width:0;text-align:left}.oapp b{display:block;font-size:14px}.oapp small{color:#6F679C;font-size:12px}.oapp em{font-style:normal;font-size:20px}.oapp>div.ok{background:#E7F9EE}.oapp>div.ok>span{background:#22C55E}
 </style>
 </head>
 <body>
@@ -2093,6 +2101,16 @@ const Dem={
 };
 // ---------- Installer l'appli : un clic quand le navigateur le permet (Android, ordinateur), sinon la marche à suivre (iPhone) ----------
 const SHARE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="#1E73E8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
+// ---------- Deux étapes pour les parents : installer l'appli puis activer les notifications ----------
+const Etapes={
+  inst(){try{return Install.autonome()||localStorage.getItem('malino-installe')==='1';}catch(e){return false;}},
+  push(){return Push.st==='on';},
+  fini(){return this.inst()&&(!Acct.user||this.push());},
+  bPush(cls){return Push.st==='denied'?`<button class="${cls}" data-act="pushaide">🔕 Débloquer les notifications</button>`:`<button class="${cls}" data-act="pushon">🔔 Activer les notifications</button>`;},
+  home(){if(this.fini())return '';const i=this.inst(),p=this.push(),n=(i?0:1)+(Acct.user&&!p?1:0);
+    return `<div class="etapes"><div class="etit">👨‍👩‍👧 <b>Parents</b> : ${n>1?'2 étapes':'encore 1 étape'} pour profiter pleinement de Malino</div><div class="etr">${i?'<span class="etok">✅ Appli installée</span>':'<button class="etb" data-act="installer">📲 Installer l’appli</button>'}${Acct.user?(p?'<span class="etok">✅ Notifications</span>':this.bPush('etb')):''}</div></div>`;},
+  redraw(){try{if(typeof Onb!=='undefined'&&Onb.on)Onb.draw();else if(typeof SCR!=='undefined'&&SCR==='home')keepScroll(render);}catch(e){}}
+};
 const Install={
   ua:navigator.userAgent||'',
   autonome(){try{return matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: minimal-ui)').matches||navigator.standalone===true;}catch(e){return false;}},
@@ -2104,7 +2122,7 @@ const Install={
   masque(){try{return localStorage.getItem('malino-installe')==='1'||Date.now()<(+localStorage.getItem('malino-inst-x')||0);}catch(e){return false;}},
   possible(){return !this.autonome()&&!!(window.__bip||this.ios()||this.android()||this.integre());},
   maj(){let b=document.getElementById('instb');
-    const ok=typeof SCR!=='undefined'&&SCR==='home'&&!modalOpen&&this.possible()&&!this.masque()&&!(typeof Onb!=='undefined'&&Onb.should());
+    const ok=false;// remplacé par le bloc « 2 étapes » en haut de l’accueil
     if(!ok){if(b)b.remove();return;}
     if(!b){b=document.createElement('div');b.id='instb';document.body.appendChild(b);}
     b.innerHTML=`<img src="icon-192.png" alt=""><div><b>Installer Malino</b><small>${window.__bip?'En un clic, comme une vraie appli':'Sur l’écran d’accueil, comme une vraie appli'}</small></div><button class="btn sm g" data-act="installer">Installer</button><button class="instx" data-act="instx" aria-label="Plus tard">✕</button>`;},
@@ -2206,7 +2224,7 @@ BADGES.push(
 const Push={pub:'BFLJzcDWvgan1IMMnPf51wZb-fSJOCpnpv5yd-CBrMAjsNzUSDMy0iCBp5NzzjojAtClpyiH9nYpxdxe_fFPUCQ',st:null,
   sup(){return 'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;},
   ios(){return /iphone|ipad|ipod/i.test(navigator.userAgent)&&!(window.navigator.standalone||matchMedia('(display-mode: standalone)').matches);},
-  async check(){let st='off';try{if(!this.sup())st='nosup';else{const r=await navigator.serviceWorker.ready,s=await r.pushManager.getSubscription();st=s&&Notification.permission==='granted'?'on':Notification.permission==='denied'?'denied':'off';}}catch(e){}const ch=st!==this.st;this.st=st;if(ch&&SCR==='admin')keepScroll(render);return st;},
+  async check(){let st='off';try{if(!this.sup())st='nosup';else{const r=await navigator.serviceWorker.ready,s=await r.pushManager.getSubscription();st=s&&Notification.permission==='granted'?'on':Notification.permission==='denied'?'denied':'off';}}catch(e){}const ch=st!==this.st;this.st=st;if(ch&&(SCR==='admin'||SCR==='home'))keepScroll(render);if(ch&&typeof Onb!=='undefined'&&Onb.on)Onb.draw();return st;},
   key(){const b=atob(this.pub.replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(b,c=>c.charCodeAt(0));},
   async enable(){if(!this.sup())return toast(this.ios()?'Sur iPhone, ajoutez d’abord Malino à l’écran d’accueil':'Notifications impossibles sur ce navigateur');if(!Acct.user||!Acct.sb)return toast('Connectez-vous d’abord');
     try{const p=await Notification.requestPermission();if(p!=='granted'){toast('Notifications refusées');return this.check();}
@@ -2693,6 +2711,7 @@ function render(){
   const ap=$('#app');ap.className='scr-'+SCR;ap.innerHTML=(R[SCR]||renderHome)();
   try{Install.maj();}catch(e){}
   try{Presence.maj();}catch(e){}
+  try{if(Push.st==null&&!Push._c){Push._c=1;Push.check();}}catch(e){}
   if(SCR==='home'&&!modalOpen&&!(typeof Onb!=='undefined'&&Onb.should()))setTimeout(()=>{try{if(SCR==='home'&&!modalOpen)unlockCheck();}catch(e){}},350);
 }
 function weekHTML(){const now=new Date(),dow=(now.getDay()+6)%7,mon=addDays(now,-dow),t=dayKey();return (window.MLANG==='en'?['M','T','W','T','F','S','S']:['L','M','M','J','V','S','D']).map((n,i)=>{const d=dayKey(addDays(mon,i)),st=S.days[d],done=dayDone(st);const cls=(done?'done ':d<t?'miss ':'')+(d===t?'today':'');return `<div class="day ${cls}">${n}<b>${done?'🔥':d===t?'⭐':''}</b></div>`;}).join('');}
@@ -2700,7 +2719,7 @@ function renderHome(){Dem.sync();
   const li=levelInfo(S.xp),st=S.settings,t=today(),ml=MATH_LEVELS[st.mathLevel-1],mm=levelMastery('math',st.mathLevel),mf=mathFacts(st.mathLevel).length,fl=FR_LEVELS[st.frLevel-1];
   const sprintLocked=!t.math,frLocked=st.frAfterMath&&!t.math,best=S.stats.sprintBest[st.mathLevel]||0,reached=S.gifts.filter(g=>g.reached&&!g.given),nb=Object.keys(S.badges).length,ready=chestAvailable();
   return `<div class="home"><div class="hcol"><div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills">${Acct.user?'':'<button class="loginbtn" data-act="openlogin"><b>Se connecter</b><small>💾 Garder mes progrès</small></button>'}<span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">🔄 Changer</button>':''}</div></div>
-  <div class="week card">${weekHTML()}</div>${Plan.banner()}
+  ${Etapes.home()}<div class="week card">${weekHTML()}</div>${Plan.banner()}
   
   <div class="mission card"><div class="mtx"><h3>Mission du jour</h3><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${frOnNow()?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'🎉':'🎁'}</button></div>
   ${Coffre.slotsHTML()}
@@ -2771,8 +2790,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='1.90';
+const VERSION='1.91';
 const VERSIONS=[
+ ['1.91','23/11/2026 18:05','Accueil des parents : dernière étape « installer l’appli » puis « activer les notifications » ; tant que ce n’est pas fait, deux boutons restent en haut de l’accueil'],
  ['1.90','23/11/2026 17:55','Admin : pastilles « appli installée » et « notifications activées » pour chaque famille ; graphique des minutes avec échelle, valeurs et détail au toucher'],
  ['1.89','23/11/2026 17:45','Correction : le choix Garçon / Fille au démarrage fonctionne et s’enregistre ; à la connexion, le profil du même prénom est proposé en premier (plus de doublon) ; admin : historique des enfants et bouton Actualiser dans la fiche'],
  ['1.88','22/11/2026 22:15','Admin : ajouter ses propres sons de notification (MP3, M4A), les écouter et les supprimer'],
@@ -2910,7 +2930,7 @@ const ACT={
   askok(){Ask.done(true);},askno(){Ask.done(false);},
   dhist(){Dem.hOpen=!Dem.hOpen;Dem.hN=5;Dem.parentDessiner();},dhmore(){Dem.hN+=5;Dem.parentDessiner();},
   giftmore(){giftN=S.gifts.length>giftN?giftN+5:5;keepScroll(render);},
-  installer(){Install.installer();},instx(){Install.plusTard();},instcopie(){const u=location.origin+location.pathname+location.search;try{navigator.clipboard.writeText(u).then(()=>toast('Lien copié : colle-le dans ton navigateur'),()=>toast(u));}catch(e){toast(u);}},
+  installer(){Promise.resolve(Install.installer()).then(()=>Etapes.redraw());},instx(){Install.plusTard();},instcopie(){const u=location.origin+location.pathname+location.search;try{navigator.clipboard.writeText(u).then(()=>toast('Lien copié : colle-le dans ton navigateur'),()=>toast(u));}catch(e){toast(u);}},
   demcat(){Dem.catalogue();},demvoir(){nextModal();if(SCR!=='gifts')go('gifts');},demidee(a){Dem.confirmer(a);},demenv(a){Dem.envoyer(a);},demann(){Dem.annuler();},
   dpick(a){const [id,i]=a.split('|'),st=Dem.P[id],r=Dem.L.find(x=>String(x.id)===id);if(!st||!r)return;Dem.lireTextes(id);st.i=+i;st.n=(DEM_DEFIS[r.taille]||DEM_DEFIS.petit)[+i][1];Dem.parentDessiner();},
   dplus(a){const [id,k]=a.split('|'),st=Dem.P[id],r=Dem.L.find(x=>String(x.id)===id);if(!st||!r)return;Dem.lireTextes(id);const t=(DEM_DEFIS[r.taille]||DEM_DEFIS.petit)[st.i][0];st.n=Math.max(DEM_MIN[t],Math.min(t==='ok'?2000:t==='ttot'?900:30,st.n+(+k)*DEM_PAS[t]));Dem.parentDessiner();},
@@ -2928,7 +2948,8 @@ const ACT={
   cofopen(id){Coffre.open(id);},
   cofpop(id){Coffre.pop(id);},
   album(){go('album');},
-  pushon(){Push.enable();},
+  pushon(){Promise.resolve(Push.enable()).then(()=>Etapes.redraw());},
+  pushaide(){queueModal(`<div class="bigemoji sm">🔕</div><h2>Notifications bloquées</h2><p>Elles ont été refusées pour Malino sur cet appareil. Pour les autoriser :</p><ol class="insto"><li>Touche le <b>cadenas 🔒</b> (ou ⓘ) à gauche de l’adresse, ou ouvre les <b>réglages</b> de l’appli Malino</li><li>Choisis <b>Notifications</b> → <b>Autoriser</b></li><li>Reviens ici et touche <b>Activer les notifications</b></li></ol><button class="btn p block" data-act="mclose" style="margin-top:8px">J’ai compris</button>`);},
   pushoff(){Push.disable();},
   pushtest(){Push.test();toast('🔔 Notification de test envoyée');},
   guide(){const sec=(t,l,o)=>`<details class="gd"${o?' open':''}><summary>${t}</summary><ul>${l.map(x=>`<li>${x}</li>`).join('')}</ul></details>`;
@@ -3442,7 +3463,11 @@ const Onb={i:0,d:{},
         <p>${k==='plus'?`Tout est débloqué${pi.plus_jusqua?` jusqu’au <b>${fmtDate(pi.plus_jusqua)}</b>`:''}.`:`Jusqu’au <b>${fin}</b>, profitez de presque tout, sans carte bancaire.`}</p>
         <div class="ocmp"><div><b>Toujours gratuit</b><span>✅ Maths et lecture</span><span>✅ Monnaie et Logique</span><span>✅ Récompenses</span></div><div class="p"><b>👑 Malino+</b><span>🎲 Tous les jeux et tous les mondes</span><span>👨‍👩‍👧 Jusqu’à 4 enfants</span><span>📊 Suivi détaillé</span><span>💎 Objets Plasma</span></div></div>
         ${k!=='plus'?'<p class="otip">👥 Invitez 2 amis : <b>+7 jours</b> pour chaque ami inscrit. Ensuite : 2,50 €/mois avec l’offre annuelle.</p>':''}`
-    ].slice(0,3);
+    ].slice(0,3).concat([()=>{const i=Etapes.inst(),p=Etapes.push(),ios=Install.ios();
+      return `<div class="oico">📲</div><h2>Dernière étape : l’appli</h2><p>Pour que ${kid} retrouve Malino en un geste, et pour être prévenu quand un coffre est prêt.</p>
+        <div class="oapp"><div class="${i?'ok':''}"><span>1</span><div><b>Installer Malino</b><small>Sur l’écran d’accueil, comme une vraie appli</small></div>${i?'<em>✅</em>':'<button class="btn sm g" data-act="installer">Installer</button>'}</div>
+        <div class="${p?'ok':''}"><span>2</span><div><b>Activer les notifications</b><small>Un message quand un coffre est prêt, jamais la nuit</small></div>${p?'<em>✅</em>':Push.st==='denied'?'<button class="btn sm o" data-act="pushaide">Débloquer</button>':'<button class="btn sm g" data-act="pushon">Activer</button>'}</div></div>
+        ${ios&&!i?'<p class="otip">📱 Sur iPhone et iPad : installez d’abord Malino (étape 1), ouvrez-le depuis l’écran d’accueil, puis activez les notifications.</p>':''}${i&&p?'':'<p class="fine">Vous pourrez aussi le faire plus tard : les boutons restent en haut de l’accueil.</p>'}`;}]);
   },
   draw(){
     const st=this.steps(),n=st.length,i=this.i,el=$('#onb');
