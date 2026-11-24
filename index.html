@@ -2745,12 +2745,18 @@ const Rec={key:'supercerveau_sons',map:{},el:null,unlocked:false,rec:null,
   async record(k,cb){
     if(this.rec)return;
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){toast('Enregistrement impossible sur ce navigateur');return;}
-    let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:true});}catch(e){toast('Micro refusé : autorisez le micro pour ce site');return;}
+    // on marque tout de suite l'enregistrement : un second appui pendant la demande de micro ne lance rien en double
+    this.rec={k};const fin=()=>{if(this.rec&&this.rec.k===k)this.rec=null;};
+    let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:true});}catch(e){fin();toast('Micro refusé : autorisez le micro pour ce site');return;}
     const types=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg'],mime=types.find(t=>MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t))||'';
-    let mr;try{mr=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);}catch(e){mr=new MediaRecorder(stream);}
+    let mr;try{mr=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);}catch(e){try{mr=new MediaRecorder(stream);}catch(e2){stream.getTracks().forEach(t=>t.stop());fin();toast('Enregistrement impossible sur ce téléphone');return;}}
     const chunks=[];mr.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
-    mr.onstop=()=>{stream.getTracks().forEach(t=>t.stop());const blob=new Blob(chunks,{type:mr.mimeType||mime||'audio/webm'});const fr=new FileReader();fr.onload=()=>{this.map[k]={d:fr.result,ms:1600};this.rec=null;if(this.save()){toast(`Son « ${k} » enregistré ✅`);this.play(k);}if(cb)cb();};fr.readAsDataURL(blob);};
-    this.rec={k};mr.start();if(cb)cb();setTimeout(()=>{if(mr.state==='recording')mr.stop();},1600);
+    mr.onstop=()=>{stream.getTracks().forEach(t=>t.stop());fin();const blob=new Blob(chunks,{type:mr.mimeType||mime||'audio/webm'});const fr=new FileReader();fr.onload=()=>{this.map[k]={d:fr.result,ms:1600};if(this.save()){toast(`Son « ${k} » enregistré ✅`);this.play(k);}if(cb)cb();};fr.readAsDataURL(blob);};
+    mr.onerror=()=>{try{mr.stop();}catch(e){}};
+    try{mr.start();}catch(e){stream.getTracks().forEach(t=>t.stop());fin();toast('Enregistrement impossible sur ce téléphone');return;}
+    if(cb)cb();setTimeout(()=>{if(mr.state==='recording')mr.stop();},1600);
+    // filet de sécurité : jamais bloqué plus de 4 s, même si le navigateur n'a pas répondu
+    setTimeout(()=>{if(mr.state!=='inactive'){try{mr.stop();}catch(e){}}fin();},4000);
   },
   del(k){delete this.map[k];this.save();}
 };
@@ -3554,8 +3560,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.21';
+const VERSION='2.22';
 const VERSIONS=[
+ ['2.22','24/11/2026 21:31','Réglages › Son et voix : on peut réenregistrer une lettre par-dessus ; le bouton ● ne se bloque plus'],
  ['2.21','24/11/2026 21:20','Voix des lettres : quand une voix est choisie pour un son, la voix de base n’est plus jouée'],
  ['2.20','24/11/2026 19:40','Entre amis : « Créer un code » refonctionne ; cadenas sur Entre amis tant que la séance de maths du jour n’est pas faite (un appui la lance) ; le créateur de l’équipe peut changer de jeu pendant la partie (points gardés) ; « Quitter l’équipe » avec le code parent'],
  ['2.19','24/11/2026 13:20','Entre amis au style du mail d’invitation : « Toi + ton copain = une seule équipe », avatars « à son niveau », coffre en diamant, jauge « Points de l’équipe » ; quand des points arrivent, « ✓ bonne réponse » et un « +N » qui vole jusqu’à la jauge ; victoire « Objectif atteint ensemble »'],
