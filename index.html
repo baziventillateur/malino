@@ -1846,6 +1846,10 @@ function fautes(w,n,seed){const r=rng(seed),out=new Set();for(const [a,b] of rSh
   if(out.size<n&&/[tsdxp]$/.test(w))out.add(w.slice(0,-1));for(let i=1;i<w.length-1&&out.size<n;i++)if(/[bcdfglmnprst]/.test(w[i])&&w[i]!==w[i+1]&&w[i]!==w[i-1])out.add(w.slice(0,i+1)+w[i]+w.slice(i+1));return [...out].slice(0,n);}
 const hash=s=>{let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))|0;return h;};
 const qSpell=(audio)=>x=>{const o=[x.w,...fautes(x.w,2,hash(x.w))];return {ans:x.w,inst:audio?'Écoute : quel mot est bien écrit ?':'Quel mot est bien écrit ?',say:x.w,html:audio?'<div class="bigemo">👂</div>':`<div class="bigemo">${x.e}</div>`,opts:shuffle(o).map(v=>({v,l:v})),optCls:'col txt read',fastMs:12000,afterSay:x.w,fixHTML:`<span class="emo">${x.e}</span><div class="fixsub read"><b>${esc(x.w)}</b></div>`,fixSay:'Ça s’écrit : '+x.w.split('').join(', ')};};
+// --- Code secret : mots décalés dans l'alphabet (QCM, sans son)
+const CODE_WORDS=['chat','lune','chien','souris','maison','fleur','soleil','pomme','table','livre'];
+const codeShift=(w,n)=>w.split('').map(c=>String.fromCharCode(97+((c.charCodeAt(0)-97+n+26)%26))).join('');
+const cqCode=n=>x=>({ans:x.w,inst:'Décode le mot secret',html:`<div class="bigemo">🕵️</div><div class="bigtxt read">${esc(codeShift(x.w,n).toUpperCase())}</div>`,opts:shuffle([x.w,...others(CODE_WORDS,2,[x.w])]).map(v=>({v,l:v})),optCls:'txt',fixHTML:`<div class="fixsub read">${esc(codeShift(x.w,n).toUpperCase())} → <b>${esc(x.w)}</b></div>`,fixSay:'Le mot est '+x.w});
 // --- Les 6 jeux
 Object.assign(THEMES,{
  heure:{n:'L’heure',e:'🕐',c:'#F59E0B',d:'#C77D00',unlock:3,desc:'Lire l’horloge : heures pile, demies, quarts, minutes, durées',levels:[
@@ -1902,6 +1906,11 @@ Object.assign(THEMES,{
   {e:'🛟',n:'Ça flotte ou ça coule ?',t:7,items:FLOT,q:x=>({ans:String(x.v),inst:'Dans l’eau, ça flotte ou ça coule ?',html:`<div class="bigemo">${x.e}</div>`,opts:[{v:'1',l:'🛟 Ça flotte'},{v:'0',l:'⚓ Ça coule'}],optCls:'txt two',fixHTML:`<span class="emo">${x.e}</span><div class="fixsub">${x.v?'Ça flotte':'Ça coule'}</div>`,fixSay:x.v?'C’est léger pour sa taille : ça flotte':'C’est lourd pour sa taille : ça coule'})},
   {e:'☀️',n:'L’ordre des planètes',t:8,items:PLSEQ,q:x=>({ans:x.a,inst:`Quelle planète vient ${x.dir>0?'après':'avant'} ${x.p} ?`,say:`En partant du Soleil, quelle planète vient ${x.dir>0?'après':'avant'} ${x.p} ?`,html:`<div class="fixsub">☀️ ➜ … ${planetSVG(x.p)} ${x.dir>0?'➜ ?':''}</div>`,opts:shuffle([x.a,...others(PLORD,2,[x.a,x.p])]).map(p=>({v:p,h:`${planetSVG(p)}<small>${p}</small>`})),optCls:'emo',fastMs:15000,fixHTML:`<div class="plrow">${PLORD.map(p=>`<span>${planetSVG(p)}<small>${p}</small></span>`).join('')}</div>`,fixSay:'Depuis le Soleil : Mercure, Vénus, la Terre, Mars, Jupiter, Saturne, Uranus et Neptune'})},
   {e:'💀',n:'Vrai ou faux ?',t:9,items:VF,q:x=>({ans:String(x.v),inst:'Vrai ou faux ?',say:x.t,html:`<div class="pbtxt read">${esc(x.t)}</div>`,opts:[{v:'1',l:'✅ Vrai'},{v:'0',l:'❌ Faux'}],optCls:'txt two',fastMs:15000,fixHTML:`<div class="fixsub">${x.v?'✅ Vrai':'❌ Faux'}</div>`,fixSay:x.v?'C’est vrai':'C’est faux'})},
+ ]},
+ secret:{n:'Code secret',e:'🕵️',c:'#64748B',d:'#334155',unlock:14,desc:'Décoder un mot dont chaque lettre a été décalée dans l’alphabet',levels:[
+  {e:'🔐',n:'Décalage de 1',items:CODE_WORDS.map(w=>({k:'c'+w,w})),q:cqCode(1)},
+  {e:'🔐',n:'Décalage de 2',items:CODE_WORDS.map(w=>({k:'c'+w,w})),q:cqCode(2)},
+  {e:'🔐',n:'Décalage de 3',items:CODE_WORDS.map(w=>({k:'c'+w,w})),q:cqCode(3)},
  ]},
  ortho:{n:'Orthographe',e:'✍️',c:'#F97316',d:'#C2560D',unlock:12,desc:'Premières lettres, sons, lettres muettes, pluriels, mots difficiles',levels:[
   {e:'🔤',n:'La première lettre',items:ORT1,q:x=>{const l=x.w[0],sim=(LSIM[l]||'').split('').filter(c=>c!==l),o=new Set([l]);shuffle(sim).forEach(c=>{if(o.size<3)o.add(c);});for(const c of shuffle('abcdefgilmnoprstuv'.split('')))if(o.size<3)o.add(c);return {ans:l,inst:'Par quelle lettre commence le mot ?',say:x.w,html:`<div class="bigemo">${x.e}</div><div class="bigtxt read"><span class="hole">?</span>${esc(x.w.slice(1))}</div>`,opts:shuffle([...o]).map(c=>({v:c,l:c.toUpperCase()})),optCls:'txt',afterSay:x.w,fixHTML:`<span class="emo">${x.e}</span><div class="fixsub read"><b>${esc(x.w[0].toUpperCase())}</b>${esc(x.w.slice(1))}</div>`,fixSay:x.w+' commence par '+l};}},
@@ -3583,8 +3592,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.26';
+const VERSION='2.27';
 const VERSIONS=[
+ ['2.27','24/11/2026 22:25','Nouveau jeu « Code secret » : décoder un mot décalé dans l’alphabet (à partir du niveau 14)'],
  ['2.26','24/11/2026 22:15','Entre amis : les parties en cours passent en premier ; le code d’invitation ne s’affiche plus en permanence, il est sur demande (« Voir le code »)'],
  ['2.25','24/11/2026 22:05','Téléphone : la question et les réponses tiennent dans l’écran, sans faire défiler'],
  ['2.24','24/11/2026 21:58','Entre amis : après une victoire, « Nouvelle partie » est toujours disponible, même avant d’ouvrir le coffre'],
