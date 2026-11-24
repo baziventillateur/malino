@@ -1891,18 +1891,16 @@ const ccCells=(cells,cols,nums)=>`<div class="seqr big" style="display:grid;grid
 // Cartes cachées : des cartes sont montrées, puis masquées ; on demande dans quelle case était une carte
 // Cartes face cachée (numéros seulement) : il faut se souvenir de ce qui était où
 const ccBack=(n,cols)=>`<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;justify-items:center;max-width:${cols*70}px;margin:0 auto">${Array.from({length:n},(_,i)=>`<span style="min-width:54px;min-height:60px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:linear-gradient(145deg,#8B5CF6,#6D28D9);color:#fff;font-weight:800;font-size:22px;box-shadow:0 2px 0 rgba(0,0,0,.15)">${i+1}</span>`).join('')}</div>`;
-const ccQ=(n,cols,ms)=>x=>{const r=rng(x.seed),cells=ccPick(r,n),t=Math.floor(r()*n),e=cells[t],ans=String(t+1);
-  const others=shuffle(Array.from({length:n},(_,i)=>String(i+1)).filter(p=>p!==ans)).slice(0,n>=6?3:2);
-  return {ans,inst:`Souviens-toi : où était ${e} ?`,html:ccCells(cells,cols,false),flashHide:ms,flashAfter:ccBack(n,cols),opts:shuffle([ans,...others]).map(v=>({v,l:'case '+v})),optCls:'txt',fixHTML:ccCells(cells,cols,false)+`<div class="fixsub">${e} était en case ${ans}</div>`,fixSay:`${e} était en case ${ans}`};};
-// Les différences : deux images côte à côte, une seule case change
-const dfSize=n=>n<=4?70:n<=6?62:56;
-// Les différences : deux images empilées, titrées, cases de taille fixe ; une seule case change
-const dfBoard=(cells,cols,hi,sz)=>`<div style="display:grid;grid-template-columns:repeat(${cols},${sz}px);gap:8px;justify-content:center">${cells.map((v,i)=>`<span style="position:relative;width:${sz}px;height:${sz}px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(sz*0.5)}px;background:#fff;border-radius:14px;box-shadow:0 2px 0 rgba(0,0,0,.08);${i===hi?'outline:3px solid #22C55E;outline-offset:-3px;':''}">${v}<small style="position:absolute;top:3px;left:6px;font-size:12px;font-weight:800;color:#4F46E5">${i+1}</small></span>`).join('')}</div>`;
-const dfPair=(A,B,cols,hi)=>{const sz=dfSize(A.length);return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="font-weight:800;color:#64748B;font-size:15px">Image 1</div>${dfBoard(A,cols,hi,sz)}<div style="font-weight:800;color:#64748B;font-size:15px;margin-top:4px">Image 2</div>${dfBoard(B,cols,hi,sz)}</div>`;};
-const dfQ=(n,cols)=>x=>{const r=rng(x.seed),A=ccPick(r,n),d=Math.floor(r()*n),alt=ccPick(r,n+1).find(e=>!A.includes(e)),B=A.slice();B[d]=alt;const ans=String(d+1);
-  const others=shuffle(Array.from({length:n},(_,i)=>String(i+1)).filter(p=>p!==ans)).slice(0,2);
-  const intro='<p style="font-size:15px;margin:0 0 6px;color:#64748B">Une seule case change entre les deux images.</p>';
-  return {ans,inst:'Compare case par case : dans quelle case est la différence ?',html:intro+dfPair(A,B,cols,-1),opts:shuffle([ans,...others]).map(v=>({v,l:'case '+v})),optCls:'txt',fixHTML:dfPair(A,B,cols,d)+`<div class="fixsub">La différence est en case ${ans} : ${A[d]} devient ${alt}</div>`,fixSay:`La différence est en case ${ans}`};};
+const ccQ=(n,cols,ms)=>x=>{const r=rng(x.seed),cells=ccPick(r,n),t=Math.floor(r()*n);
+  const nb=[t+1,t-1].filter(k=>k>=0&&k<n&&Math.floor(k/cols)===Math.floor(t/cols)),j=nb[Math.floor(r()*nb.length)],e=cells[t],ans=cells[j];
+  const others=shuffle(cells.filter((_,i)=>i!==j&&i!==t)).slice(0,n>=6?3:2);
+  return {ans,inst:`Quelle carte était à côté de ${e} ?`,html:ccCells(cells,cols,false),flashHide:ms,flashAfter:ccBack(n,cols),opts:shuffle([ans,...others]).map(v=>({v,l:v})),optCls:'emo',fixHTML:ccCells(cells,cols,false)+`<div class="fixsub">${ans} était à côté de ${e}</div>`,fixSay:`${ans} était à côté de ${e}`};};
+// Les différences : deux petites grilles côte à côte, sans numéros ; un seul emoji est nouveau dans l'image 2
+const dfBoard=(cells,cols,hi)=>`<div style="display:grid;grid-template-columns:repeat(${cols},40px);gap:6px">${cells.map((v,i)=>`<span style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:24px;background:#fff;border-radius:10px;box-shadow:0 2px 0 rgba(0,0,0,.08);${i===hi?'outline:3px solid #22C55E;outline-offset:-2px;':''}">${v}</span>`).join('')}</div>`;
+const dfPair=(A,B,cols,hi)=>`<div style="display:flex;justify-content:center;align-items:flex-start;gap:14px"><div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="font-weight:800;color:#64748B;font-size:13px">Image 1</div>${dfBoard(A,cols,-1)}</div><div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="font-weight:800;color:#64748B;font-size:13px">Image 2</div>${dfBoard(B,cols,hi)}</div></div>`;
+const dfQ=(n,cols)=>x=>{const r=rng(x.seed),A=ccPick(r,n),d=Math.floor(r()*n),alt=ccPick(r,n+1).find(e=>!A.includes(e)),B=A.slice();B[d]=alt;
+  const others=shuffle(A.filter((_,i)=>i!==d)).slice(0,n>=9?3:2);
+  return {ans:alt,inst:"Un emoji a changé. Lequel est nouveau dans l'image 2 ?",html:dfPair(A,B,cols,-1),opts:shuffle([alt,...others]).map(v=>({v,l:v})),optCls:'emo',fixHTML:dfPair(A,B,cols,d)+`<div class="fixsub">${alt} est le nouveau : il remplace ${A[d]}</div>`,fixSay:`${alt} est le nouveau`};};
 Object.assign(THEMES,{
  paires:{n:'Cartes cachées',e:'🃏',c:'#8B5CF6',d:'#6D28D9',unlock:16,desc:'Retenir où sont les cartes, puis retrouver leur place',levels:[
   {e:'🃏',n:'4 cartes',items:ccItems(1,8),q:ccQ(4,2,2400)},
@@ -1938,6 +1936,8 @@ function missionExplain(k){const t=today(),ok=chestAvailable();
   queueModal(`<div class="bigemoji">${I.e}</div><h2>${I.n}</h2><p><b>${st}</b></p><p>${I.what}</p><p class="hint">${I.todo}</p>${btn}<button class="btn g block" data-act="mclose" style="margin-top:8px">OK</button>`,
     ()=>{Sound.play('tap');if(S.settings.voice)Voice.say(`${I.n}. ${I.what} ${I.todo}`);});}
 // Explication de première fois pour « Code secret » (affichée une seule fois)
+const GAME_INTRO={paires:{t:'Cartes cachées',e:'🃏',l:['Des cartes apparaissent avec leur emoji, puis se retournent : on voit seulement leur numéro.','Retiens bien quel emoji était dans quelle case.','La question demande la carte à côté d’un emoji donné. Touche la bonne carte parmi les choix.']},diffs:{t:'Les différences',e:'🔍',l:['Deux images apparaissent : une seule case change entre elles.','Compare case par case, en gardant les deux images en tête.','Touche l’emoji qui est nouveau dans l’image 2. Les mauvais choix existent déjà dans l’image 1.']}};
+function gameIntro(sub,mode,opt){const g=GAME_INTRO[sub];queueModal(`<div class="bigemoji">${g.e}</div><h2>${g.t}</h2><ul class="arintro">${g.l.map(x=>`<li>${x}</li>`).join('')}</ul><button class="btn y block" data-act="gamego" data-arg="${esc(sub)}|${esc(mode||'train')}">J’ai compris, on joue ! 🚀</button>`,()=>{Sound.play('tap');});}
 function secretIntro(mode,opt){queueModal(`<div class="bigemoji">🕵️</div><h2>Le code secret</h2><ul class="arintro"><li>🔤 Chaque mot est <b>codé</b> : chaque lettre a été remplacée par la suivante dans l’alphabet.</li><li>✏️ Exemple : <b>LUNE</b> devient <b>MVOF</b> (L→M, U→V, N→O, E→F).</li><li>🔙 Pour décoder, fais le chemin inverse : <b>recule</b> d’une lettre (M→L, V→U, O→N, F→E).</li><li>🔢 Le niveau indique de combien de lettres on recule : « Décalage de 2 » = deux lettres en arrière.</li><li>👆 Lis le code, puis touche le mot qui correspond parmi les trois choix.</li></ul><button class="btn y block" data-act="secretgo" data-arg="${esc(mode||'train')}">J’ai compris, on joue ! 🚀</button>`,()=>{Sound.play('tap');if(S.settings.voice)Voice.say('Chaque lettre a été décalée. Pour décoder, recule d’une lettre.');});}
 // --- Les 6 jeux
 Object.assign(THEMES,{
@@ -2945,6 +2945,7 @@ function stopGame(){try{savePartial();}catch(e){}if(G){G.ended=true;G.timers.for
 function frPreload(){try{FrAudio.preload([...FR_SND].filter(k=>k.startsWith('son:')));const L=FR_LEVELS[S.settings.frLevel-1];if(L&&L.items)FrAudio.preload(L.items.map(x=>typeof x==='string'?'syl:'+x.replace('|',''):''));}catch(e){}}
 function startGame(sub,mode,opt){opt=opt||{};if(sub==='fr')frPreload();if(THEMES[sub]&&!S.settings.lv[sub])S.settings.lv[sub]=1;
   if(sub==='secret'&&!opt.amis&&!(S.thIntro&&S.thIntro.secret))return secretIntro(mode,opt);
+  if((sub==='paires'||sub==='diffs')&&!opt.amis&&!(S.thIntro&&S.thIntro[sub]))return gameIntro(sub,mode,opt);
   if(Acct.wall()){Acct.show('wall');return;}if(modalOpen)closeAllModals();
   if(TimeT.limited()){queueModal(`<div class="bigemoji">🌙</div><h2>Bravo ${nm()} !</h2><p>Tu as bien joué aujourd’hui : <b>${fmtDur(TimeT.sec())}</b>. C’est fini pour aujourd’hui, à demain !</p><button class="btn y block" data-act="mclose">À demain 👋</button>`,()=>{if(S.settings.voice)Voice.say('Bravo ! C’est fini pour aujourd’hui. À demain !');});return;}
   if(THEMES[sub]&&!thUnlocked(sub)&&!opt.amis&&!opt.adm)return ACT.thlocked(sub);
@@ -3699,8 +3700,10 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.43';
+const VERSION='2.45';
 const VERSIONS=[
+ ['2.45','24/11/2026 23:20','Cartes cachées : question de logique (la carte à côté). Les deux jeux expliquent leurs règles au premier lancement. Plus de choix aux grandes grilles des différences'],
+ ['2.44','24/11/2026 23:10','Les différences : plus de numéros ; on tape le nouvel emoji de l’image 2, deux petites images côte à côte sans défilement'],
  ['2.43','25/11/2026 00:35','Cartes cachées : les cartes sont face cachée après l’affichage, plus de numéros révélés ; 4 choix dès 6 cartes'],
  ['2.42','25/11/2026 00:25','Les différences : deux images titrées, empilées, cases de taille fixe'],
  ['2.41','25/11/2026 00:15','Mission du jour : chaque étape s’explique au toucher et propose d’y aller'],
@@ -4007,6 +4010,7 @@ const ACT={
   sndpanel(){sndPanel();},
   sndtoggle(){sndToggle();},
   secretgo(a){S.thIntro=S.thIntro||{};S.thIntro.secret=1;save();nextModal();startGame('secret',a||'train');},
+  gamego(a){const [sub,mode]=String(a).split('|');S.thIntro=S.thIntro||{};S.thIntro[sub]=1;save();nextModal();startGame(sub,mode||'train');},
   mstep(k){missionExplain(k);},
   mgo(k){nextModal();({math:()=>startGame('math','train'),fr:()=>startGame('fr','train'),defi:()=>startGame('math','sprint',{oubli:true}),chest:()=>ACT.chest()})[k]();},
   adminmonde(a){const [k,n]=a.split('|');S.settings.lv[k]=+n;save();nextModal();startGame(k,'train',{adm:true});},
