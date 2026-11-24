@@ -3560,8 +3560,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.22';
+const VERSION='2.23';
 const VERSIONS=[
+ ['2.23','24/11/2026 21:40','Compte admin : jusqu’à 8 profils enfants (au lieu de 4)'],
  ['2.22','24/11/2026 21:31','Réglages › Son et voix : on peut réenregistrer une lettre par-dessus ; le bouton ● ne se bloque plus'],
  ['2.21','24/11/2026 21:20','Voix des lettres : quand une voix est choisie pour un son, la voix de base n’est plus jouée'],
  ['2.20','24/11/2026 19:40','Entre amis : « Créer un code » refonctionne ; cadenas sur Entre amis tant que la séance de maths du jour n’est pas faite (un appui la lance) ; le créateur de l’équipe peut changer de jeu pendant la partie (points gardés) ; « Quitter l’équipe » avec le code parent'],
@@ -4416,7 +4417,8 @@ const Plan={info:null,
   offert(){return this.plus()&&!this.paye();},
   jours(){const i=this.info;if(!i||!i.essai_fin)return 14;return Math.max(0,Math.ceil((Date.parse(i.essai_fin)-Date.now())/864e5));},
   thMax(k){if(FREE_TH.includes(k)||this.paye())return 99;if(this.plus())return Math.max(1,Math.round(+CFG.plusOff||8));return this.kind()==='gratuit'?1:3;},
-  maxProfils(){return this.plus()?4:this.kind()==='gratuit'?1:2;},
+  // compte admin : jusqu'à 8 profils (plafond de la base)
+  maxProfils(){if(this.info&&this.info.admin)return 8;return this.plus()?4:this.kind()==='gratuit'?1:2;},
   pill(){const k=this.kind();
     if(k==='invite')return '';
     if(k==='plus')return '<button class="parentbtn plan on" data-act="offre">👑 Malino+</button>';
