@@ -277,6 +277,10 @@ h1,h2,h3,h4{font-weight:700}
 @keyframes tmOk{0%{transform:translate(-50%,6px) scale(.5);opacity:0}18%{transform:translate(-50%,0) scale(1.1);opacity:1}70%{opacity:1}100%{transform:translate(-50%,-10px);opacity:0}}
 .tm-wrow{justify-content:center;gap:10px;margin:6px 0 4px}.tm-wrow .tm-plus{margin-top:-24px}
 .tm-win{display:table;margin:6px auto 10px;font-weight:800;font-size:14px;color:#fff;background:linear-gradient(90deg,#16A866,#22C47E);border-radius:14px;padding:6px 13px;box-shadow:0 6px 16px rgba(22,168,102,.3)}
+.tm-jeu{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 2px 0;padding:6px 6px 6px 10px;border-radius:12px;background:#fff;box-shadow:0 2px 6px rgba(60,40,160,.08);font-size:13px;color:#4A4572}
+.tm-jeu b{color:#24205A}.tm-jeu i{font-size:11.5px;color:#8A86A8}
+.tm-chg{border:0;border-radius:10px;padding:5px 11px;background:linear-gradient(180deg,#8C70FF,#6B4EFF);color:#fff;font:800 12.5px Nunito,sans-serif;box-shadow:0 3px 0 #4B32C8;cursor:pointer}
+.tm-quit{display:block;margin:10px auto 0;border:0;background:none;color:#9A96B5;font:700 12px Nunito,sans-serif;text-decoration:underline;cursor:pointer}
 @media (max-width:360px){.tm-k{width:74px}.tm-av{width:54px;height:54px}.tm-ch{width:70px}}
 .amaide{margin-left:auto;font-size:19px}
 .ao{text-align:center}.ao-v{height:150px;display:grid;place-items:center;margin:0 0 6px}.ao h2{font-size:20px;margin:2px 0 4px}.ao p{font-size:15px;line-height:1.45;margin:0 0 10px;color:var(--ink2)}
@@ -3096,7 +3100,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
   evTxt(e,c){const n=esc(this.nom(c)),M=AMIS_MOTS[e.detail];
     return ({cree:['🏠',e.moi?'Tu as créé le salon':`${n} a créé le salon`],rejoint:['🎉',e.moi?'Tu as rejoint le salon':`${n} a rejoint ton salon !`],
       partie:['✅',`${e.moi?'Tu as':n+' a'} fini une partie : <b>${e.valeur} bonne${e.valeur>1?'s':''} réponse${e.valeur>1?'s':''}</b>`],defi:['⚔️',e.moi?'Tu as lancé un défi':`${n} te lance un défi !`],
-      defi_joue:['🏁',`${e.moi?'Tu as':n+' a'} joué le défi`],mot:['💬',e.moi?`Tu as envoyé « ${M?M[1]:''} »`:`${n} : « ${M?M[1]:''} »`],objectif:['🏆','Partie gagnée !'],nouvelle:['🎮',e.moi?'Tu as lancé une nouvelle partie':`${n} t’attend pour une nouvelle partie !`],go:['🚀','La partie commence !']})[e.type]||['•',''];},
+      defi_joue:['🏁',`${e.moi?'Tu as':n+' a'} joué le défi`],mot:['💬',e.moi?`Tu as envoyé « ${M?M[1]:''} »`:`${n} : « ${M?M[1]:''} »`],objectif:['🏆','Partie gagnée !'],nouvelle:['🎮',e.moi?'Tu as lancé une nouvelle partie':`${n} t’attend pour une nouvelle partie !`],theme:['🎮',(T=>`${e.moi?'Tu as':n+' a'} changé de jeu : <b>${T?T.e+' '+esc(T.n):esc(e.detail||'')}</b>`)(amisTh()[e.detail])],go:['🚀','La partie commence !']})[e.type]||['•',''];},
   // nouveautés du copain depuis la dernière fois : bannière animée, son et voix
   nouveaux(){const d=this.frais();if(!d)return;let vu=this.lsGet('amis-vu-');const premier=!vu;vu=vu||{};const q=[];
     d.salons.forEach(x=>{const last=vu[x.id]||0;(x.evts||[]).slice().sort((a,b)=>a.id-b.id).forEach(e=>{if(e.id>last&&(!e.moi||e.type==='objectif')&&e.type!=='cree'&&(!premier||Date.now()-new Date(e.le)<864e5))q.push([x,e]);});vu[x.id]=Math.max(last,this.maxEv(x));});
@@ -3199,7 +3203,8 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     const nv=act.map(x=>[x,this.nouvDuCopain(x)[0]]).find(z=>z[1]),rec=act.find(x=>this.gagne(x)&&!x.recompense_prise),inv=act.find(x=>this.invite(x)),fin=act.find(x=>this.gagne(x));
     const sub=inv?`🎮 ${esc(this.nom(inv.copain))} t’attend pour jouer !`:rec?'💎 Ton coffre en diamant t’attend !':df?`⚔️ ${esc(this.nom(df.copain))} te défie !`:nv?this.evTxt(nv[1],nv[0].copain).join(' ').replace(/<[^>]+>/g,''):fin?`🔁 Relance une partie avec ${esc(this.nom(fin.copain))}`:a?`${a.moi+a.lui} / ${a.objectif} avec ${esc(this.nom(a.copain))}${T?' · '+T.e:''}`:d&&d.salons.length?'Ton salon se prépare…':'Joue en équipe avec un copain';
     const ico=a?`<span class="ico amisico ${a.copain.en_ligne?'on':''}">${avatarSVG(a.copain.avatar)}</span>`:'<span class="ico am-ic">👫</span>';
-    return `<button class="play amisb ${n?'pulse':''}" style="--c:#12B886;--d:#0B8A61" data-act="amis">${ico}<span class="tx"><span class="t1">Entre amis</span><span class="t2">${sub}</span></span>${n?`<i class="dot">${n}</i>`:''}</button>`;},
+    const lk=!today().math;
+    return `<button class="play amisb ${lk?'locked':n?'pulse':''}" style="--c:#12B886;--d:#0B8A61" data-act="amis">${ico}<span class="tx"><span class="t1">Entre amis</span><span class="t2">${lk?'🔢 Après ta séance de maths':sub}</span></span>${lk?'<span class="lock">🔒</span>':''}${n?`<i class="dot">${n}</i>`:''}</button>`;},
   dire(mot,voix){const m=AMIS_MOTS[mot],v=AMIS_VOIX[voix]||AMIS_VOIX.normale;if(!m||!Voice.ok)return;try{Voice.hush();setTimeout(()=>{const u=new SpeechSynthesisUtterance(m[1]);u.lang='fr-FR';if(Voice.v)u.voice=Voice.v;u.pitch=v[2];u.rate=v[3];u.volume=1;speechSynthesis.speak(u);},120);}catch(e){}},
   // après chaque partie : les bonnes réponses vont dans la jauge des salons du même thème ; une partie de défi enregistre aussi le score du défi
   async apres(sess){this.res=null;this.dres=null;this.eqRes=null;if(!this.ok()||!sess)return;
@@ -3254,7 +3259,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     const sec=(jouerBas?`<button class="smb" data-act="amisjouer" data-arg="${x.theme}"><span class="am-ic">▶️</span>Jouer</button>`:'')
       +`<button class="smb" data-act="amismot" data-arg="${x.id}"><span class="am-ic">💬</span>Message</button>`;
     return `<div class="card sal act" style="${this.cols(x.createur)}">${this.scene(x,T)}
-      ${this.fil(x)}${mots}${info}${prim}<div class="sal-mini">${sec}</div></div>`;},
+      ${this.fil(x)}${mots}${info}${prim}<div class="sal-mini">${sec}</div><button class="tm-quit" data-act="amisquitk" data-arg="${x.id}">Quitter l’équipe</button></div>`;},
   // l'équipe, comme dans le mail d'invitation : deux avatars « à son niveau », un coffre en diamant, une jauge commune ;
   // quand des points arrivent, « ✓ bonne réponse » au-dessus de celui qui a marqué et un « +N » qui vole jusqu'à la jauge
   scene(x,T){const c=x.copain,tot=x.moi+x.lui,o=x.objectif||100,pct=Math.min(100,tot/o*100),V=this.vus||(this.vus={}),pv=V[x.id];V[x.id]={moi:x.moi,lui:x.lui};
@@ -3268,7 +3273,17 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
         <div class="tm-ch">${diamantSVG(false)}</div></div>
       <div class="tm-g"><div class="tm-gt"><span>⭐ Points de l’équipe</span><b>${tot} / ${o}</b></div>
         <div class="tm-tr"><i class="tm-fi" style="width:${p0.toFixed(1)}%"></i>${[25,50,75].map(f=>`<i class="tm-tk" style="left:${f}%"></i>`).join('')}</div>
-        <small>${T.e} ${esc(T.n)} · 1 bonne réponse = 1 point pour l’équipe, quel que soit le niveau · encore <b>${Math.max(0,o-tot)}</b> pour le coffre</small></div></div>`;},
+        <small>1 bonne réponse = 1 point pour l’équipe, quel que soit le niveau · encore <b>${Math.max(0,o-tot)}</b> pour le coffre</small></div>
+      <div class="tm-jeu"><span>🎮 Jeu : <b>${T.e} ${esc(T.n)}</b></span>${x.createur?`<button class="tm-chg" data-act="amisjeu" data-arg="${x.id}">Changer</button>`:`<i>choisi par ${esc(this.nom(c))}</i>`}</div></div>`;},
+  // changer de jeu pendant la partie (créateur de l'équipe) : les points de l'équipe sont gardés
+  jeu(id){const x=(this.frais()||{salons:[]}).salons.find(z=>z.id===id);if(!x)return;const TH=amisTh(),ids=['math','fr'].concat(Object.keys(THEMES).filter(k=>thUnlocked(k)));closeAllModals();
+    queueModal(`<div class="bigemoji sm am-ic">🎮</div><h2>Changer de jeu</h2><p class="hint">Les <b>${x.moi+x.lui} points</b> de l’équipe sont gardés. ${esc(this.nom(x.copain))} sera prévenu.</p><div class="amis-th gt">${this.court(ids.map(k=>[k,TH[k]]),x.theme,5,'gt',(k,T,c)=>`<button class="${x.theme===k?'on':''} ${c}" data-act="amisjeuok" data-arg="${x.id}|${k}" style="--c:${T.c}"><span>${T.e}</span>${esc(T.n)}</button>`)}</div><button class="alink" data-act="mclose">Annuler</button>`);},
+  async jeuOk(a){const [id,k]=String(a).split('|');const x=(this.frais()||{salons:[]}).salons.find(z=>z.id===id);if(!x)return;if(x.theme===k)return closeAllModals();
+    closeAllModals();let r;try{r=await Acct.sb.rpc('salon_theme',{p_salon:id,p_profil:Acct.pid,p_theme:k});}catch(e){r={error:e};}const d=r&&r.data;
+    if(!r||r.error||!d||d.erreur)return toast(d&&d.erreur==='proprio'?'Seul celui qui a créé l’équipe peut changer de jeu':d&&d.erreur==='gagne'?'La partie est gagnée : lance une nouvelle partie':'Réessaie dans un instant');
+    const T=amisTh()[k]||{e:'🎲',n:k};x.theme=k;toast(`Nouveau jeu : ${T.e} ${T.n}`);try{Sound.play('tick');}catch(e){}this.t=0;await this.charger();render();},
+  quitter(id){const x=(this.frais()||{salons:[]}).salons.find(z=>z.id===id);if(!x)return;
+    ACT.parentPuis(()=>ACT.amisquit(id+'|'+Acct.pid));},
   anime(id,dm,dl,pct){const el=document.getElementById('tm-'+id);if(!el)return;const fi=el.querySelector('.tm-fi'),K=el.querySelectorAll('.tm-k');let fin=0;
     const go=(k,n,ms)=>setTimeout(()=>{const box=K[k],av=box&&box.querySelector('.tm-av');if(!av||!document.body.contains(el))return;
       const ok=document.createElement('i');ok.className='tm-ok';ok.textContent='✓ bonne réponse';box.appendChild(ok);setTimeout(()=>ok.remove(),1700);
@@ -3343,7 +3358,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     if(D.moi==null&&D.lanceur)return `<div class="defb"><span>⚔️</span><p><b>Ton défi est prêt</b><small>${D.n} questions ${T.e} ${esc(T.n)}, un seul essai.</small></p><button class="btn p sm" data-act="defirelever" data-arg="${x.id}">Jouer</button></div>`;
     if(D.moi==null)return `<div class="defb moi">${this.av(c,'sm')}<p><b>${qui} te défie !</b><small>${D.n} questions ${T.e} ${esc(T.n)} · encore ${h} h</small></p><button class="btn p sm" data-act="defirelever" data-arg="${x.id}">Relever ⚔️</button></div>`;
     return `<div class="defb"><span>⏳</span><p><b>Défi envoyé : tu as ${D.moi} / ${D.n}</b><small>${qui} a encore ${h} h pour jouer.</small></p></div>`;},
-  creer(){const TH=amisTh(),ids=['math','fr'].concat(Object.keys(THEMES).filter(k=>thUnlocked(k)));
+  creer(){const TH=amisTh(),ids=['math','fr'].concat(Object.keys(THEMES).filter(k=>thUnlocked(k)));closeAllModals();
     queueModal(`<div class="bigemoji sm am-ic">🎮</div><h2>À quel jeu jouez-vous ?</h2><div class="amis-th gt">${this.court(ids.map(k=>[k,TH[k]]),this.th,5,'gt',(k,T,x)=>`<button class="${this.th===k?'on':''} ${x}" data-act="amisth" data-arg="${k}" style="--c:${T.c}"><span>${T.e}</span>${esc(T.n)}</button>`)}</div>
       <button class="btn g block" style="margin-top:12px" data-act="amiscreer2">Créer mon code</button><button class="alink" data-act="mclose">Annuler</button>`);},
   async creer2(){closeAllModals();const {data,error}=await Acct.sb.rpc('salon_creer',{p_profil:Acct.pid,p_theme:this.th,p_objectif:this.obj});
@@ -3538,8 +3553,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.19';
+const VERSION='2.20';
 const VERSIONS=[
+ ['2.20','24/11/2026 19:40','Entre amis : « Créer un code » refonctionne ; cadenas sur Entre amis tant que la séance de maths du jour n’est pas faite (un appui la lance) ; le créateur de l’équipe peut changer de jeu pendant la partie (points gardés) ; « Quitter l’équipe » avec le code parent'],
  ['2.19','24/11/2026 13:20','Entre amis au style du mail d’invitation : « Toi + ton copain = une seule équipe », avatars « à son niveau », coffre en diamant, jauge « Points de l’équipe » ; quand des points arrivent, « ✓ bonne réponse » et un « +N » qui vole jusqu’à la jauge ; victoire « Objectif atteint ensemble »'],
  ['2.18','24/11/2026 11:10','Entre amis : petite présentation animée (et lue à voix haute) la première fois, puis avec le bouton ❓ ; plus de couronne ni de « loin devant » : on joue ensemble, pas l’un contre l’autre'],
  ['2.17','23/11/2026 23:59','Entre amis : un lien d’invitation (reçu par mail ou message) ouvre Malino sur le bon enfant et le fait rejoindre l’équipe de son copain, sans taper le code'],
@@ -3785,15 +3801,16 @@ function importFile(file){const r=new FileReader();r.onload=()=>{try{const d=JSO
 // ---------- Actions ----------
 const lockedMsg=()=>{toast('Fais d’abord ton entraînement de maths ! 🔢');if(S.settings.voice)Voice.say('Fais d’abord ton entraînement de maths !');};
 const ACT={
-  amis(){Amis.t=0;Amis.d=Amis.frais();go('amis');if(!S.amisOnb&&!Amis._lien&&Acct.user)setTimeout(()=>{if(SCR==='amis')Amis.presente();},600);if(Amis.ok()){Amis.charger('salon').then(()=>{if(SCR!=='amis')return;Amis.nouveaux();render();});Amis.vivre();}},
+  amis(a,el){if(el&&el.classList&&el.classList.contains('locked')){toast('🔒 Fais d’abord ta séance de maths : Entre amis se débloque juste après !');if(S.settings.voice)try{Voice.say('Fais d’abord ta séance de maths, et Entre amis se débloque !');}catch(e){}return setTimeout(()=>startGame('math','train'),900);}
+    Amis.t=0;Amis.d=Amis.frais();go('amis');if(!S.amisOnb&&!Amis._lien&&Acct.user)setTimeout(()=>{if(SCR==='amis')Amis.presente();},600);if(Amis.ok()){Amis.charger('salon').then(()=>{if(SCR!=='amis')return;Amis.nouveaux();render();});Amis.vivre();}},
   amispartage(c){Amis.partage(c);},amisajout(){Amis.ajout();},amkp(k){Amis.kpTape(k);},amisparent(){closeAllModals();Amis.goSec=1;adminTab='compte';ACT.parent();},
-  amiscreer(){Amis.creer();},amisth(k){Amis.th=k;Amis.sel('amisth',k);},amisobj(n){Amis.obj=+n;Amis.sel('amisobj',n);},
+  amiscreer(){Amis.creer();},amisjeu(id){Amis.jeu(id);},amisjeuok(a){Amis.jeuOk(a);},amisquitk(id){Amis.quitter(id);},amisth(k){Amis.th=k;Amis.sel('amisth',k);},amisobj(n){Amis.obj=+n;Amis.sel('amisobj',n);},
   amisplus(g,el){document.querySelectorAll('#modal .'+g+' .xtra').forEach(b=>b.classList.remove('xtra'));if(el)el.remove();},amiscreer2(){Amis.creer2();},
   amiscode(){Amis.code();},amiscode2(){Amis.code2();},
   amismot(id){Amis.motModal(id);},amismotc(k){Amis.mot=k;Amis.dire(k,Amis.voix);Amis.sel('amismotc',k);},amisvoix(k){Amis.voix=k;Amis.dire(Amis.mot,k);Amis.sel('amisvoix',k);},amisenvoi(){Amis.envoi();},
   amisdire(a){const [m,v]=String(a).split('|');Amis.dire(m,v);},
   amisaide(){Amis.presente(true);},
-  amisjouer(k){if(k!=='math'&&k!=='fr'&&!THEMES[k])return;closeAllModals();startGame(k,'train',{amis:1});},
+  amisjouer(k){if(k!=='math'&&k!=='fr'&&!THEMES[k])return;closeAllModals();if(k!=='math'&&!today().math){toast('🔒 D’abord ta séance de maths : elle compte aussi pour l’équipe si vous jouez aux maths !');return setTimeout(()=>startGame('math','train'),900);}startGame(k,'train',{amis:1});},
   amisrejouer(){const k=G&&G.sub;closeAllModals();if(k)startGame(k,'train',{amis:1});else ACT.amis();},
   amisrelance(id){Amis.mot='atoi';Amis.motModal(id);},
   defilancer(id){Amis.defiLancer(id);},defilancer2(){Amis.defiLancer2();},defirelever(id){Amis.defiRelever(id);},defigo(id){Amis.defiGo(id);},defires(id){Amis.defiRes(id);},
