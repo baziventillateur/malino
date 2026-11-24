@@ -3310,7 +3310,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
       <div class="tm-row tm-wrow"><div class="tm-k"><span class="tm-av">${this.av(this.moi())}</span><b>Toi</b></div><span class="tm-plus">+</span><div class="tm-k"><span class="tm-av">${this.av(c)}</span><b>${qui}</b></div></div>
       <div class="tm-win">🤝 Objectif atteint ensemble</div>
       <p class="win-n">${'🏆'.repeat(Math.min(5,g))}${g>5?' ×'+g:''} <span>${g} partie${g>1?'s':''} gagnée${g>1?'s':''} ensemble</span></p>
-      ${prim}<div class="sal-mini"><button class="smb" data-act="amismot" data-arg="${x.id}"><span class="am-ic">💬</span>Message</button></div></div>`;},
+      ${prim}<div class="sal-mini"><button class="smb" data-act="amismot" data-arg="${x.id}"><span class="am-ic">💬</span>Message</button><button class="smb" data-act="amisnouv" data-arg="${x.id}"><span class="am-ic">🔁</span>Nouvelle partie</button></div></div>`;},
   // salle d'attente : j'ai lancé la partie, j'attends le copain
   salle(x,T){const c=x.copain,qui=esc(this.nom(c)),on=!!(c&&c.en_ligne);
     return `<div class="card sal lobby" style="${this.cols(x.createur)}"><div class="lob-duo"><div class="lob-p ok">${this.av(this.moi(),'lg')}<span class="lob-t">✅ Prêt</span></div>
@@ -3560,8 +3560,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.23';
+const VERSION='2.24';
 const VERSIONS=[
+ ['2.24','24/11/2026 21:58','Entre amis : après une victoire, « Nouvelle partie » est toujours disponible, même avant d’ouvrir le coffre'],
  ['2.23','24/11/2026 21:40','Compte admin : jusqu’à 8 profils enfants (au lieu de 4)'],
  ['2.22','24/11/2026 21:31','Réglages › Son et voix : on peut réenregistrer une lettre par-dessus ; le bouton ● ne se bloque plus'],
  ['2.21','24/11/2026 21:20','Voix des lettres : quand une voix est choisie pour un son, la voix de base n’est plus jouée'],
