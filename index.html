@@ -232,6 +232,8 @@ h1,h2,h3,h4{font-weight:700}
 .am-bulle{display:flex;align-items:center;gap:8px;width:100%;text-align:left;margin:10px 0 0;padding:8px 10px;border-radius:16px 16px 16px 4px;background:#F3F0FF;border:1px solid #E2DAFF;font-size:14px;color:var(--ink)}.am-bulle>span:not(.amav){flex:1;min-width:0}.am-bulle .am-ic{font-style:normal;font-size:20px}
 .am-info{display:block;width:100%;text-align:left;margin:10px 0 0;padding:8px 10px;border-radius:12px;background:#F4F5F8;font-size:13.5px;color:var(--ink2)}.am-info u{margin-left:6px;color:var(--vd);font-weight:800}
 .am-ajout{display:block;margin:4px auto 16px;background:none;border:0;color:var(--ink2);font-weight:700;font-size:13.5px;text-decoration:underline;text-underline-offset:3px;opacity:.75}
+.am-wait{display:flex;align-items:center;gap:8px;width:100%;margin:0 0 10px;padding:10px 12px;border-radius:16px;background:#fff;border:0;color:var(--ink2);font-weight:700;font-size:13px;text-align:left;box-shadow:0 3px 0 rgba(36,38,58,.08)}
+.am-wait u{margin-left:auto;color:var(--vd);font-size:12.5px}
 .am-lnk{flex:none;background:#EEE9FF;color:#5B3FE0;border-radius:99px;padding:4px 10px;font-weight:800;font-size:12.5px}
 .prep-th{display:block;text-align:center;font-size:12px;color:var(--ink2);margin-top:8px}.hero-p{font-size:14px;color:var(--ink2);margin:0 0 4px}
 .kp-d{display:flex;gap:6px;justify-content:center;margin:6px 0 14px}.kp-d i{width:40px;height:50px;border-radius:12px;background:#F3F4F8;border:2px solid #E3E6EF;font-size:26px;font-weight:800;line-height:46px;font-style:normal;color:var(--ink);text-align:center}.kp-d i.on{border-color:#7B5CFF;background:#fff;box-shadow:0 3px 0 #D9D0FF}.kp-d.err i{border-color:#FF3B6B}.kp-d.shake{animation:amShake .4s}
@@ -3266,6 +3268,11 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
   joursRestants(){const d=new Date(),j=(d.getDay()+6)%7;return 7-j;},
   code6(c){c=String(c||'');return /^\d{6}$/.test(c)?c.slice(0,3)+' '+c.slice(3):c;},
   main(){return '<i class="am-hand">👆</i>';},
+  // les parties en cours d'abord ; un salon qui attend un copain = une ligne discrète, le code ne s'affiche que sur demande
+  listeCartes(L){const A=L.filter(x=>this.actif(x)),W=L.filter(x=>!this.actif(x));
+    return A.map(x=>this.carte(x)).join('')+W.map(x=>`<button class="am-wait" data-act="amisvoircode" data-arg="${esc(String(x.id))}"><span>⏳</span> Un copain doit encore rejoindre<u>Voir le code</u></button>`).join('');},
+  codeModal(id){const x=((this.frais()||{salons:[]}).salons||[]).find(s=>s.id===id);if(!x)return;
+    queueModal(`<div class="bigemoji sm am-ic">🔑</div><h2>Ton code</h2><p>Donne-le à ton copain pour qu’il rejoigne la partie :</p><div class="sal-code">${esc(this.code6(x.code))}</div><button class="btn o block am-go" data-act="amispartage" data-arg="${esc(x.code)}"><span class="am-ic">📤</span> Envoyer le code${this.main()}</button><button class="alink" data-act="mclose">Fermer</button>`);},
   carte(x){const T=amisTh()[x.theme]||{n:x.theme,e:'🎲',c:'#7B5CFF'},c=x.copain;
     if(!this.actif(x))return this.prep(x,T);
     const et=this.etat(x);if(et==='gagne')return this.victoire(x,T);if(et==='attente')return x.pret?this.salle(x,T):this.invit(x,T);
@@ -3478,7 +3485,7 @@ function renderAmis(){
   if((d.salons||[]).some(x=>(x.mots||[]).length))setTimeout(()=>Amis.lus(),1500);
   const L=d.salons||[];Amis.ouvert();setTimeout(()=>Amis.fetes(),0);
   return `<div class="amis">${top}${Amis.coach()}
-    ${L.length?L.map(x=>Amis.carte(x)).join('')+(L.length<3?`<button class="am-ajout" data-act="amisajout">＋ Ajouter un copain</button>`:''):Amis.vide()}</div>`;
+    ${L.length?Amis.listeCartes(L)+(L.length<3?`<button class="am-ajout" data-act="amisajout">＋ Ajouter un copain</button>`:''):Amis.vide()}</div>`;
 }
 
 function renderHome(){Dem.sync();try{Amis.maj();}catch(e){}
@@ -3576,8 +3583,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.25';
+const VERSION='2.26';
 const VERSIONS=[
+ ['2.26','24/11/2026 22:15','Entre amis : les parties en cours passent en premier ; le code d’invitation ne s’affiche plus en permanence, il est sur demande (« Voir le code »)'],
  ['2.25','24/11/2026 22:05','Téléphone : la question et les réponses tiennent dans l’écran, sans faire défiler'],
  ['2.24','24/11/2026 21:58','Entre amis : après une victoire, « Nouvelle partie » est toujours disponible, même avant d’ouvrir le coffre'],
  ['2.23','24/11/2026 21:40','Compte admin : jusqu’à 8 profils enfants (au lieu de 4)'],
@@ -3832,7 +3840,7 @@ const ACT={
   amis(a,el){if(el&&el.classList&&el.classList.contains('locked')){toast('🔒 Fais d’abord ta séance de maths : Entre amis se débloque juste après !');if(S.settings.voice)try{Voice.say('Fais d’abord ta séance de maths, et Entre amis se débloque !');}catch(e){}return setTimeout(()=>startGame('math','train'),900);}
     Amis.t=0;Amis.d=Amis.frais();go('amis');if(!S.amisOnb&&!Amis._lien&&Acct.user)setTimeout(()=>{if(SCR==='amis')Amis.presente();},600);if(Amis.ok()){Amis.charger('salon').then(()=>{if(SCR!=='amis')return;Amis.nouveaux();render();});Amis.vivre();}},
   amispartage(c){Amis.partage(c);},amisajout(){Amis.ajout();},amkp(k){Amis.kpTape(k);},amisparent(){closeAllModals();Amis.goSec=1;adminTab='compte';ACT.parent();},
-  amiscreer(){Amis.creer();},amisjeu(id){Amis.jeu(id);},amisjeuok(a){Amis.jeuOk(a);},amisquitk(id){Amis.quitter(id);},amisth(k){Amis.th=k;Amis.sel('amisth',k);},amisobj(n){Amis.obj=+n;Amis.sel('amisobj',n);},
+  amiscreer(){Amis.creer();},amisvoircode(id){Amis.codeModal(id);},amisjeu(id){Amis.jeu(id);},amisjeuok(a){Amis.jeuOk(a);},amisquitk(id){Amis.quitter(id);},amisth(k){Amis.th=k;Amis.sel('amisth',k);},amisobj(n){Amis.obj=+n;Amis.sel('amisobj',n);},
   amisplus(g,el){document.querySelectorAll('#modal .'+g+' .xtra').forEach(b=>b.classList.remove('xtra'));if(el)el.remove();},amiscreer2(){Amis.creer2();},
   amiscode(){Amis.code();},amiscode2(){Amis.code2();},
   amismot(id){Amis.motModal(id);},amismotc(k){Amis.mot=k;Amis.dire(k,Amis.voix);Amis.sel('amismotc',k);},amisvoix(k){Amis.voix=k;Amis.dire(Amis.mot,k);Amis.sel('amisvoix',k);},amisenvoi(){Amis.envoi();},
