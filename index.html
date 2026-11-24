@@ -1257,9 +1257,9 @@ const cpText=(t,big)=>`<div class="ctext read${big?' big':t.length>200?' long':'
 const cpQ=q=>`<div class="cq">${esc(q)}</div>`;
 function compQ(base,L,x){const vf=x.a==='Vrai'||x.a==='Faux',q=vf?x.q+' Vrai ou faux ?':x.q,big=x.t.length<70;
   const opts=vf?['Vrai','Faux'].map(v=>({v,l:v==='Vrai'?'✅ Vrai':'❌ Faux'})):shuffle([x.a,...x.d]).map(v=>({v,l:v}));
-  const o={...base,type:'gen',ans:x.a,inst:x.mem?'Lis bien l’histoire : elle va disparaître !':L.inst,say:q,html:cpText(x.t,big)+cpQ(q),opts,optCls:vf?'two comp':'col comp',
+  const o={...base,type:'gen',ans:x.a,inst:'Lis bien cette histoire : elle va disparaître !',say:q,html:cpText(x.t,big),flashAfter:cpQ(q),opts,optCls:vf?'two comp':'col comp',
     fastMs:6000+x.t.length*45,fixHTML:`${cpText(x.t)}<div class="fixsub">${esc(x.q)}<br><b>${esc(x.a)}</b></div>`,fixChain:[{say:x.t,rate:.9},{say:'La réponse : '+x.a}]};
-  if(x.mem){o.flashHide=4000+x.t.length*90;o.html=cpText(x.t);o.flashAfter=cpQ(q);}
+  o.flashHide=(x.mem?4000:3000)+x.t.length*90;
   return o;}
 const FR_LEVELS=[
  {e:'🅰️',n:'Le son des voyelles',type:'vowel',items:VOW},
@@ -3704,8 +3704,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.46';
+const VERSION='2.47';
 const VERSIONS=[
+ ['2.47','24/11/2026 23:45','Histoires : le texte disparaît d’abord, puis la question apparaît seule'],
  ['2.46','24/11/2026 23:30','Cartes cachées : la question précise la direction (au-dessus, en dessous, à gauche, à droite) pour une seule réponse possible'],
  ['2.45','24/11/2026 23:20','Cartes cachées : question de logique (la carte à côté). Les deux jeux expliquent leurs règles au premier lancement. Plus de choix aux grandes grilles des différences'],
  ['2.44','24/11/2026 23:10','Les différences : plus de numéros ; on tape le nouvel emoji de l’image 2, deux petites images côte à côte sans défilement'],
