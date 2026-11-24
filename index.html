@@ -263,6 +263,7 @@ h1,h2,h3,h4{font-weight:700}
 .cofbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#FFC61A,#FF9A1F);border-radius:99px;transition:width .15s}
 .msub{margin:2px 0 0;font-size:12.5px;color:var(--mut)}
 .cdone{font-size:13px;font-weight:800}
+.thpk{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow-y:auto;overscroll-behavior:contain;padding:2px 4px}.thpb{font-size:18px;padding:12px 10px;min-height:48px;text-align:left}
 .sndp{text-align:center}.sndbig{font-size:84px;line-height:1.1}.sndp h2{margin:4px 0 10px}.sndr{width:100%;height:30px;accent-color:#22C55E;margin:6px 0}.sndt{display:flex;justify-content:space-between;font-size:26px;padding:0 6px;margin-bottom:14px}
 .am-lnk{flex:none;background:#EEE9FF;color:#5B3FE0;border-radius:99px;padding:4px 10px;font-weight:800;font-size:12.5px}
 .prep-th{display:block;text-align:center;font-size:12px;color:var(--ink2);margin-top:8px}.hero-p{font-size:14px;color:var(--ink2);margin:0 0 4px}
@@ -1917,7 +1918,7 @@ function sndPanel(){const idx=Math.max(0,SNDOPT.findIndex(o=>o.m===S.settings.sn
 function sndToggle(){const st=S.settings;if(st.sndMode==='off'){st.sndMode=st.sndLast||'soft';}else{st.sndLast=st.sndMode;st.sndMode='off';}save();sndPaint();}
 // Admin : navigation libre dans les mondes d'un jeu à thème (choix du niveau de départ)
 const isAdminU=()=>!!(Plan.info&&Plan.info.admin);
-function thPick(k){const T=THEMES[k];queueModal(`<div class="bigemoji">${T.e}</div><h2>${T.n}</h2><p class="hint">Mode admin : choisis le monde où commencer</p><div class="tgrid" style="grid-template-columns:repeat(2,1fr);max-height:50vh;overflow:auto">${T.levels.map((L,i)=>`<button class="tt" style="--c:${T.c};--d:${T.d}" data-act="thgo" data-arg="${k}|${i+1}"><span class="te">${L.e}</span><span><b>${i+1}. ${esc(L.n)}</b></span></button>`).join('')}</div><button class="btn g block" data-act="mclose">Annuler</button>`);}
+function thPick(k){const T=THEMES[k];queueModal(`<h2 style="margin:6px 0 2px">${T.e} ${esc(T.n)}</h2><p class="hint" style="margin:0 0 8px">Mode admin : choisis le monde où commencer</p><div class="thpk">${T.levels.map((L,i)=>`<button class="btn p block thpb" data-act="adminmonde" data-arg="${k}|${i+1}">${i+1}. ${esc(L.n)}</button>`).join('')}</div><button class="btn g block" data-act="mclose" style="margin-top:8px">Annuler</button>`);}
 // Explication de première fois pour « Code secret » (affichée une seule fois)
 function secretIntro(mode,opt){queueModal(`<div class="bigemoji">🕵️</div><h2>Le code secret</h2><ul class="arintro"><li>🔤 Chaque mot est <b>codé</b> : chaque lettre a été remplacée par la suivante dans l’alphabet.</li><li>✏️ Exemple : <b>LUNE</b> devient <b>MVOF</b> (L→M, U→V, N→O, E→F).</li><li>🔙 Pour décoder, fais le chemin inverse : <b>recule</b> d’une lettre (M→L, V→U, O→N, F→E).</li><li>🔢 Le niveau indique de combien de lettres on recule : « Décalage de 2 » = deux lettres en arrière.</li><li>👆 Lis le code, puis touche le mot qui correspond parmi les trois choix.</li></ul><button class="btn y block" data-act="secretgo" data-arg="${esc(mode||'train')}">J’ai compris, on joue ! 🚀</button>`,()=>{Sound.play('tap');if(S.settings.voice)Voice.say('Chaque lettre a été décalée. Pour décoder, recule d’une lettre.');});}
 // --- Les 6 jeux
@@ -3680,8 +3681,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.39';
+const VERSION='2.40';
 const VERSIONS=[
+ ['2.40','25/11/2026 00:05','Admin : choix du monde corrigé (conflit d’action), liste compacte et défilante'],
  ['2.39','24/11/2026 23:55','Défi des oublis : calculs qui résistent, record séparé, 15 bonnes réponses = étape Défi et bonus'],
  ['2.38','24/11/2026 23:40','Admin : choix du monde de départ pour chaque jeu à thème, y compris les jeux verrouillés'],
  ['2.37','24/11/2026 23:30','Son : le réglage coupe les effets seulement, la voix des questions reste active'],
@@ -3984,7 +3986,7 @@ const ACT={
   sndpanel(){sndPanel();},
   sndtoggle(){sndToggle();},
   secretgo(a){S.thIntro=S.thIntro||{};S.thIntro.secret=1;save();nextModal();startGame('secret',a||'train');},
-  thgo(a){const [k,n]=a.split('|');S.settings.lv[k]=+n;save();nextModal();startGame(k,'train',{adm:true});},
+  adminmonde(a){const [k,n]=a.split('|');S.settings.lv[k]=+n;save();nextModal();startGame(k,'train',{adm:true});},
   starttheme(a,el){if(!THEMES[a])return;if(isAdminU())return thPick(a);if(!thUnlocked(a))return ACT.thlocked(a);if(el.classList.contains('locked'))return lockedMsg();startGame(a,'train');},
   thlocked(k){const T=THEMES[k],n=T.unlock-levelInfo(S.xp).level;Sound.play('tap');toast(`🔒 ${T.n} se débloque au niveau ${T.unlock} : encore ${n} niveau${n>1?'x':''} !`);if(S.settings.voice)Voice.say(`${T.n} se débloque au niveau ${T.unlock}. Encore ${n} niveau${n>1?'x':''} !`);},
   setth(a){const [k,n]=a.split('|');if(+n>Plan.thMax(k))return Offre.open('theme');if(!Limite.ok(k,+n))return;S.settings.lv[k]=+n;save();toast(`${THEMES[k].n} : monde ${n}`);keepScroll(render);},
