@@ -263,6 +263,7 @@ h1,h2,h3,h4{font-weight:700}
 .cofbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#FFC61A,#FF9A1F);border-radius:99px;transition:width .15s}
 .msub{margin:2px 0 0;font-size:12.5px;color:var(--mut)}
 .cdone{font-size:13px;font-weight:800}
+.sndp{text-align:center}.sndbig{font-size:84px;line-height:1.1}.sndp h2{margin:4px 0 10px}.sndr{width:100%;height:30px;accent-color:#22C55E;margin:6px 0}.sndt{display:flex;justify-content:space-between;font-size:26px;padding:0 6px;margin-bottom:14px}
 .am-lnk{flex:none;background:#EEE9FF;color:#5B3FE0;border-radius:99px;padding:4px 10px;font-weight:800;font-size:12.5px}
 .prep-th{display:block;text-align:center;font-size:12px;color:var(--ink2);margin-top:8px}.hero-p{font-size:14px;color:var(--ink2);margin:0 0 4px}
 .kp-d{display:flex;gap:6px;justify-content:center;margin:6px 0 14px}.kp-d i{width:40px;height:50px;border-radius:12px;background:#F3F4F8;border:2px solid #E3E6EF;font-size:26px;font-weight:800;line-height:46px;font-style:normal;color:var(--ink);text-align:center}.kp-d i.on{border-color:#7B5CFF;background:#fff;box-shadow:0 3px 0 #D9D0FF}.kp-d.err i{border-color:#FF3B6B}.kp-d.shake{animation:amShake .4s}
@@ -1903,6 +1904,17 @@ Object.assign(THEMES,{
   {e:'🔍',n:'2 × 2 cases',items:ccItems(4,8),q:dfQ(4,2)},
   {e:'🔍',n:'2 × 3 cases',items:ccItems(5,8),q:dfQ(6,3)},
   {e:'🔍',n:'3 × 3 cases',items:ccItems(6,8),q:dfQ(9,3)}]}});
+// Réglage du son par l'enfant : curseur à 4 crans et « Tout couper » en un appui
+const SNDOPT=[{m:'off',i:'🔇',n:'Muet'},{m:'classic',i:'🔈',n:'Un peu'},{m:'soft',i:'🔉',n:'Moyen'},{m:'max',i:'🔊',n:'Beaucoup'}];
+const sndIcon=()=>(SNDOPT.find(o=>o.m===S.settings.sndMode)||SNDOPT[2]).i;
+function sndPaint(){const st=S.settings,idx=Math.max(0,SNDOPT.findIndex(o=>o.m===st.sndMode)),o=SNDOPT[idx];
+  const r=$('#sndr');if(r)r.value=idx;const b=$('#sndbig');if(b)b.textContent=o.i;const n=$('#sndname');if(n)n.textContent=o.n;
+  const t=$('#sndtog');if(t)t.textContent=st.sndMode==='off'?'🔊 Remettre le son':'🔇 Tout couper';
+  document.querySelectorAll('.sndbtn').forEach(x=>x.textContent=o.i);}
+function sndPanel(){const idx=Math.max(0,SNDOPT.findIndex(o=>o.m===S.settings.sndMode)),o=SNDOPT[idx];
+  queueModal(`<div class="sndp"><div class="sndbig" id="sndbig">${o.i}</div><h2 id="sndname">${o.n}</h2><input type="range" min="0" max="3" step="1" value="${idx}" id="sndr" class="sndr" aria-label="Volume du son"><div class="sndt"><span>🔇</span><span>🔈</span><span>🔉</span><span>🔊</span></div><button class="btn y block" data-act="sndtoggle" id="sndtog">${S.settings.sndMode==='off'?'🔊 Remettre le son':'🔇 Tout couper'}</button><button class="btn g block" data-act="mclose">OK</button></div>`,
+    ()=>{const r=$('#sndr');if(!r)return;r.oninput=()=>{const x=SNDOPT[+r.value],st=S.settings;if(x.m==='off'&&st.sndMode!=='off'){st.sndLast=st.sndMode;st.sndVoice=st.voice;st.voice=false;}else if(x.m!=='off'&&st.sndMode==='off'){st.voice=st.sndVoice!==false;}st.sndMode=x.m;if(x.m!=='off')st.sndLast=x.m;save();sndPaint();};});}
+function sndToggle(){const st=S.settings;if(st.sndMode==='off'){st.sndMode=st.sndLast||'soft';st.voice=st.sndVoice!==false;}else{st.sndLast=st.sndMode;st.sndVoice=st.voice;st.sndMode='off';st.voice=false;}save();sndPaint();}
 // Explication de première fois pour « Code secret » (affichée une seule fois)
 function secretIntro(mode,opt){queueModal(`<div class="bigemoji">🕵️</div><h2>Le code secret</h2><ul class="arintro"><li>🔤 Chaque mot est <b>codé</b> : chaque lettre a été remplacée par la suivante dans l’alphabet.</li><li>✏️ Exemple : <b>LUNE</b> devient <b>MVOF</b> (L→M, U→V, N→O, E→F).</li><li>🔙 Pour décoder, fais le chemin inverse : <b>recule</b> d’une lettre (M→L, V→U, O→N, F→E).</li><li>🔢 Le niveau indique de combien de lettres on recule : « Décalage de 2 » = deux lettres en arrière.</li><li>👆 Lis le code, puis touche le mot qui correspond parmi les trois choix.</li></ul><button class="btn y block" data-act="secretgo" data-arg="${esc(mode||'train')}">J’ai compris, on joue ! 🚀</button>`,()=>{Sound.play('tap');if(S.settings.voice)Voice.say('Chaque lettre a été décalée. Pour décoder, recule d’une lettre.');});}
 // --- Les 6 jeux
@@ -2221,7 +2233,7 @@ const thumb=i=>i.cat==='obj'&&i.k?objThumb(i):i.cat==='pet'&&i.emoji?petThumb(i)
 const STORE_KEY='supercerveau_v1';
 function defaultState(){
   return {v:1,name:'',avatar:Object.assign({},DEFAULT_AV),owned:[],xp:0,coins:20,
-    settings:{mathLevel:1,nQ:10,target:8,mode:'choices',sprintSec:60,aid:true,sound:true,voice:true,voiceQ:false,frOn:true,frAfterMath:true,frLevel:1,frNQ:8,mathAuto:true,frAuto:true,dayLimit:0,pauseTip:true,sndMode:'max',thNQ:8,thAfterMath:true,thAuto:true,coffres:true,lv:{money:1,logic:1,code:1,monde:1,anglais:1,heure:1,formes:1,probl:1,drapeaux:1,espace:1,ortho:1,quoi:1,chiffres:1,arabe:1},thOn:{money:true,logic:true,code:true,monde:true,anglais:true,heure:true,formes:true,probl:true,drapeaux:true,espace:true,ortho:true,quoi:true,chiffres:true,arabe:true}},
+    settings:{mathLevel:1,nQ:10,target:8,mode:'choices',sprintSec:60,aid:true,sound:true,voice:true,voiceQ:false,frOn:true,frAfterMath:true,frLevel:1,frNQ:8,mathAuto:true,frAuto:true,dayLimit:0,pauseTip:true,sndMode:'soft',thNQ:8,thAfterMath:true,thAuto:true,coffres:true,lv:{money:1,logic:1,code:1,monde:1,anglais:1,heure:1,formes:1,probl:1,drapeaux:1,espace:1,ortho:1,quoi:1,chiffres:1,arabe:1},thOn:{money:true,logic:true,code:true,monde:true,anglais:true,heure:true,formes:true,probl:true,drapeaux:true,espace:true,ortho:true,quoi:true,chiffres:true,arabe:true}},
     pin:null,facts:{},fr:{},frFlashMs:2000,sessions:[],days:{},streak:{cur:0,best:0,last:null},badges:{},
     stats:{ok:0,n:0,ms:0,bestCombo:0,sprintBest:{},chests:0},
     gifts:[{id:'g1',emoji:'🍦',title:'Une glace',type:'streak',target:5,reached:null,given:false},{id:'g2',emoji:'🎡',title:'Une sortie au parc',type:'level',target:10,reached:null,given:false}],
@@ -2804,7 +2816,7 @@ const Voice={v:null,ok:'speechSynthesis' in window,warm:false,t:0,cur:null,
   native(text,o){if(!this.ok||!text)return;o=o||{};try{const u=new SpeechSynthesisUtterance(text);const isAr=/^ar/i.test(o.lang||'');if(isAr&&!this.ar&&this.n)return;u.lang=o.lang||'fr-FR';const vv=isAr?this.ar:o.lang?this.en:this.v;if(vv)u.voice=vv;u.rate=o.rate||.9;u.pitch=1.05;u.volume=1;this.cur=u;if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(u);}catch(e){}},
   hush(){clearTimeout(this.t);ArAudio.stop();VoixC.stop();try{FrAudio.stop();}catch(e){}try{if(this.busy())speechSynthesis.cancel();}catch(e){}},
   // Annuler puis parler immédiatement fait taire certains navigateurs : on laisse 90 ms entre les deux
-  say(text,o){Chain.stop();Rec.stopPlay();if(text&&o&&/^ar/i.test(o.lang||'')){this.hush();ArAudio.play(text);return;}if(!this.ok||!text)return;const b=this.busy();this.hush();if(b)this.t=setTimeout(()=>this.speak(text,o),90);else this.speak(text,o);},
+  say(text,o){if(S&&S.settings&&S.settings.sndMode==='off')return;Chain.stop();Rec.stopPlay();if(text&&o&&/^ar/i.test(o.lang||'')){this.hush();ArAudio.play(text);return;}if(!this.ok||!text)return;const b=this.busy();this.hush();if(b)this.t=setTimeout(()=>this.speak(text,o),90);else this.speak(text,o);},
   stop(){Chain.stop();this.hush();Rec.stopPlay();},
   label(){if(!this.ok)return '❌ Voix non disponible sur ce navigateur';const v=window.MLANG==='en'?this.en:this.v;return v?`✅ Voix : ${v.name}`:'⚠️ Pas de voix française trouvée';}
 };
@@ -3571,7 +3583,7 @@ function renderAmis(){
 function renderHome(){Dem.sync();try{Amis.maj();}catch(e){}
   const li=levelInfo(S.xp),st=S.settings,t=today(),ml=MATH_LEVELS[st.mathLevel-1],mm=levelMastery('math',st.mathLevel),mf=mathFacts(st.mathLevel).length,fl=FR_LEVELS[st.frLevel-1];
   const sprintLocked=!t.math,frLocked=st.frAfterMath&&!t.math,best=S.stats.sprintBest[st.mathLevel]||0,reached=S.gifts.filter(g=>g.reached&&!g.given),nb=Object.keys(S.badges).length,ready=chestAvailable();
-  return `<div class="home"><div class="hcol"><div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills">${Acct.user||Acct.restoring?'':'<button class="loginbtn" data-act="openlogin"><b>Se connecter</b><small>💾 Garder mes progrès</small></button>'}<span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1&&Dev.partage()?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">👤 Changer d’enfant</button>':''}</div></div>
+  return `<div class="home"><div class="hcol"><div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills">${Acct.user||Acct.restoring?'':'<button class="loginbtn" data-act="openlogin"><b>Se connecter</b><small>💾 Garder mes progrès</small></button>'}<button class="pill sndbtn" data-act="sndpanel" aria-label="Réglage du son" style="border:0;cursor:pointer;font-size:18px;padding:3px 12px">${sndIcon()}</button><span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1&&Dev.partage()?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">👤 Changer d’enfant</button>':''}</div></div>
   ${Etapes.home()}<div class="week card">${weekHTML()}</div>${Plan.banner()}
   
   <div class="mission card"><div class="mtx"><h3>🎯 Mission du jour</h3><p class="msub">Termine les étapes pour gagner ton coffre du jour</p><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${frOnNow()?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'<span class="cdone">Ouvert ✅</span>':ready?'<span class="cdone">Ouvrir 🎁</span>':'<span class="cdone">🎁</span>'}</button></div>
@@ -3663,8 +3675,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.35';
+const VERSION='2.36';
 const VERSIONS=[
+ ['2.36','24/11/2026 23:20','Son : défaut « moyen » ; bouton son en haut de l’accueil (curseur à 4 crans, tout couper en un appui)'],
  ['2.35','24/11/2026 23:10','Deux nouveaux jeux : Cartes cachées (dès le niveau 16) et Les différences (dès le niveau 18)'],
  ['2.34','24/11/2026 23:00','Calage : montée niveau par niveau (2 seulement si exceptionnel), annonce discrète sans grosse animation'],
  ['2.33','24/11/2026 22:55','Calage : au début, une séance parfaite et rapide fait monter de 3 niveaux'],
@@ -3959,6 +3972,8 @@ const ACT={
   startsprint(a,el){if(el.classList.contains('locked'))return lockedMsg();startGame('math','sprint');},
   startfr(a,el){if(el.classList.contains('locked'))return lockedMsg();startGame('fr','train');},
   gofr(){startGame('fr','train');},
+  sndpanel(){sndPanel();},
+  sndtoggle(){sndToggle();},
   secretgo(a){S.thIntro=S.thIntro||{};S.thIntro.secret=1;save();nextModal();startGame('secret',a||'train');},
   starttheme(a,el){if(!THEMES[a])return;if(!thUnlocked(a))return ACT.thlocked(a);if(el.classList.contains('locked'))return lockedMsg();startGame(a,'train');},
   thlocked(k){const T=THEMES[k],n=T.unlock-levelInfo(S.xp).level;Sound.play('tap');toast(`🔒 ${T.n} se débloque au niveau ${T.unlock} : encore ${n} niveau${n>1?'x':''} !`);if(S.settings.voice)Voice.say(`${T.n} se débloque au niveau ${T.unlock}. Encore ${n} niveau${n>1?'x':''} !`);},
