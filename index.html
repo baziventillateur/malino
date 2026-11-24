@@ -1879,6 +1879,8 @@ const qSpell=(audio)=>x=>{const o=[x.w,...fautes(x.w,2,hash(x.w))];return {ans:x
 const CODE_WORDS=['chat','lune','chien','souris','maison','fleur','soleil','pomme','table','livre'];
 const codeShift=(w,n)=>w.split('').map(c=>String.fromCharCode(97+((c.charCodeAt(0)-97+n+26)%26))).join('');
 const cqCode=n=>x=>({ans:x.w,inst:'Décode le mot secret',html:`<div class="bigemo">🕵️</div><div class="bigtxt read">${esc(codeShift(x.w,n).toUpperCase())}</div>`,opts:shuffle([x.w,...others(CODE_WORDS,2,[x.w])]).map(v=>({v,l:v})),optCls:'txt',fixHTML:`<div class="fixsub read">${esc(codeShift(x.w,n).toUpperCase())} → <b>${esc(x.w)}</b></div>`,fixSay:'Le mot est '+x.w});
+// Explication de première fois pour « Code secret » (affichée une seule fois)
+function secretIntro(mode,opt){queueModal(`<div class="bigemoji">🕵️</div><h2>Le code secret</h2><ul class="arintro"><li>🔤 Chaque mot est <b>codé</b> : chaque lettre a été remplacée par la suivante dans l’alphabet.</li><li>✏️ Exemple : <b>LUNE</b> devient <b>MVOF</b> (L→M, U→V, N→O, E→F).</li><li>🔙 Pour décoder, fais le chemin inverse : <b>recule</b> d’une lettre (M→L, V→U, O→N, F→E).</li><li>🔢 Le niveau indique de combien de lettres on recule : « Décalage de 2 » = deux lettres en arrière.</li><li>👆 Lis le code, puis touche le mot qui correspond parmi les trois choix.</li></ul><button class="btn y block" data-act="secretgo" data-arg="${esc(mode||'train')}">J’ai compris, on joue ! 🚀</button>`,()=>{Sound.play('tap');if(S.settings.voice)Voice.say('Chaque lettre a été décalée. Pour décoder, recule d’une lettre.');});}
 // --- Les 6 jeux
 Object.assign(THEMES,{
  heure:{n:'L’heure',e:'🕐',c:'#F59E0B',d:'#C77D00',unlock:3,desc:'Lire l’horloge : heures pile, demies, quarts, minutes, durées',levels:[
@@ -2875,6 +2877,7 @@ function later(fn,ms){const g=G;if(!g)return;const t=setTimeout(()=>{if(G===g&&!
 function stopGame(){try{savePartial();}catch(e){}if(G){G.ended=true;G.timers.forEach(clearTimeout);if(G.clock)clearInterval(G.clock);}G=null;Voice.stop();Sound.stopReal();$('#tip').classList.add('hidden');}
 function frPreload(){try{FrAudio.preload([...FR_SND].filter(k=>k.startsWith('son:')));const L=FR_LEVELS[S.settings.frLevel-1];if(L&&L.items)FrAudio.preload(L.items.map(x=>typeof x==='string'?'syl:'+x.replace('|',''):''));}catch(e){}}
 function startGame(sub,mode,opt){opt=opt||{};if(sub==='fr')frPreload();
+  if(sub==='secret'&&!opt.amis&&!(S.thIntro&&S.thIntro.secret))return secretIntro(mode,opt);
   if(Acct.wall()){Acct.show('wall');return;}if(modalOpen)closeAllModals();
   if(TimeT.limited()){queueModal(`<div class="bigemoji">🌙</div><h2>Bravo ${nm()} !</h2><p>Tu as bien joué aujourd’hui : <b>${fmtDur(TimeT.sec())}</b>. C’est fini pour aujourd’hui, à demain !</p><button class="btn y block" data-act="mclose">À demain 👋</button>`,()=>{if(S.settings.voice)Voice.say('Bravo ! C’est fini pour aujourd’hui. À demain !');});return;}
   if(THEMES[sub]&&!thUnlocked(sub)&&!opt.amis)return ACT.thlocked(sub);
@@ -3627,8 +3630,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.29';
+const VERSION='2.30';
 const VERSIONS=[
+ ['2.30','24/11/2026 22:50','Code secret : explication la première fois (décalage, exemple LUNE → MVOF)'],
  ['2.29','24/11/2026 22:40','Déblocage d’un jeu : rayons lumineux, emoji en zoom avec halo de sa couleur et double vague de confettis'],
  ['2.28','24/11/2026 22:30','Coffres : ouverture en 10 touches (secousses qui s’intensifient, puis ralentissement), lumières selon le prestige, message clair quand il reste du temps ; accueil plus lisible'],
  ['2.27','24/11/2026 22:25','Nouveau jeu « Code secret » : décoder un mot décalé dans l’alphabet (à partir du niveau 14)'],
@@ -3917,6 +3921,7 @@ const ACT={
   startsprint(a,el){if(el.classList.contains('locked'))return lockedMsg();startGame('math','sprint');},
   startfr(a,el){if(el.classList.contains('locked'))return lockedMsg();startGame('fr','train');},
   gofr(){startGame('fr','train');},
+  secretgo(a){S.thIntro=S.thIntro||{};S.thIntro.secret=1;save();nextModal();startGame('secret',a||'train');},
   starttheme(a,el){if(!THEMES[a])return;if(!thUnlocked(a))return ACT.thlocked(a);if(el.classList.contains('locked'))return lockedMsg();startGame(a,'train');},
   thlocked(k){const T=THEMES[k],n=T.unlock-levelInfo(S.xp).level;Sound.play('tap');toast(`🔒 ${T.n} se débloque au niveau ${T.unlock} : encore ${n} niveau${n>1?'x':''} !`);if(S.settings.voice)Voice.say(`${T.n} se débloque au niveau ${T.unlock}. Encore ${n} niveau${n>1?'x':''} !`);},
   setth(a){const [k,n]=a.split('|');if(+n>Plan.thMax(k))return Offre.open('theme');if(!Limite.ok(k,+n))return;S.settings.lv[k]=+n;save();toast(`${THEMES[k].n} : monde ${n}`);keepScroll(render);},
