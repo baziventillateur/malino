@@ -255,6 +255,22 @@ h1,h2,h3,h4{font-weight:700}
 .win-h{margin:0;font-size:25px;color:#B45309;text-shadow:0 2px 0 #FFE7A3}.win-p{margin:3px 0 10px;font-size:14px;color:var(--ink2)}
 .win-duo{display:flex;align-items:center;gap:8px;margin:0 2px}.wd{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:58px}.wd b{font-size:12.5px}.wd span{font-size:19px;font-weight:900;color:var(--cmd)}.wd.pl span{color:var(--cld)}
 .win-bar{flex:1;display:flex;height:16px;border-radius:99px;overflow:hidden;background:#EEF0F6;box-shadow:inset 0 2px 3px rgba(0,0,0,.08)}.win-bar i{display:block;height:100%}.win-bar .m{background:linear-gradient(180deg,var(--cm2),var(--cm))}.win-bar .l{background:linear-gradient(180deg,var(--cl2),var(--cl))}
+.amaide{margin-left:auto;font-size:19px}
+.ao{text-align:center}.ao-v{height:150px;display:grid;place-items:center;margin:0 0 6px}.ao h2{font-size:20px;margin:2px 0 4px}.ao p{font-size:15px;line-height:1.45;margin:0 0 10px;color:var(--ink2)}
+.ao-duo{display:flex;align-items:center;gap:12px}.ao-a{position:relative;display:inline-block;animation:aoBob 1.6s ease-in-out infinite}.ao-a.a2{animation-delay:.8s}.ao-gap{width:26px}
+.ao-hs{font-size:30px;animation:aoBeat 1.2s ease-in-out infinite}
+.ao-ok{position:absolute;top:-4px;right:-4px;width:28px;height:28px;border-radius:50%;background:#22B573;color:#fff;font:900 16px/28px Nunito,sans-serif;font-style:normal;box-shadow:0 3px 8px rgba(34,181,115,.4);animation:aoPop 2s infinite}.ao-ok.o2{animation-delay:1s}
+.ao-pts{position:relative;width:240px;height:130px}.ao-g{position:absolute;left:0;right:0;bottom:8px;height:22px;border-radius:12px;background:#E1DAFB;box-shadow:inset 0 3px 5px rgba(60,40,160,.18);overflow:hidden}
+.ao-g i{position:absolute;left:0;top:0;bottom:0;border-radius:12px;background:linear-gradient(90deg,#7B5CFF,#4E8BFF);animation:aoFill 4s ease-in-out infinite}
+.ao-st{position:absolute;top:0;left:40px;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFF6C8,#FFC531 60%,#F29D0B);font:900 15px/40px Nunito,sans-serif;font-style:normal;color:#7A4A00;box-shadow:0 4px 10px rgba(242,157,11,.45);animation:aoDrop 2s ease-in infinite}.ao-st.s2{left:160px;animation-delay:1s}
+.ao-ch{width:150px;animation:aoBob 1.8s ease-in-out infinite}.ao-ch svg{width:100%;height:auto;overflow:visible}
+.ao-dots{display:flex;justify-content:center;gap:6px;margin:2px 0 12px}.ao-dots i{width:8px;height:8px;border-radius:4px;background:#DCD6F5;transition:width .2s}.ao-dots i.on{width:22px;background:#7B5CFF}
+.ao-b{display:flex;gap:8px}.ao-b .btn.block{flex:1}#aoP{width:52px;flex:none}
+@keyframes aoBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}@keyframes aoBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+@keyframes aoPop{0%,15%{transform:scale(0);opacity:0}25%{transform:scale(1.25);opacity:1}35%,75%{transform:scale(1);opacity:1}90%,100%{transform:scale(0);opacity:0}}
+@keyframes aoDrop{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:1;transform:translateY(0) scale(1)}80%{transform:translateY(68px) scale(.9);opacity:1}100%{transform:translateY(80px) scale(.4);opacity:0}}
+@keyframes aoFill{0%{width:8%}85%,100%{width:100%}}
+@media (prefers-reduced-motion:reduce){.ao *{animation:none!important}}
 .win-n{margin:10px 0 12px;font-size:18px;letter-spacing:2px}.win-n span{display:block;letter-spacing:0;font-size:12.5px;font-weight:800;color:#B45309}
 .sal.lobby,.sal.invite{text-align:center;background:linear-gradient(180deg,#fff,#F4F1FF);box-shadow:0 6px 0 #E2DBFF,0 14px 28px rgba(123,92,255,.14)}
 .lob-duo{display:flex;align-items:center;justify-content:center;gap:10px;margin:2px 0 8px}.lob-p{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px}
@@ -3084,8 +3100,8 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
       else if(et==='gagne')t=`Partie terminée ! Lance une nouvelle partie avec ${c}.`;
       else if(D&&!D.expire&&!D.fini&&D.moi==null&&!D.lanceur)t=`${c} te défie ! Fais mieux que lui en 10 questions.`;
       else if(D&&D.fini)t='Le défi est terminé : regarde qui a gagné !';
-      else if(tot<x.objectif&&this.deseq(x.moi,x.lui))t=`Tu es loin devant ! Laisse ${c} te rattraper : dis-lui que c’est à son tour de jouer.`;
-      else if(tot<x.objectif&&this.deseq(x.lui,x.moi))t=`${c} a ramené plein de points ! À toi de jouer pour le rattraper !`;
+      else if(tot<x.objectif&&this.deseq(x.moi,x.lui))t=`Merci pour l’équipe ! Propose à ${c} de jouer à son tour : ses bonnes réponses comptent autant que les tiennes.`;
+      else if(tot<x.objectif&&this.deseq(x.lui,x.moi))t=`${c} a bien aidé l’équipe ! À toi de jouer : chaque bonne réponse compte autant.`;
       else if(x.copain.en_ligne&&x.copain.lieu==='jeu')t=`${c} joue en ce moment ! Joue toi aussi pour remplir la jauge plus vite.`;
       else if(tot===0)t=`${c} est dans ton équipe ! Remplissez la jauge ensemble pour gagner un coffre en diamant.`;
       else t=`Encore ${Math.max(0,x.objectif-tot)} bonnes réponses ensemble pour gagner le coffre en diamant !`;}
@@ -3215,7 +3231,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     const sec=(jouerBas?`<button class="smb" data-act="amisjouer" data-arg="${x.theme}"><span class="am-ic">▶️</span>Jouer</button>`:'')
       +`<button class="smb" data-act="amismot" data-arg="${x.id}"><span class="am-ic">💬</span>Message</button>`;
     return `<div class="card sal act" style="${this.cols(x.createur)}">
-      <div class="duo">${this.badge(this.moi(),'ab1'+(x.moi>x.lui?' top1':''))}<span class="duo-x">🤝</span>${this.badge(c,'ab2'+(x.lui>x.moi?' top1':''))}</div>
+      <div class="duo">${this.badge(this.moi(),'ab1')}<span class="duo-x">🤝</span>${this.badge(c,'ab2')}</div>
       <div class="goal"><div class="goal-t"><span>🎯 Ensemble</span><b>${tot} / ${x.objectif}</b></div>${this.jauge(x.moi,x.lui,x.objectif)}<small>${T.e} ${esc(T.n)} · 1 bonne réponse = 1 point · encore <b>${Math.max(0,x.objectif-tot)}</b> pour le 💎 coffre en diamant</small></div>
       ${this.fil(x)}${mots}${info}${prim}<div class="sal-mini">${sec}</div></div>`;},
   // partie gagnée : elle est finie ; on ouvre la récompense, puis on relance une nouvelle partie
@@ -3224,7 +3240,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
       :`<button class="btn g block am-go" data-act="amisnouv" data-arg="${x.id}"><span class="am-ic">🔁</span> Nouvelle partie${h}</button>`;
     return `<div class="card sal win" style="${this.cols(x.createur)}"><div class="win-tr${x.recompense_prise?' pris':''}">${x.recompense_prise?'<span class="win-ray"></span><span class="win-cup">🏆</span>':diamantSVG(false)}</div>
       <h3 class="win-h">Partie gagnée !</h3>${x.recompense_prise?'':'<p class="win-dm">Le coffre en diamant est à toi !</p>'}<p class="win-p">${T.e} ${esc(T.n)} · <b>${tot}</b> bonnes réponses à deux</p>
-      <div class="win-duo"><div class="wd pm">${this.av(this.moi(),'sm')}<b>Toi</b><span>${x.moi}</span></div><div class="win-bar"><i class="m" style="width:${pm}%"></i><i class="l" style="width:${100-pm}%"></i></div><div class="wd pl">${this.av(c,'sm')}<b>${qui}</b><span>${x.lui}</span></div></div>
+      <div class="win-duo"><div class="wd pm">${this.av(this.moi(),'sm')}<b>Toi</b></div><div class="win-bar"><i class="m" style="width:100%"></i></div><div class="wd pl">${this.av(c,'sm')}<b>${qui}</b></div></div>
       <p class="win-n">${'🏆'.repeat(Math.min(5,g))}${g>5?' ×'+g:''} <span>${g} partie${g>1?'s':''} gagnée${g>1?'s':''} ensemble</span></p>
       ${prim}<div class="sal-mini"><button class="smb" data-act="amismot" data-arg="${x.id}"><span class="am-ic">💬</span>Message</button></div></div>`;},
   // salle d'attente : j'ai lancé la partie, j'attends le copain
@@ -3300,14 +3316,30 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
   // invitation reçue par lien (mail, message) : l'enfant visé rejoint l'équipe sans taper le code
   depuisLien(){const q=new URLSearchParams(location.search),pp=q.get('p'),sc=(q.get('salon')||'').replace(/\D/g,'').slice(0,6);
     try{if(q.has('salon')){q.delete('salon');history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:''));}}catch(e){}
-    const mien=!!pp&&Acct.list.some(r=>r.id===pp),suite=()=>{ACT.amis();if(sc.length===6&&mien)setTimeout(()=>this.lien(sc),700);};
+    const mien=!!pp&&Acct.list.some(r=>r.id===pp);this._lien=sc.length===6&&mien;const suite=()=>{ACT.amis();if(this._lien)setTimeout(()=>this.lien(sc),700);};
     if(mien&&pp!==Acct.pid)Famille.transition(pp,suite);else suite();
     if(pp&&!mien&&sc)toast('Cette invitation est pour un autre compte Malino');},
   async lien(code){let r;try{r=await Acct.sb.rpc('salon_rejoindre',{p_profil:Acct.pid,p_code:code});}catch(e){r={error:e};}
+    this._lien=false;setTimeout(()=>this.presente(),400);
     const d=r&&r.data;if(!r||r.error||!d)return toast('Invitation : réessaie dans un instant');
     if(d.erreur==='deja')return toast('Tu es déjà dans cette équipe ✅');
     if(d.erreur)return toast({code:'Cette invitation n’existe plus',complet:'Cette équipe est déjà complète',trop:'3 copains au maximum',trop_essais:'Trop d’essais : réessaie dans une heure'}[d.erreur]||'Impossible de rejoindre');
     closeAllModals();await this.charger();if(SCR==='amis')render();this.bravo(d.id);},
+  // présentation d'Entre amis : la première fois (ou avec le bouton ❓), 4 petites étapes animées, lues à voix haute
+  presente(force){if(!force&&S.amisOnb)return;S.amisOnb=1;save();
+    const d=this.frais(),x=d&&(d.salons||[]).find(z=>z.copain),c=x&&x.copain,qui=c?esc(this.nom(c)):'ton copain',moi=this.av(this.moi(),'lg'),lui=this.av(c,'lg');
+    const E=[['👫','Joue en équipe !',`Avec ${qui}, vous formez une équipe. Chacun joue chez lui, quand il veut.`,`<div class="ao-duo"><span class="ao-a">${moi}</span><span class="ao-hs">🤝</span><span class="ao-a a2">${lui}</span></div>`],
+      ['🎯','Chacun à son niveau',`Tu fais tes calculs, ${qui} fait les siens. Personne n’est devant, personne n’est derrière.`,`<div class="ao-duo"><span class="ao-a">${moi}<i class="ao-ok">✓</i></span><span class="ao-gap"></span><span class="ao-a a2">${lui}<i class="ao-ok o2">✓</i></span></div>`],
+      ['⭐','1 bonne réponse = 1 point',`Chaque bonne réponse, la tienne ou celle de ${qui}, ajoute 1 point à la jauge de l’équipe.`,`<div class="ao-pts"><i class="ao-st">+1</i><i class="ao-st s2">+1</i><div class="ao-g"><i></i></div></div>`],
+      ['💎','Le coffre, ensemble !','Jauge pleine : vous gagnez chacun un coffre en diamant. On joue ensemble, pas l’un contre l’autre !',`<div class="ao-ch">${diamantSVG(false)}</div>`]];
+    let i=0;
+    const draw=()=>{const m=$('#modal .mbox');if(!m)return;const [e,t,p,v]=E[i],fin=i===E.length-1;
+      m.innerHTML=`<div class="ao"><div class="ao-v">${v}</div><h2>${e} ${t}</h2><p>${p}</p><div class="ao-dots">${E.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div>
+        <div class="ao-b">${i?'<button class="btn" id="aoP" aria-label="Retour">←</button>':''}<button class="btn ${fin?'y':'g'} block" id="aoN">${fin?'C’est parti ! 🚀':'Suivant'}</button></div></div>`;
+      $('#aoN').onclick=()=>{try{Sound.play('tick');}catch(e){}if(fin){Voice.hush&&Voice.hush();nextModal();}else{i++;draw();}};
+      const pb=$('#aoP');if(pb)pb.onclick=()=>{i--;draw();};
+      if(S.settings.voice)try{Voice.say(t+'. '+p.replace(/<[^>]+>/g,''));}catch(e){}};
+    queueModal('<div class="ao"></div>',draw);},
   bravo(id){const x=(this.frais()||{salons:[]}).salons.find(s=>s.id===id),c=x&&x.copain;
     queueModal(`<div class="hero-duo">${this.av(this.moi(),'lg')}<span class="hx">+</span>${c?this.av(c,'lg'):'<span class="amav lg q">?</span>'}</div><h2>Tu es dans l’équipe${c?` de ${esc(this.nom(c))}`:''} ! 🎉</h2><p>Vos bonnes réponses vont s’additionner. À toi de jouer !</p><button class="btn g block am-go" data-act="mclose">C’est parti !${this.main()}</button>`,()=>{try{Confetti.burst(90);Amis.son('badge');}catch(e){}});},
   motModal(id){this.sid=id;const d=this.frais(),x=d&&d.salons.find(s=>s.id===id),c=x&&x.copain;
@@ -3355,7 +3387,7 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     if(this.goSec){this.goSec=0;const sc=$('#amisSec');if(sc){sc.scrollIntoView({behavior:'smooth',block:'center'});sc.classList.add('flashsec');setTimeout(()=>sc.classList.remove('flashsec'),2600);}}}
 };
 function renderAmis(){
-  const top=`<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>👫 Entre amis</h2></div>`;
+  const top=`<div class="stop"><button class="xbtn" data-act="home" aria-label="Retour">←</button><h2>👫 Entre amis</h2>${Acct.user?'<button class="xbtn amaide" data-act="amisaide" aria-label="Comment ça marche ?">❓</button>':''}</div>`;
   if(!Acct.user)return `<div class="amis">${top}<div class="card amis-hero"><h3>Joue avec un copain !</h3><p>Pour jouer en équipe, un parent doit d’abord connecter le compte.</p><button class="btn g block" data-act="openlogin">Se connecter</button></div></div>`;
   const d=Amis.frais();
   if(!d){if(!Amis.load)Amis.load=Amis.charger().finally(()=>{Amis.load=null;if(SCR==='amis')render();});return `<div class="amis">${top}<p class="hint" style="text-align:center">Chargement…</p></div>`;}
@@ -3460,8 +3492,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.17';
+const VERSION='2.18';
 const VERSIONS=[
+ ['2.18','24/11/2026 11:10','Entre amis : petite présentation animée (et lue à voix haute) la première fois, puis avec le bouton ❓ ; plus de couronne ni de « loin devant » : on joue ensemble, pas l’un contre l’autre'],
  ['2.17','23/11/2026 23:59','Entre amis : un lien d’invitation (reçu par mail ou message) ouvre Malino sur le bon enfant et le fait rejoindre l’équipe de son copain, sans taper le code'],
  ['2.16','23/11/2026 23:40','Espace parents : avancer son enfant est limité à 2 mondes après celui qu’il a atteint seul, dans chaque jeu, et à 3 mondes d’avance au total ; les mondes trop loin sont marqués 🔒 et la suite se débloque quand l’enfant réussit'],
  ['2.15','23/11/2026 23:15','Entre amis : à gagner ensemble, un coffre en diamant animé (rayons, halo, cristaux, diamants en orbite), affiché au bout de la jauge ; à la victoire, on le secoue et il s’ouvre tout de suite dans une pluie de diamants, pour une grosse récompense'],
@@ -3705,13 +3738,14 @@ function importFile(file){const r=new FileReader();r.onload=()=>{try{const d=JSO
 // ---------- Actions ----------
 const lockedMsg=()=>{toast('Fais d’abord ton entraînement de maths ! 🔢');if(S.settings.voice)Voice.say('Fais d’abord ton entraînement de maths !');};
 const ACT={
-  amis(){Amis.t=0;Amis.d=Amis.frais();go('amis');if(Amis.ok()){Amis.charger('salon').then(()=>{if(SCR!=='amis')return;Amis.nouveaux();render();});Amis.vivre();}},
+  amis(){Amis.t=0;Amis.d=Amis.frais();go('amis');if(!S.amisOnb&&!Amis._lien&&Acct.user)setTimeout(()=>{if(SCR==='amis')Amis.presente();},600);if(Amis.ok()){Amis.charger('salon').then(()=>{if(SCR!=='amis')return;Amis.nouveaux();render();});Amis.vivre();}},
   amispartage(c){Amis.partage(c);},amisajout(){Amis.ajout();},amkp(k){Amis.kpTape(k);},amisparent(){closeAllModals();Amis.goSec=1;adminTab='compte';ACT.parent();},
   amiscreer(){Amis.creer();},amisth(k){Amis.th=k;Amis.sel('amisth',k);},amisobj(n){Amis.obj=+n;Amis.sel('amisobj',n);},
   amisplus(g,el){document.querySelectorAll('#modal .'+g+' .xtra').forEach(b=>b.classList.remove('xtra'));if(el)el.remove();},amiscreer2(){Amis.creer2();},
   amiscode(){Amis.code();},amiscode2(){Amis.code2();},
   amismot(id){Amis.motModal(id);},amismotc(k){Amis.mot=k;Amis.dire(k,Amis.voix);Amis.sel('amismotc',k);},amisvoix(k){Amis.voix=k;Amis.dire(Amis.mot,k);Amis.sel('amisvoix',k);},amisenvoi(){Amis.envoi();},
   amisdire(a){const [m,v]=String(a).split('|');Amis.dire(m,v);},
+  amisaide(){Amis.presente(true);},
   amisjouer(k){if(k!=='math'&&k!=='fr'&&!THEMES[k])return;closeAllModals();startGame(k,'train',{amis:1});},
   amisrejouer(){const k=G&&G.sub;closeAllModals();if(k)startGame(k,'train',{amis:1});else ACT.amis();},
   amisrelance(id){Amis.mot='atoi';Amis.motModal(id);},
