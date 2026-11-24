@@ -1904,7 +1904,7 @@ Object.assign(THEMES,{
   {e:'🔍',n:'2 × 2 cases',items:ccItems(4,8),q:dfQ(4,2)},
   {e:'🔍',n:'2 × 3 cases',items:ccItems(5,8),q:dfQ(6,3)},
   {e:'🔍',n:'3 × 3 cases',items:ccItems(6,8),q:dfQ(9,3)}]}});
-// Réglage du son par l'enfant : curseur à 4 crans et « Tout couper » en un appui
+// Réglage du son par l'enfant (effets seulement, la voix reste active) : curseur à 4 crans et « Tout couper » en un appui
 const SNDOPT=[{m:'off',i:'🔇',n:'Muet'},{m:'classic',i:'🔈',n:'Un peu'},{m:'soft',i:'🔉',n:'Moyen'},{m:'max',i:'🔊',n:'Beaucoup'}];
 const sndIcon=()=>(SNDOPT.find(o=>o.m===S.settings.sndMode)||SNDOPT[2]).i;
 function sndPaint(){const st=S.settings,idx=Math.max(0,SNDOPT.findIndex(o=>o.m===st.sndMode)),o=SNDOPT[idx];
@@ -1913,8 +1913,8 @@ function sndPaint(){const st=S.settings,idx=Math.max(0,SNDOPT.findIndex(o=>o.m==
   document.querySelectorAll('.sndbtn').forEach(x=>x.textContent=o.i);}
 function sndPanel(){const idx=Math.max(0,SNDOPT.findIndex(o=>o.m===S.settings.sndMode)),o=SNDOPT[idx];
   queueModal(`<div class="sndp"><div class="sndbig" id="sndbig">${o.i}</div><h2 id="sndname">${o.n}</h2><input type="range" min="0" max="3" step="1" value="${idx}" id="sndr" class="sndr" aria-label="Volume du son"><div class="sndt"><span>🔇</span><span>🔈</span><span>🔉</span><span>🔊</span></div><button class="btn y block" data-act="sndtoggle" id="sndtog">${S.settings.sndMode==='off'?'🔊 Remettre le son':'🔇 Tout couper'}</button><button class="btn g block" data-act="mclose">OK</button></div>`,
-    ()=>{const r=$('#sndr');if(!r)return;r.oninput=()=>{const x=SNDOPT[+r.value],st=S.settings;if(x.m==='off'&&st.sndMode!=='off'){st.sndLast=st.sndMode;st.sndVoice=st.voice;st.voice=false;}else if(x.m!=='off'&&st.sndMode==='off'){st.voice=st.sndVoice!==false;}st.sndMode=x.m;if(x.m!=='off')st.sndLast=x.m;save();sndPaint();};});}
-function sndToggle(){const st=S.settings;if(st.sndMode==='off'){st.sndMode=st.sndLast||'soft';st.voice=st.sndVoice!==false;}else{st.sndLast=st.sndMode;st.sndVoice=st.voice;st.sndMode='off';st.voice=false;}save();sndPaint();}
+    ()=>{const r=$('#sndr');if(!r)return;r.oninput=()=>{const x=SNDOPT[+r.value],st=S.settings;st.sndMode=x.m;if(x.m!=='off')st.sndLast=x.m;save();sndPaint();};});}
+function sndToggle(){const st=S.settings;if(st.sndMode==='off'){st.sndMode=st.sndLast||'soft';}else{st.sndLast=st.sndMode;st.sndMode='off';}save();sndPaint();}
 // Explication de première fois pour « Code secret » (affichée une seule fois)
 function secretIntro(mode,opt){queueModal(`<div class="bigemoji">🕵️</div><h2>Le code secret</h2><ul class="arintro"><li>🔤 Chaque mot est <b>codé</b> : chaque lettre a été remplacée par la suivante dans l’alphabet.</li><li>✏️ Exemple : <b>LUNE</b> devient <b>MVOF</b> (L→M, U→V, N→O, E→F).</li><li>🔙 Pour décoder, fais le chemin inverse : <b>recule</b> d’une lettre (M→L, V→U, O→N, F→E).</li><li>🔢 Le niveau indique de combien de lettres on recule : « Décalage de 2 » = deux lettres en arrière.</li><li>👆 Lis le code, puis touche le mot qui correspond parmi les trois choix.</li></ul><button class="btn y block" data-act="secretgo" data-arg="${esc(mode||'train')}">J’ai compris, on joue ! 🚀</button>`,()=>{Sound.play('tap');if(S.settings.voice)Voice.say('Chaque lettre a été décalée. Pour décoder, recule d’une lettre.');});}
 // --- Les 6 jeux
@@ -2816,7 +2816,7 @@ const Voice={v:null,ok:'speechSynthesis' in window,warm:false,t:0,cur:null,
   native(text,o){if(!this.ok||!text)return;o=o||{};try{const u=new SpeechSynthesisUtterance(text);const isAr=/^ar/i.test(o.lang||'');if(isAr&&!this.ar&&this.n)return;u.lang=o.lang||'fr-FR';const vv=isAr?this.ar:o.lang?this.en:this.v;if(vv)u.voice=vv;u.rate=o.rate||.9;u.pitch=1.05;u.volume=1;this.cur=u;if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(u);}catch(e){}},
   hush(){clearTimeout(this.t);ArAudio.stop();VoixC.stop();try{FrAudio.stop();}catch(e){}try{if(this.busy())speechSynthesis.cancel();}catch(e){}},
   // Annuler puis parler immédiatement fait taire certains navigateurs : on laisse 90 ms entre les deux
-  say(text,o){if(S&&S.settings&&S.settings.sndMode==='off')return;Chain.stop();Rec.stopPlay();if(text&&o&&/^ar/i.test(o.lang||'')){this.hush();ArAudio.play(text);return;}if(!this.ok||!text)return;const b=this.busy();this.hush();if(b)this.t=setTimeout(()=>this.speak(text,o),90);else this.speak(text,o);},
+  say(text,o){Chain.stop();Rec.stopPlay();if(text&&o&&/^ar/i.test(o.lang||'')){this.hush();ArAudio.play(text);return;}if(!this.ok||!text)return;const b=this.busy();this.hush();if(b)this.t=setTimeout(()=>this.speak(text,o),90);else this.speak(text,o);},
   stop(){Chain.stop();this.hush();Rec.stopPlay();},
   label(){if(!this.ok)return '❌ Voix non disponible sur ce navigateur';const v=window.MLANG==='en'?this.en:this.v;return v?`✅ Voix : ${v.name}`:'⚠️ Pas de voix française trouvée';}
 };
@@ -3675,8 +3675,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.36';
+const VERSION='2.37';
 const VERSIONS=[
+ ['2.37','24/11/2026 23:30','Son : le réglage coupe les effets seulement, la voix des questions reste active'],
  ['2.36','24/11/2026 23:20','Son : défaut « moyen » ; bouton son en haut de l’accueil (curseur à 4 crans, tout couper en un appui)'],
  ['2.35','24/11/2026 23:10','Deux nouveaux jeux : Cartes cachées (dès le niveau 16) et Les différences (dès le niveau 18)'],
  ['2.34','24/11/2026 23:00','Calage : montée niveau par niveau (2 seulement si exceptionnel), annonce discrète sans grosse animation'],
