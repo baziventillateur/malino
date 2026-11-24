@@ -2254,6 +2254,9 @@ const factStatus=s=>!s||!s.n?'new':s.st>=3?'ok':(s.st>=1||s.lo)?'mid':'weak';
 function paceOf(sub,lv){
   const ss=S.sessions.filter(s=>s.type===sub&&s.lvl===lv&&s.n>=4).slice(-2),n=ss.reduce((a,s)=>a+s.n,0);
   if(!n)return {m:'normal',need:.8,jump:1};
+  // calage : aux premiers niveaux, une seule séance parfaite et rapide suffit pour monter de 3 niveaux d’un coup
+  const last=ss[ss.length-1];
+  if(lv<=3&&last.n>=6&&last.ok>=last.n&&(last.fast||0)>=last.n*.5&&(last.dur||0)/last.n<=5)return {m:'fast',need:0,jump:3,calib:true};
   const acc=ss.reduce((a,s)=>a+s.ok,0)/n,fr=ss.reduce((a,s)=>a+(s.fast||0),0)/n,sq=ss.reduce((a,s)=>a+(s.dur||0),0)/n;
   if(acc<.6)return {m:'stay',need:.95,jump:1};
   // saut de niveau : seulement si tout est juste (ou presque), quasiment toujours rapide, sur 2 séances complètes
@@ -3637,8 +3640,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.32';
+const VERSION='2.33';
 const VERSIONS=[
+ ['2.33','24/11/2026 22:55','Calage : au début, une séance parfaite et rapide fait monter de 3 niveaux'],
  ['2.32','24/11/2026 22:50','Téléphone : la carte de question est aérée et le chip « À toi ! » ne recouvre plus le calcul'],
  ['2.31','24/11/2026 22:45','Coffres : son d’ouverture plus doux et grave, variable, avec vibration légère'],
  ['2.30','24/11/2026 22:50','Code secret : explication la première fois (décalage, exemple LUNE → MVOF)'],
