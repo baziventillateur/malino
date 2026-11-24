@@ -3253,11 +3253,11 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     const mots=(x.mots||[]).slice(0,3).map(m=>`<button class="am-bulle" data-act="amisdire" data-arg="${m.mot}|${m.voix}">${this.av(c,'xs')}<span><b>${qui} :</b> ${esc((AMIS_MOTS[m.mot]||['',''])[1])}</span><i class="am-ic">🔊</i></button>`).join('');
     const sec=(jouerBas?`<button class="smb" data-act="amisjouer" data-arg="${x.theme}"><span class="am-ic">▶️</span>Jouer</button>`:'')
       +`<button class="smb" data-act="amismot" data-arg="${x.id}"><span class="am-ic">💬</span>Message</button>`;
-    return `<div class="card sal act" style="${this.cols(x.createur)}">${this.equipe(x,T)}
+    return `<div class="card sal act" style="${this.cols(x.createur)}">${this.scene(x,T)}
       ${this.fil(x)}${mots}${info}${prim}<div class="sal-mini">${sec}</div></div>`;},
   // l'équipe, comme dans le mail d'invitation : deux avatars « à son niveau », un coffre en diamant, une jauge commune ;
   // quand des points arrivent, « ✓ bonne réponse » au-dessus de celui qui a marqué et un « +N » qui vole jusqu'à la jauge
-  equipe(x,T){const c=x.copain,tot=x.moi+x.lui,o=x.objectif||100,pct=Math.min(100,tot/o*100),V=this.vus||(this.vus={}),pv=V[x.id];V[x.id]={moi:x.moi,lui:x.lui};
+  scene(x,T){const c=x.copain,tot=x.moi+x.lui,o=x.objectif||100,pct=Math.min(100,tot/o*100),V=this.vus||(this.vus={}),pv=V[x.id];V[x.id]={moi:x.moi,lui:x.lui};
     const dm=pv?Math.max(0,x.moi-pv.moi):0,dl=pv?Math.max(0,x.lui-pv.lui):0,p0=dm||dl?Math.min(100,(pv.moi+pv.lui)/o*100):pct;
     if(dm||dl)setTimeout(()=>this.anime(x.id,dm,dl,pct),120);
     const on=c&&c.en_ligne?`<i class="tm-on ${c.lieu==='jeu'?'jeu':''}">${c.lieu==='jeu'?'joue':'en ligne'}</i>`:'';
