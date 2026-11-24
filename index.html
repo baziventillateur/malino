@@ -1915,6 +1915,9 @@ function sndPanel(){const idx=Math.max(0,SNDOPT.findIndex(o=>o.m===S.settings.sn
   queueModal(`<div class="sndp"><div class="sndbig" id="sndbig">${o.i}</div><h2 id="sndname">${o.n}</h2><input type="range" min="0" max="3" step="1" value="${idx}" id="sndr" class="sndr" aria-label="Volume du son"><div class="sndt"><span>🔇</span><span>🔈</span><span>🔉</span><span>🔊</span></div><button class="btn y block" data-act="sndtoggle" id="sndtog">${S.settings.sndMode==='off'?'🔊 Remettre le son':'🔇 Tout couper'}</button><button class="btn g block" data-act="mclose">OK</button></div>`,
     ()=>{const r=$('#sndr');if(!r)return;r.oninput=()=>{const x=SNDOPT[+r.value],st=S.settings;st.sndMode=x.m;if(x.m!=='off')st.sndLast=x.m;save();sndPaint();};});}
 function sndToggle(){const st=S.settings;if(st.sndMode==='off'){st.sndMode=st.sndLast||'soft';}else{st.sndLast=st.sndMode;st.sndMode='off';}save();sndPaint();}
+// Admin : navigation libre dans les mondes d'un jeu à thème (choix du niveau de départ)
+const isAdminU=()=>!!(Plan.info&&Plan.info.admin);
+function thPick(k){const T=THEMES[k];queueModal(`<div class="bigemoji">${T.e}</div><h2>${T.n}</h2><p class="hint">Mode admin : choisis le monde où commencer</p><div class="tgrid" style="grid-template-columns:repeat(2,1fr);max-height:50vh;overflow:auto">${T.levels.map((L,i)=>`<button class="tt" style="--c:${T.c};--d:${T.d}" data-act="thgo" data-arg="${k}|${i+1}"><span class="te">${L.e}</span><span><b>${i+1}. ${esc(L.n)}</b></span></button>`).join('')}</div><button class="btn g block" data-act="mclose">Annuler</button>`);}
 // Explication de première fois pour « Code secret » (affichée une seule fois)
 function secretIntro(mode,opt){queueModal(`<div class="bigemoji">🕵️</div><h2>Le code secret</h2><ul class="arintro"><li>🔤 Chaque mot est <b>codé</b> : chaque lettre a été remplacée par la suivante dans l’alphabet.</li><li>✏️ Exemple : <b>LUNE</b> devient <b>MVOF</b> (L→M, U→V, N→O, E→F).</li><li>🔙 Pour décoder, fais le chemin inverse : <b>recule</b> d’une lettre (M→L, V→U, O→N, F→E).</li><li>🔢 Le niveau indique de combien de lettres on recule : « Décalage de 2 » = deux lettres en arrière.</li><li>👆 Lis le code, puis touche le mot qui correspond parmi les trois choix.</li></ul><button class="btn y block" data-act="secretgo" data-arg="${esc(mode||'train')}">J’ai compris, on joue ! 🚀</button>`,()=>{Sound.play('tap');if(S.settings.voice)Voice.say('Chaque lettre a été décalée. Pour décoder, recule d’une lettre.');});}
 // --- Les 6 jeux
@@ -2031,7 +2034,7 @@ const keyOf=(sub,lv,x)=>(sub==='fr'?'f':sub)+lv+':'+itemKey(x);
 const makeQ=(sub,lv,x)=>sub==='fr'?frQ(lv,x):Object.assign({key:keyOf(sub,lv,x),type:'gen',lv,fastMs:7000},THEMES[sub].levels[lv-1].q(x));
 const dayDone=d=>!!d&&Object.keys(d).some(k=>k!=='chest'&&d[k]);
 function themesHTML(){const st=S.settings,ids=Object.keys(THEMES).filter(k=>st.thOn[k]!==false);if(!ids.length)return '';const lock=st.thAfterMath&&!today().math,plv=levelInfo(S.xp).level;
-  return `<div class="sect">Autres jeux${lock?' · après tes maths 🔒':''}</div><div class="tgrid">${ids.map(k=>{const T=THEMES[k],lv=st.lv[k]||1;if(!thUnlocked(k))return `<button class="tt tlock" data-act="thlocked" data-arg="${k}"><span class="te">${T.e}</span><span><b>${T.n}</b><small>🔒 Niveau ${T.unlock}<span class="ttl">encore ${T.unlock-plv} niveau${T.unlock-plv>1?'x':''}</span></small></span></button>`;return `<button class="tt ${lock?'locked':''}" style="--c:${T.c};--d:${T.d}" data-act="starttheme" data-arg="${k}"><span class="te">${T.e}</span><span><b>${T.n}</b><small>Monde ${lv}/${T.levels.length} · ${pct(levelMastery(k,lv))}<span class="ttl">${diffTxt(lv-1,T.levels,true)}</span></small></span></button>`;}).join('')}</div>`;}
+  return `<div class="sect">Autres jeux${lock?' · après tes maths 🔒':''}</div><div class="tgrid">${ids.map(k=>{const T=THEMES[k],lv=st.lv[k]||1;if(!thUnlocked(k)&&!isAdminU())return `<button class="tt tlock" data-act="${isAdminU()?'starttheme':'thlocked'}" data-arg="${k}"><span class="te">${T.e}</span><span><b>${T.n}</b><small>🔒 Niveau ${T.unlock}<span class="ttl">encore ${T.unlock-plv} niveau${T.unlock-plv>1?'x':''}</span></small></span></button>`;return `<button class="tt ${lock?'locked':''}" style="--c:${T.c};--d:${T.d}" data-act="starttheme" data-arg="${k}"><span class="te">${T.e}</span><span><b>${T.n}</b><small>Monde ${lv}/${T.levels.length} · ${pct(levelMastery(k,lv))}<span class="ttl">${diffTxt(lv-1,T.levels,true)}</span></small></span></button>`;}).join('')}</div>`;}
 // Liste courte : seulement le monde en cours ; tous les autres derrière « Voir tous les mondes »
 const LVOPEN={};
 function lvlList(id,levels,cur,row){const c=Math.min(Math.max(cur||1,1),levels.length),open=LVOPEN[id];
@@ -2925,7 +2928,7 @@ function startGame(sub,mode,opt){opt=opt||{};if(sub==='fr')frPreload();if(THEMES
   if(sub==='secret'&&!opt.amis&&!(S.thIntro&&S.thIntro.secret))return secretIntro(mode,opt);
   if(Acct.wall()){Acct.show('wall');return;}if(modalOpen)closeAllModals();
   if(TimeT.limited()){queueModal(`<div class="bigemoji">🌙</div><h2>Bravo ${nm()} !</h2><p>Tu as bien joué aujourd’hui : <b>${fmtDur(TimeT.sec())}</b>. C’est fini pour aujourd’hui, à demain !</p><button class="btn y block" data-act="mclose">À demain 👋</button>`,()=>{if(S.settings.voice)Voice.say('Bravo ! C’est fini pour aujourd’hui. À demain !');});return;}
-  if(THEMES[sub]&&!thUnlocked(sub)&&!opt.amis)return ACT.thlocked(sub);
+  if(THEMES[sub]&&!thUnlocked(sub)&&!opt.amis&&!opt.adm)return ACT.thlocked(sub);
   if(THEMES[sub]&&!S.settings.lv[sub]){S.settings.lv[sub]=1;}
   if(THEMES[sub]&&S.settings.lv[sub]>Plan.thMax(sub)){S.settings.lv[sub]=Plan.thMax(sub);save();toast(Plan.offert()?'🔒 Les mondes suivants sont réservés aux abonnés Malino+':'🔒 Les mondes suivants sont dans Malino+');}
   if(sub==='arabe'&&mode==='theme'){const cur=S.settings.lv.arabe||1,sk=THEMES.arabe.levels.findIndex((L,i)=>i<cur-1&&L.lesson&&!(S.arLesson||{})[L.lesson]&&!S.sessions.some(x=>x.type==='arabe'&&x.lvl===i+1));
@@ -3675,8 +3678,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.37';
+const VERSION='2.38';
 const VERSIONS=[
+ ['2.38','24/11/2026 23:40','Admin : choix du monde de départ pour chaque jeu à thème, y compris les jeux verrouillés'],
  ['2.37','24/11/2026 23:30','Son : le réglage coupe les effets seulement, la voix des questions reste active'],
  ['2.36','24/11/2026 23:20','Son : défaut « moyen » ; bouton son en haut de l’accueil (curseur à 4 crans, tout couper en un appui)'],
  ['2.35','24/11/2026 23:10','Deux nouveaux jeux : Cartes cachées (dès le niveau 16) et Les différences (dès le niveau 18)'],
@@ -3976,7 +3980,8 @@ const ACT={
   sndpanel(){sndPanel();},
   sndtoggle(){sndToggle();},
   secretgo(a){S.thIntro=S.thIntro||{};S.thIntro.secret=1;save();nextModal();startGame('secret',a||'train');},
-  starttheme(a,el){if(!THEMES[a])return;if(!thUnlocked(a))return ACT.thlocked(a);if(el.classList.contains('locked'))return lockedMsg();startGame(a,'train');},
+  thgo(a){const [k,n]=a.split('|');S.settings.lv[k]=+n;save();nextModal();startGame(k,'train',{adm:true});},
+  starttheme(a,el){if(!THEMES[a])return;if(isAdminU())return thPick(a);if(!thUnlocked(a))return ACT.thlocked(a);if(el.classList.contains('locked'))return lockedMsg();startGame(a,'train');},
   thlocked(k){const T=THEMES[k],n=T.unlock-levelInfo(S.xp).level;Sound.play('tap');toast(`🔒 ${T.n} se débloque au niveau ${T.unlock} : encore ${n} niveau${n>1?'x':''} !`);if(S.settings.voice)Voice.say(`${T.n} se débloque au niveau ${T.unlock}. Encore ${n} niveau${n>1?'x':''} !`);},
   setth(a){const [k,n]=a.split('|');if(+n>Plan.thMax(k))return Offre.open('theme');if(!Limite.ok(k,+n))return;S.settings.lv[k]=+n;save();toast(`${THEMES[k].n} : monde ${n}`);keepScroll(render);},
   cofopen(id){Coffre.open(id);},
@@ -4548,7 +4553,7 @@ const Plan={info:null,
   paye(){const i=this.info||{};return this.plus()&&(!!i.paye||!!i.admin);},
   offert(){return this.plus()&&!this.paye();},
   jours(){const i=this.info;if(!i||!i.essai_fin)return 14;return Math.max(0,Math.ceil((Date.parse(i.essai_fin)-Date.now())/864e5));},
-  thMax(k){if(FREE_TH.includes(k)||this.paye())return 99;if(this.plus())return Math.max(1,Math.round(+CFG.plusOff||8));return this.kind()==='gratuit'?1:3;},
+  thMax(k){if(FREE_TH.includes(k)||this.paye()||isAdminU())return 99;if(this.plus())return Math.max(1,Math.round(+CFG.plusOff||8));return this.kind()==='gratuit'?1:3;},
   // compte admin : jusqu'à 8 profils (plafond de la base)
   maxProfils(){if(this.info&&this.info.admin)return 8;return this.plus()?4:this.kind()==='gratuit'?1:2;},
   pill(){const k=this.kind();
