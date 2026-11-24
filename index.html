@@ -242,6 +242,16 @@ h1,h2,h3,h4{font-weight:700}
 .cslot.t-epique::before,.cslot.t-legende::before,.cofbig.t-epique::before,.cofbig.t-legende::before{content:"";position:absolute;inset:-26px;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.28) 0 6deg,transparent 6deg 18deg);-webkit-mask:radial-gradient(circle,#000 30%,transparent 70%);mask:radial-gradient(circle,#000 30%,transparent 70%);animation:cofRays 9s linear infinite;z-index:-1;pointer-events:none}
 @keyframes cofBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px) rotate(-2deg)}}
 @keyframes cofRays{to{transform:rotate(360deg)}}
+/* Déblocage d'un jeu : rayons, emoji qui arrive en zoom avec halo de sa couleur */
+.unlkfx{position:relative;display:flex;justify-content:center;align-items:center;min-height:150px;overflow:hidden}
+.unlkray{position:absolute;width:320px;height:320px;border-radius:50%;background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--c) 45%,transparent) 0 7deg,transparent 7deg 20deg);-webkit-mask:radial-gradient(circle,#000 20%,transparent 68%);mask:radial-gradient(circle,#000 20%,transparent 68%);animation:cofRays 7s linear infinite;opacity:.9}
+.unlkfx::after{content:"";position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,var(--c) 0%,transparent 65%);opacity:.55;animation:unlkPulse 1.6s ease-in-out infinite}
+.unlk{position:relative;z-index:1;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.unlkg{font-size:72px;line-height:1;display:inline-block;filter:drop-shadow(0 0 12px var(--c)) drop-shadow(0 6px 6px rgba(0,0,0,.25));animation:unlkIn .9s cubic-bezier(.2,1.4,.4,1) var(--d,0s) both,unlkFloat 2.4s ease-in-out calc(var(--d,0s) + .9s) infinite}
+.unlkh{animation:unlkIn .6s cubic-bezier(.2,1.2,.4,1) .15s both}
+@keyframes unlkIn{0%{transform:scale(0) rotate(-25deg);opacity:0}60%{transform:scale(1.25) rotate(6deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+@keyframes unlkFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes unlkPulse{0%,100%{transform:scale(.85);opacity:.4}50%{transform:scale(1.15);opacity:.75}}
 .cofbig{position:relative;display:flex;justify-content:center;padding:18px 0 6px;--k:0}
 .cofbig .csvg{width:190px;height:auto;filter:drop-shadow(0 12px 8px rgba(0,0,0,.28))}
 .cofglow{position:absolute;left:50%;top:50%;width:230px;height:230px;margin:-115px 0 0 -115px;border-radius:50%;background:radial-gradient(circle,var(--gl,rgba(255,230,120,.6)) 0%,transparent 66%);opacity:calc(.25 + var(--k)*.75);z-index:-1;pointer-events:none}
@@ -1975,7 +1985,7 @@ function cfgApply(){Object.keys(THEMES).forEach(k=>{const u=CFG['u_'+k];if(u!=nu
 cfgApply();
 const thUnlocked=k=>{const T=THEMES[k];return !T||!T.unlock||levelInfo(S.xp).level>=T.unlock||!!(S.thUnl&&S.thUnl[k]);};
 function unlockCheck(){S.thUnl=S.thUnl||{};const lv=levelInfo(S.xp).level,neu=Object.keys(THEMES).filter(k=>THEMES[k].unlock&&lv>=THEMES[k].unlock&&!S.thUnl[k]);if(!neu.length)return;neu.forEach(k=>S.thUnl[k]=Date.now());save();
-  queueModal(`<div class="unlk">${neu.map(k=>`<span style="--c:${THEMES[k].c}">${THEMES[k].e}</span>`).join('')}</div><h2>${neu.length>1?`${neu.length} nouveaux jeux débloqués !`:'Nouveau jeu débloqué !'}</h2><p>${neu.map(k=>`<b>${THEMES[k].n}</b>`).join(' · ')}</p><p class="hint">${neu.length>1?'Ils t’attendent':'Il t’attend'} dans « Autres jeux » 🎮</p><button class="btn y block" data-act="mclose">Trop bien ! 🚀</button>`,()=>{Sound.play('epic');Confetti.burst(200);if(S.settings.voice)Voice.say(neu.length>1?'Nouveaux jeux débloqués : '+neu.map(k=>THEMES[k].n).join(', '):'Nouveau jeu débloqué : '+THEMES[neu[0]].n+' !');});}
+  queueModal(`<div class="unlkfx" style="--c:${THEMES[neu[0]].c}"><i class="unlkray"></i><div class="unlk">${neu.map((k,i)=>`<span class="unlkg" style="--c:${THEMES[k].c};--d:${i*0.15}s">${THEMES[k].e}</span>`).join('')}</div></div><h2 class="unlkh">${neu.length>1?`${neu.length} nouveaux jeux débloqués !`:'Nouveau jeu débloqué !'}</h2><p>${neu.map(k=>`<b>${THEMES[k].n}</b>`).join(' · ')}</p><p class="hint">${neu.length>1?'Ils t’attendent':'Il t’attend'} dans « Autres jeux » 🎮</p><button class="btn y block" data-act="mclose">Trop bien ! 🚀</button>`,()=>{Sound.play('epic');Confetti.burst(160);setTimeout(()=>Confetti.burst(120),450);setTimeout(()=>Sound.play('level'),300);if(S.settings.voice)Voice.say(neu.length>1?'Nouveaux jeux débloqués : '+neu.map(k=>THEMES[k].n).join(', '):'Nouveau jeu débloqué : '+THEMES[neu[0]].n+' !');});}
 
 const subLevels=sub=>sub==='fr'?FR_LEVELS:THEMES[sub].levels;
 const subLevel=sub=>sub==='fr'?S.settings.frLevel:S.settings.lv[sub];
@@ -3617,8 +3627,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.28';
+const VERSION='2.29';
 const VERSIONS=[
+ ['2.29','24/11/2026 22:40','Déblocage d’un jeu : rayons lumineux, emoji en zoom avec halo de sa couleur et double vague de confettis'],
  ['2.28','24/11/2026 22:30','Coffres : ouverture en 10 touches (secousses qui s’intensifient, puis ralentissement), lumières selon le prestige, message clair quand il reste du temps ; accueil plus lisible'],
  ['2.27','24/11/2026 22:25','Nouveau jeu « Code secret » : décoder un mot décalé dans l’alphabet (à partir du niveau 14)'],
  ['2.26','24/11/2026 22:15','Entre amis : les parties en cours passent en premier ; le code d’invitation ne s’affiche plus en permanence, il est sur demande (« Voir le code »)'],
