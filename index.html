@@ -234,6 +234,25 @@ h1,h2,h3,h4{font-weight:700}
 .am-ajout{display:block;margin:4px auto 16px;background:none;border:0;color:var(--ink2);font-weight:700;font-size:13.5px;text-decoration:underline;text-underline-offset:3px;opacity:.75}
 .am-wait{display:flex;align-items:center;gap:8px;width:100%;margin:0 0 10px;padding:10px 12px;border-radius:16px;background:#fff;border:0;color:var(--ink2);font-weight:700;font-size:13px;text-align:left;box-shadow:0 3px 0 rgba(36,38,58,.08)}
 .am-wait u{margin-left:auto;color:var(--vd);font-size:12.5px}
+/* Coffres : profondeur, lumières selon le prestige, animations */
+.t-argent{--gl:rgba(200,220,255,.75)}.t-or{--gl:rgba(255,215,90,.85)}.t-epique{--gl:rgba(180,120,255,.85)}.t-legende{--gl:rgba(255,120,220,.9)}.t-diamant{--gl:rgba(120,230,255,.95)}
+.cslot{position:relative}
+.cslot.ready .csvg{animation:cofBob 1.8s ease-in-out infinite}
+.cslot.ready.t-or,.cslot.ready.t-epique,.cslot.ready.t-legende{box-shadow:0 0 18px var(--gl)}
+.cslot.t-epique::before,.cslot.t-legende::before,.cofbig.t-epique::before,.cofbig.t-legende::before{content:"";position:absolute;inset:-26px;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.28) 0 6deg,transparent 6deg 18deg);-webkit-mask:radial-gradient(circle,#000 30%,transparent 70%);mask:radial-gradient(circle,#000 30%,transparent 70%);animation:cofRays 9s linear infinite;z-index:-1;pointer-events:none}
+@keyframes cofBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px) rotate(-2deg)}}
+@keyframes cofRays{to{transform:rotate(360deg)}}
+.cofbig{position:relative;display:flex;justify-content:center;padding:18px 0 6px;--k:0}
+.cofbig .csvg{width:190px;height:auto;filter:drop-shadow(0 12px 8px rgba(0,0,0,.28))}
+.cofglow{position:absolute;left:50%;top:50%;width:230px;height:230px;margin:-115px 0 0 -115px;border-radius:50%;background:radial-gradient(circle,var(--gl,rgba(255,230,120,.6)) 0%,transparent 66%);opacity:calc(.25 + var(--k)*.75);z-index:-1;pointer-events:none}
+.cofbig.hit .csvg{animation:cofHit .32s ease-out}
+@keyframes cofHit{0%{transform:scale(1)}30%{transform:scale(calc(1 + var(--k)*.12)) rotate(calc(var(--k)*-7deg))}60%{transform:rotate(calc(var(--k)*6deg))}100%{transform:none}}
+.cofbig.slowdown .csvg{animation:cofSlow 1.5s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes cofSlow{0%{transform:rotate(0)}15%{transform:rotate(-10deg) scale(1.08)}35%{transform:rotate(8deg)}55%{transform:rotate(-5deg)}75%{transform:rotate(3deg)}100%{transform:rotate(0) scale(1)}}
+.cofbar{height:12px;border-radius:99px;background:#EEF0F7;overflow:hidden;margin:10px 18px 4px;box-shadow:inset 0 2px 3px rgba(0,0,0,.08)}
+.cofbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#FFC61A,#FF9A1F);border-radius:99px;transition:width .15s}
+.msub{margin:2px 0 0;font-size:12.5px;color:var(--mut)}
+.cdone{font-size:13px;font-weight:800}
 .am-lnk{flex:none;background:#EEE9FF;color:#5B3FE0;border-radius:99px;padding:4px 10px;font-weight:800;font-size:12.5px}
 .prep-th{display:block;text-align:center;font-size:12px;color:var(--ink2);margin-top:8px}.hero-p{font-size:14px;color:var(--ink2);margin:0 0 4px}
 .kp-d{display:flex;gap:6px;justify-content:center;margin:6px 0 14px}.kp-d i{width:40px;height:50px;border-radius:12px;background:#F3F4F8;border:2px solid #E3E6EF;font-size:26px;font-weight:800;line-height:46px;font-style:normal;color:var(--ink);text-align:center}.kp-d i.on{border-color:#7B5CFF;background:#fff;box-shadow:0 3px 0 #D9D0FF}.kp-d.err i{border-color:#FF3B6B}.kp-d.shake{animation:amShake .4s}
@@ -2531,8 +2550,8 @@ const Coffre={plein:false,
   gainModal(l){l=(l||[]).filter(Boolean);if(!l.length){if(this.plein){this.plein=false;toast('🗝️ Tes 4 emplacements de coffres sont pleins : ouvre-en un !');}return;}this.plein=false;const n=l.length,big=l.some(c=>c.t==='epique'||c.t==='legende');
     queueModal(`<div class="cofwin">${l.map(c=>`<span>${chestSVG(c.t)}</span>`).join('')}</div><h2>${n>1?`${n} coffres gagnés !`:'Coffre gagné !'}</h2><p>${l.map(c=>`<b>${COFT[c.t].n}</b>`).join(' · ')}</p><p>Il${n>1?'s s’ouvriront':' s’ouvrira'} dans <b>${CFG.cofH} heures</b>. On te préviendra ! ⏰</p><button class="btn y block" data-act="mclose">Trop bien !</button>`,
       ()=>{Sound.play(big?'level':'badge');if(big)Confetti.burst(90);if(S.settings.voice)Voice.say(n>1?'Tu gagnes des coffres ! Ils s’ouvriront dans douze heures.':`Tu gagnes un ${COFT[l[0].t].n.toLowerCase()} ! Il s’ouvrira dans douze heures.`);});},
-  open(id){const c=this.list().find(x=>x.id===id);if(!c)return;if(c.t==='diamant'&&this.ready(c))return this.diamant(id);if(!this.ready(c)){Sound.play('tap');toast(`⏳ Encore ${this.left(c)} avant de l’ouvrir`);return;}
-    queueModal(`<div class="cofbig t-${c.t}" id="cofbig" data-act="cofpop" data-arg="${c.id}">${chestSVG(c.t)}</div><h2>${COFT[c.t].n}</h2><p>Touche le coffre pour l’ouvrir !</p>`,()=>{if(S.settings.voice)Voice.say('Touche le coffre pour l’ouvrir !');});},
+  open(id){const c=this.list().find(x=>x.id===id);if(!c)return;if(c.t==='diamant'&&this.ready(c))return this.diamant(id);if(!this.ready(c)){Sound.play('tap');queueModal(`<div class="cofbig t-${c.t}">${chestSVG(c.t)}<i class="cofglow"></i></div><h2>Il reste encore du temps</h2><p>${COFT[c.t].n} : il est encore fermé, il reste <b>${this.left(c)}</b>.</p><p class="hint">Reviens quand le compteur sera à zéro, il sera prêt à ouvrir 🔓</p><button class="btn y block" data-act="mclose">D’accord, je reviendrai</button>`);return;}
+    queueModal(`<div class="cofbig t-${c.t}" id="cofbig" data-act="cofpop" data-arg="${c.id}">${chestSVG(c.t)}<i class="cofglow"></i></div><h2>${COFT[c.t].n}</h2><div class="cofbar"><i id="cofbar"></i></div><p id="cofmsg">Touche le coffre 10 fois pour l’ouvrir !</p>`,()=>{if(S.settings.voice)Voice.say('Touche le coffre dix fois pour l’ouvrir !');});},
   diamant(id){queueModal(`<div class="dmwrap" id="dmw" data-act="dmpop" data-arg="${id}">${diamantSVG(false)}<i class="am-hand dmh">👆</i></div><h2 class="dmh2">Coffre en diamant !</h2><p>Touche le coffre pour l’ouvrir !</p>`,()=>{try{Sound.play('epic');Confetti.burst(60);}catch(e){}if(S.settings.voice)Voice.say('Un coffre en diamant ! Touche-le pour l’ouvrir !');});},
   dmPop(id){const w=$('#dmw');if(!w||w.dataset.busy)return;w.dataset.busy='1';Voice.stop();w.classList.add('dmshake');[0,300,560,780,950].forEach((t,i)=>setTimeout(()=>Sound.play(i<4?'tick':'level'),t));
     setTimeout(()=>{const f=document.createElement('div');f.className='dmflash';document.body.appendChild(f);setTimeout(()=>f.remove(),900);
@@ -2540,7 +2559,13 @@ const Coffre={plein:false,
       for(let i=0;i<22;i++){const p=document.createElement('i');p.className='dmpart';p.textContent=['💎','✨','💠','⭐'][i%4];const a=Math.random()*Math.PI*2,d=90+Math.random()*120;p.style.cssText=`--x:${Math.cos(a)*d}px;--y:${Math.sin(a)*d-60}px;--r:${Math.random()*540-270}deg;animation-delay:${Math.random()*.25}s`;w.appendChild(p);}
       try{Sound.play('epic');Confetti.burst(200);setTimeout(()=>Confetti.burst(140,innerWidth*.2,innerHeight*.35),300);setTimeout(()=>Confetti.burst(140,innerWidth*.8,innerHeight*.35),600);}catch(e){}},1150);
     setTimeout(()=>this.reveal(id),2700);},
-  pop(id){const el=$('#cofbig');if(!el||el.dataset.busy)return;el.dataset.busy='1';el.classList.add('shake3');Voice.stop();[0,380,760].forEach(t=>setTimeout(()=>Sound.play('tick'),t));setTimeout(()=>this.reveal(id),1150);},
+  // ouverture : 10 touches ; les secousses s'intensifient, puis le coffre ralentit avant de s'ouvrir
+  pop(id){const el=$('#cofbig');if(!el||el.dataset.done)return;const N=10,n=(+el.dataset.taps||0)+1;el.dataset.taps=n;const k=Math.min(1,n/N);
+    el.style.setProperty('--k',k.toFixed(2));el.classList.remove('hit');void el.offsetWidth;el.classList.add('hit');
+    const bar=$('#cofbar');if(bar)bar.style.width=(k*100).toFixed(0)+'%';
+    const msg=$('#cofmsg');if(msg)msg.textContent=n<N?['Encore !','Plus fort !','Continue !','Ça bouge !','Presque…'][n%5]+' '+n+' / '+N:'Ça s’ouvre…';
+    try{Sound.play(n<N?'tick':'level');}catch(e){}if(n<N&&n%3===0)try{Confetti.burst(18,innerWidth/2,innerHeight*.4);}catch(e){}
+    if(n>=N){el.dataset.done='1';Voice.stop();el.classList.add('slowdown');setTimeout(()=>this.reveal(id),1500);}},
   colle(id){S.album=S.album||{};const a=ALB[id],n=(S.album[id]||0)+1;S.album[id]=n;let bonus=0,serie=null;
     if(n>1)bonus=cc(ALBUM_R[a.r].dup);
     else{S.albumDone=S.albumDone||{};if(!S.albumDone[a.s]&&ALBUM.filter(x=>x.s===a.s).every(x=>S.album[x.id])){S.albumDone[a.s]=Date.now();serie=a.s;bonus+=cc(ALBUM_S[a.s].b);}}
@@ -3500,10 +3525,10 @@ function renderAmis(){
 function renderHome(){Dem.sync();try{Amis.maj();}catch(e){}
   const li=levelInfo(S.xp),st=S.settings,t=today(),ml=MATH_LEVELS[st.mathLevel-1],mm=levelMastery('math',st.mathLevel),mf=mathFacts(st.mathLevel).length,fl=FR_LEVELS[st.frLevel-1];
   const sprintLocked=!t.math,frLocked=st.frAfterMath&&!t.math,best=S.stats.sprintBest[st.mathLevel]||0,reached=S.gifts.filter(g=>g.reached&&!g.given),nb=Object.keys(S.badges).length,ready=chestAvailable();
-  return `<div class="home"><div class="hcol"><div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills">${Acct.user||Acct.restoring?'':'<button class="loginbtn" data-act="openlogin"><b>Se connecter</b><small>💾 Garder mes progrès</small></button>'}<span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1&&Dev.partage()?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">🔄 Changer</button>':''}</div></div>
+  return `<div class="home"><div class="hcol"><div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills">${Acct.user||Acct.restoring?'':'<button class="loginbtn" data-act="openlogin"><b>Se connecter</b><small>💾 Garder mes progrès</small></button>'}<span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1&&Dev.partage()?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">👤 Changer d’enfant</button>':''}</div></div>
   ${Etapes.home()}<div class="week card">${weekHTML()}</div>${Plan.banner()}
   
-  <div class="mission card"><div class="mtx"><h3>Mission du jour</h3><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${frOnNow()?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'🎉':'🎁'}</button></div>
+  <div class="mission card"><div class="mtx"><h3>🎯 Mission du jour</h3><p class="msub">Termine les étapes pour gagner ton coffre du jour</p><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${frOnNow()?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'<span class="cdone">Ouvert ✅</span>':ready?'<span class="cdone">Ouvrir 🎁</span>':'<span class="cdone">🎁</span>'}</button></div>
   ${Coffre.slotsHTML()}
   <button class="play ${!t.math?'pulse':''}" style="--c:var(--b);--d:var(--bd)" data-act="startmath"><span class="ico">🔢</span><span class="tx"><span class="t1">Maths</span><span class="t2">Monde ${st.mathLevel} · ${ml.n}</span><span class="mbar"><i style="width:${Math.round(mm*100)}%"></i></span><span class="t3">${Math.round(mm*mf)} / ${mf} calculs maîtrisés${mm>=1?' · 🏆 Monde terminé !':mm>=.8?' · Le monde suivant arrive à la fin de la partie !':''}</span></span></button>
   ${Amis.tuile()}
@@ -3592,8 +3617,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.27';
+const VERSION='2.28';
 const VERSIONS=[
+ ['2.28','24/11/2026 22:30','Coffres : ouverture en 10 touches (secousses qui s’intensifient, puis ralentissement), lumières selon le prestige, message clair quand il reste du temps ; accueil plus lisible'],
  ['2.27','24/11/2026 22:25','Nouveau jeu « Code secret » : décoder un mot décalé dans l’alphabet (à partir du niveau 14)'],
  ['2.26','24/11/2026 22:15','Entre amis : les parties en cours passent en premier ; le code d’invitation ne s’affiche plus en permanence, il est sur demande (« Voir le code »)'],
  ['2.25','24/11/2026 22:05','Téléphone : la question et les réponses tiennent dans l’écran, sans faire défiler'],
