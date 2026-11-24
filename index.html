@@ -1880,6 +1880,29 @@ const qSpell=(audio)=>x=>{const o=[x.w,...fautes(x.w,2,hash(x.w))];return {ans:x
 const CODE_WORDS=['chat','lune','chien','souris','maison','fleur','soleil','pomme','table','livre'];
 const codeShift=(w,n)=>w.split('').map(c=>String.fromCharCode(97+((c.charCodeAt(0)-97+n+26)%26))).join('');
 const cqCode=n=>x=>({ans:x.w,inst:'Décode le mot secret',html:`<div class="bigemo">🕵️</div><div class="bigtxt read">${esc(codeShift(x.w,n).toUpperCase())}</div>`,opts:shuffle([x.w,...others(CODE_WORDS,2,[x.w])]).map(v=>({v,l:v})),optCls:'txt',fixHTML:`<div class="fixsub read">${esc(codeShift(x.w,n).toUpperCase())} → <b>${esc(x.w)}</b></div>`,fixSay:'Le mot est '+x.w});
+// --- Cartes cachées (v2.35) et Les différences : deux nouveaux jeux à thème
+const CC_EMO=['🍎','🍌','🍇','🍓','🍒','🍑','🥕','🌽','🍄','🌵','🌻','🍀','⭐','🌙','☀️','❄️','🔥','💧','🎈','⚽','🎲','🚗','🚲','🚀'];
+const ccPick=(r,n)=>{const a=CC_EMO.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,n);};
+const ccItems=(lv,count)=>Array.from({length:count},(_,i)=>({k:'cc'+lv+'_'+i,seed:lv*1000+i*37+5}));
+const ccCells=(cells,cols,nums)=>`<div class="seqr big" style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;justify-items:center;max-width:${cols*70}px;margin:0 auto;font-size:44px">${cells.map((v,i)=>`<span style="min-width:54px;min-height:60px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:12px;box-shadow:0 2px 0 rgba(0,0,0,.08)">${nums?`<b style="font-size:26px;color:#4F46E5">${i+1}</b>`:v}</span>`).join('')}</div>`;
+// Cartes cachées : des cartes sont montrées, puis masquées ; on demande dans quelle case était une carte
+const ccQ=(n,cols,ms)=>x=>{const r=rng(x.seed),cells=ccPick(r,n),t=Math.floor(r()*n),e=cells[t],ans=String(t+1);
+  const others=shuffle(Array.from({length:n},(_,i)=>String(i+1)).filter(p=>p!==ans)).slice(0,2);
+  return {ans,inst:`Retiens où sont les cartes… où était ${e} ?`,html:ccCells(cells,cols,false),flashHide:ms,flashAfter:ccCells(cells,cols,true),opts:shuffle([ans,...others]).map(v=>({v,l:'case '+v})),optCls:'txt',fixHTML:ccCells(cells,cols,false)+`<div class="fixsub">${e} était en case ${ans}</div>`,fixSay:`${e} était en case ${ans}`};};
+// Les différences : deux images côte à côte, une seule case change
+const dfBoard=(cells,cols,hi)=>`<div style="display:grid;grid-template-columns:repeat(${cols},auto);gap:6px">${cells.map((v,i)=>`<span style="position:relative;font-size:34px;min-width:48px;min-height:52px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:12px;box-shadow:0 2px 0 rgba(0,0,0,.08);${i===hi?'outline:3px solid #22C55E;outline-offset:-3px;':''}">${v}<small style="position:absolute;top:2px;left:5px;font-size:11px;font-weight:800;color:#64748B">${i+1}</small></span>`).join('')}</div>`;
+const dfQ=(n,cols)=>x=>{const r=rng(x.seed),A=ccPick(r,n),d=Math.floor(r()*n),alt=ccPick(r,n+1).find(e=>!A.includes(e)),B=A.slice();B[d]=alt;const ans=String(d+1);
+  const others=shuffle(Array.from({length:n},(_,i)=>String(i+1)).filter(p=>p!==ans)).slice(0,2);
+  return {ans,inst:'Compare les deux images : dans quelle case est la différence ?',html:`<div style="display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap">${dfBoard(A,cols,-1)}<b style="font-size:26px;color:#64748B">≠</b>${dfBoard(B,cols,-1)}</div>`,opts:shuffle([ans,...others]).map(v=>({v,l:'case '+v})),optCls:'txt',fixHTML:`<div style="display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap">${dfBoard(A,cols,d)}<b style="font-size:26px;color:#64748B">≠</b>${dfBoard(B,cols,d)}</div><div class="fixsub">La différence est en case ${ans} : ${A[d]} devient ${alt}</div>`,fixSay:`La différence est en case ${ans}`};};
+Object.assign(THEMES,{
+ paires:{n:'Cartes cachées',e:'🃏',c:'#8B5CF6',d:'#6D28D9',unlock:16,desc:'Retenir où sont les cartes, puis retrouver leur place',levels:[
+  {e:'🃏',n:'4 cartes',items:ccItems(1,8),q:ccQ(4,2,2600)},
+  {e:'🃏',n:'6 cartes',items:ccItems(2,8),q:ccQ(6,3,3400)},
+  {e:'🃏',n:'9 cartes',items:ccItems(3,8),q:ccQ(9,3,4400)}]},
+ diffs:{n:'Les différences',e:'🔍',c:'#84CC16',d:'#4D7C0F',unlock:18,desc:'Comparer deux images et trouver la case qui a changé',levels:[
+  {e:'🔍',n:'2 × 2 cases',items:ccItems(4,8),q:dfQ(4,2)},
+  {e:'🔍',n:'2 × 3 cases',items:ccItems(5,8),q:dfQ(6,3)},
+  {e:'🔍',n:'3 × 3 cases',items:ccItems(6,8),q:dfQ(9,3)}]}});
 // Explication de première fois pour « Code secret » (affichée une seule fois)
 function secretIntro(mode,opt){queueModal(`<div class="bigemoji">🕵️</div><h2>Le code secret</h2><ul class="arintro"><li>🔤 Chaque mot est <b>codé</b> : chaque lettre a été remplacée par la suivante dans l’alphabet.</li><li>✏️ Exemple : <b>LUNE</b> devient <b>MVOF</b> (L→M, U→V, N→O, E→F).</li><li>🔙 Pour décoder, fais le chemin inverse : <b>recule</b> d’une lettre (M→L, V→U, O→N, F→E).</li><li>🔢 Le niveau indique de combien de lettres on recule : « Décalage de 2 » = deux lettres en arrière.</li><li>👆 Lis le code, puis touche le mot qui correspond parmi les trois choix.</li></ul><button class="btn y block" data-act="secretgo" data-arg="${esc(mode||'train')}">J’ai compris, on joue ! 🚀</button>`,()=>{Sound.play('tap');if(S.settings.voice)Voice.say('Chaque lettre a été décalée. Pour décoder, recule d’une lettre.');});}
 // --- Les 6 jeux
@@ -1991,7 +2014,7 @@ function unlockCheck(){S.thUnl=S.thUnl||{};const lv=levelInfo(S.xp).level,neu=Ob
   queueModal(`<div class="unlkfx" style="--c:${THEMES[neu[0]].c}"><i class="unlkray"></i><div class="unlk">${neu.map((k,i)=>`<span class="unlkg" style="--c:${THEMES[k].c};--d:${i*0.15}s">${THEMES[k].e}</span>`).join('')}</div></div><h2 class="unlkh">${neu.length>1?`${neu.length} nouveaux jeux débloqués !`:'Nouveau jeu débloqué !'}</h2><p>${neu.map(k=>`<b>${THEMES[k].n}</b>`).join(' · ')}</p><p class="hint">${neu.length>1?'Ils t’attendent':'Il t’attend'} dans « Autres jeux » 🎮</p><button class="btn y block" data-act="mclose">Trop bien ! 🚀</button>`,()=>{Sound.play('epic');Confetti.burst(160);setTimeout(()=>Confetti.burst(120),450);setTimeout(()=>Sound.play('level'),300);if(S.settings.voice)Voice.say(neu.length>1?'Nouveaux jeux débloqués : '+neu.map(k=>THEMES[k].n).join(', '):'Nouveau jeu débloqué : '+THEMES[neu[0]].n+' !');});}
 
 const subLevels=sub=>sub==='fr'?FR_LEVELS:THEMES[sub].levels;
-const subLevel=sub=>sub==='fr'?S.settings.frLevel:S.settings.lv[sub];
+const subLevel=sub=>sub==='fr'?S.settings.frLevel:(S.settings.lv[sub]||1);
 const keyOf=(sub,lv,x)=>(sub==='fr'?'f':sub)+lv+':'+itemKey(x);
 const makeQ=(sub,lv,x)=>sub==='fr'?frQ(lv,x):Object.assign({key:keyOf(sub,lv,x),type:'gen',lv,fastMs:7000},THEMES[sub].levels[lv-1].q(x));
 const dayDone=d=>!!d&&Object.keys(d).some(k=>k!=='chest'&&d[k]);
@@ -2886,7 +2909,7 @@ let G=null;
 function later(fn,ms){const g=G;if(!g)return;const t=setTimeout(()=>{if(G===g&&!g.ended)fn();},ms);g.timers.push(t);}
 function stopGame(){try{savePartial();}catch(e){}if(G){G.ended=true;G.timers.forEach(clearTimeout);if(G.clock)clearInterval(G.clock);}G=null;Voice.stop();Sound.stopReal();$('#tip').classList.add('hidden');}
 function frPreload(){try{FrAudio.preload([...FR_SND].filter(k=>k.startsWith('son:')));const L=FR_LEVELS[S.settings.frLevel-1];if(L&&L.items)FrAudio.preload(L.items.map(x=>typeof x==='string'?'syl:'+x.replace('|',''):''));}catch(e){}}
-function startGame(sub,mode,opt){opt=opt||{};if(sub==='fr')frPreload();
+function startGame(sub,mode,opt){opt=opt||{};if(sub==='fr')frPreload();if(THEMES[sub]&&!S.settings.lv[sub])S.settings.lv[sub]=1;
   if(sub==='secret'&&!opt.amis&&!(S.thIntro&&S.thIntro.secret))return secretIntro(mode,opt);
   if(Acct.wall()){Acct.show('wall');return;}if(modalOpen)closeAllModals();
   if(TimeT.limited()){queueModal(`<div class="bigemoji">🌙</div><h2>Bravo ${nm()} !</h2><p>Tu as bien joué aujourd’hui : <b>${fmtDur(TimeT.sec())}</b>. C’est fini pour aujourd’hui, à demain !</p><button class="btn y block" data-act="mclose">À demain 👋</button>`,()=>{if(S.settings.voice)Voice.say('Bravo ! C’est fini pour aujourd’hui. À demain !');});return;}
@@ -3640,8 +3663,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.34';
+const VERSION='2.35';
 const VERSIONS=[
+ ['2.35','24/11/2026 23:10','Deux nouveaux jeux : Cartes cachées (dès le niveau 16) et Les différences (dès le niveau 18)'],
  ['2.34','24/11/2026 23:00','Calage : montée niveau par niveau (2 seulement si exceptionnel), annonce discrète sans grosse animation'],
  ['2.33','24/11/2026 22:55','Calage : au début, une séance parfaite et rapide fait monter de 3 niveaux'],
  ['2.32','24/11/2026 22:50','Téléphone : la carte de question est aérée et le chip « À toi ! » ne recouvre plus le calcul'],
