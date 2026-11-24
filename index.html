@@ -255,6 +255,29 @@ h1,h2,h3,h4{font-weight:700}
 .win-h{margin:0;font-size:25px;color:#B45309;text-shadow:0 2px 0 #FFE7A3}.win-p{margin:3px 0 10px;font-size:14px;color:var(--ink2)}
 .win-duo{display:flex;align-items:center;gap:8px;margin:0 2px}.wd{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:58px}.wd b{font-size:12.5px}.wd span{font-size:19px;font-weight:900;color:var(--cmd)}.wd.pl span{color:var(--cld)}
 .win-bar{flex:1;display:flex;height:16px;border-radius:99px;overflow:hidden;background:#EEF0F6;box-shadow:inset 0 2px 3px rgba(0,0,0,.08)}.win-bar i{display:block;height:100%}.win-bar .m{background:linear-gradient(180deg,var(--cm2),var(--cm))}.win-bar .l{background:linear-gradient(180deg,var(--cl2),var(--cl))}
+.tm{position:relative;border-radius:22px;padding:11px 10px 11px;margin:0 0 12px;background:radial-gradient(120% 90% at 30% 0%,#FFFFFF 0%,#F3EFFF 45%,#E6EEFF 100%);box-shadow:inset 0 0 0 1px #E6E0FB}
+.tm-t{text-align:center;font-weight:800;font-size:15px;color:#24205A;margin:0 0 8px}
+.tm-row{display:flex;align-items:center;justify-content:space-between;gap:2px}
+.tm-k{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;flex:0 0 auto;width:84px}
+.tm-av{display:block;width:62px;height:62px;border-radius:50%;overflow:hidden;border:4px solid #fff;box-shadow:0 8px 16px rgba(60,40,160,.2)}
+.tm-av .amav{display:block;width:100%;height:100%}.tm-av svg{width:100%;height:100%;display:block}
+.tm-k b{font-weight:800;font-size:14px;color:#24205A;max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tm-pill{font-style:normal;font-weight:700;font-size:10.5px;color:#5B3FE0;background:#fff;border-radius:10px;padding:2px 7px;box-shadow:0 2px 5px rgba(60,40,160,.12);white-space:nowrap}
+.tm-plus{width:28px;height:28px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:900;font-size:18px;color:#7B5CFF;box-shadow:0 4px 10px rgba(60,40,160,.16);margin-top:-34px;flex:none}
+.tm-ch{width:82px;flex:none;margin:-6px 0 0}.tm-ch svg{width:100%;height:auto;display:block;overflow:visible}
+.tm-on{position:absolute;top:-6px;right:0;z-index:2;font-style:normal;font-size:10px;font-weight:800;background:#fff;color:#0B8A61;border-radius:99px;padding:1px 6px;box-shadow:0 2px 0 rgba(0,0,0,.1)}.tm-on.jeu{color:#C2410C}
+.tm-g{margin-top:9px}.tm-gt{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:12.5px;color:#4A4572;margin:0 2px 5px}.tm-gt b{font-weight:800;font-size:14.5px;color:#24205A}
+.tm-tr{position:relative;height:18px;border-radius:10px;background:#E1DAFB;box-shadow:inset 0 3px 5px rgba(60,40,160,.18)}
+.tm-fi{position:absolute;left:0;top:0;bottom:0;border-radius:10px;background:linear-gradient(90deg,#7B5CFF,#4E8BFF);transition:width 1s cubic-bezier(.3,1.25,.5,1)}
+.tm-fi:after{content:'';position:absolute;left:5px;right:5px;top:3px;height:4px;border-radius:3px;background:rgba(255,255,255,.35)}
+.tm-tk{position:absolute;top:-3px;width:2px;height:24px;background:rgba(255,255,255,.9)}
+.tm small{display:block;font-size:11.5px;color:#6B6790;margin:5px 2px 0;line-height:1.35}
+.tm-ok{position:absolute;top:-14px;left:50%;z-index:3;font-style:normal;font-weight:800;font-size:10.5px;color:#fff;background:#22B573;border-radius:10px;padding:2px 7px;box-shadow:0 4px 10px rgba(34,181,115,.35);white-space:nowrap;pointer-events:none;animation:tmOk 1.7s ease-out forwards}
+.tm-star{position:absolute;left:0;top:0;margin:-16px 0 0 -16px;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFF6C8,#FFC531 60%,#F29D0B);display:grid;place-items:center;font-style:normal;font-weight:900;font-size:12px;color:#7A4A00;box-shadow:0 4px 10px rgba(242,157,11,.45);pointer-events:none;z-index:4}
+@keyframes tmOk{0%{transform:translate(-50%,6px) scale(.5);opacity:0}18%{transform:translate(-50%,0) scale(1.1);opacity:1}70%{opacity:1}100%{transform:translate(-50%,-10px);opacity:0}}
+.tm-wrow{justify-content:center;gap:10px;margin:6px 0 4px}.tm-wrow .tm-plus{margin-top:-24px}
+.tm-win{display:table;margin:6px auto 10px;font-weight:800;font-size:14px;color:#fff;background:linear-gradient(90deg,#16A866,#22C47E);border-radius:14px;padding:6px 13px;box-shadow:0 6px 16px rgba(22,168,102,.3)}
+@media (max-width:360px){.tm-k{width:74px}.tm-av{width:54px;height:54px}.tm-ch{width:70px}}
 .amaide{margin-left:auto;font-size:19px}
 .ao{text-align:center}.ao-v{height:150px;display:grid;place-items:center;margin:0 0 6px}.ao h2{font-size:20px;margin:2px 0 4px}.ao p{font-size:15px;line-height:1.45;margin:0 0 10px;color:var(--ink2)}
 .ao-duo{display:flex;align-items:center;gap:12px}.ao-a{position:relative;display:inline-block;animation:aoBob 1.6s ease-in-out infinite}.ao-a.a2{animation-delay:.8s}.ao-gap{width:26px}
@@ -3230,17 +3253,40 @@ const Amis={d:null,t:0,res:null,dres:null,load:null,mot:'bravo',voix:'robot',th:
     const mots=(x.mots||[]).slice(0,3).map(m=>`<button class="am-bulle" data-act="amisdire" data-arg="${m.mot}|${m.voix}">${this.av(c,'xs')}<span><b>${qui} :</b> ${esc((AMIS_MOTS[m.mot]||['',''])[1])}</span><i class="am-ic">🔊</i></button>`).join('');
     const sec=(jouerBas?`<button class="smb" data-act="amisjouer" data-arg="${x.theme}"><span class="am-ic">▶️</span>Jouer</button>`:'')
       +`<button class="smb" data-act="amismot" data-arg="${x.id}"><span class="am-ic">💬</span>Message</button>`;
-    return `<div class="card sal act" style="${this.cols(x.createur)}">
-      <div class="duo">${this.badge(this.moi(),'ab1')}<span class="duo-x">🤝</span>${this.badge(c,'ab2')}</div>
-      <div class="goal"><div class="goal-t"><span>🎯 Ensemble</span><b>${tot} / ${x.objectif}</b></div>${this.jauge(x.moi,x.lui,x.objectif)}<small>${T.e} ${esc(T.n)} · 1 bonne réponse = 1 point · encore <b>${Math.max(0,x.objectif-tot)}</b> pour le 💎 coffre en diamant</small></div>
+    return `<div class="card sal act" style="${this.cols(x.createur)}">${this.equipe(x,T)}
       ${this.fil(x)}${mots}${info}${prim}<div class="sal-mini">${sec}</div></div>`;},
+  // l'équipe, comme dans le mail d'invitation : deux avatars « à son niveau », un coffre en diamant, une jauge commune ;
+  // quand des points arrivent, « ✓ bonne réponse » au-dessus de celui qui a marqué et un « +N » qui vole jusqu'à la jauge
+  equipe(x,T){const c=x.copain,tot=x.moi+x.lui,o=x.objectif||100,pct=Math.min(100,tot/o*100),V=this.vus||(this.vus={}),pv=V[x.id];V[x.id]={moi:x.moi,lui:x.lui};
+    const dm=pv?Math.max(0,x.moi-pv.moi):0,dl=pv?Math.max(0,x.lui-pv.lui):0,p0=dm||dl?Math.min(100,(pv.moi+pv.lui)/o*100):pct;
+    if(dm||dl)setTimeout(()=>this.anime(x.id,dm,dl,pct),120);
+    const on=c&&c.en_ligne?`<i class="tm-on ${c.lieu==='jeu'?'jeu':''}">${c.lieu==='jeu'?'joue':'en ligne'}</i>`:'';
+    return `<div class="tm" id="tm-${x.id}"><div class="tm-t">Toi + ${esc(this.nom(c))} = une seule équipe</div>
+      <div class="tm-row"><div class="tm-k"><span class="tm-av">${this.av(this.moi())}</span><b>Toi</b><i class="tm-pill">🎯 à ton niveau</i></div>
+        <span class="tm-plus">+</span>
+        <div class="tm-k">${on}<span class="tm-av">${this.av(c)}</span><b>${esc(this.nom(c))}</b><i class="tm-pill">🎯 à son niveau</i></div>
+        <div class="tm-ch">${diamantSVG(false)}</div></div>
+      <div class="tm-g"><div class="tm-gt"><span>⭐ Points de l’équipe</span><b>${tot} / ${o}</b></div>
+        <div class="tm-tr"><i class="tm-fi" style="width:${p0.toFixed(1)}%"></i>${[25,50,75].map(f=>`<i class="tm-tk" style="left:${f}%"></i>`).join('')}</div>
+        <small>${T.e} ${esc(T.n)} · 1 bonne réponse = 1 point pour l’équipe, quel que soit le niveau · encore <b>${Math.max(0,o-tot)}</b> pour le coffre</small></div></div>`;},
+  anime(id,dm,dl,pct){const el=document.getElementById('tm-'+id);if(!el)return;const fi=el.querySelector('.tm-fi'),K=el.querySelectorAll('.tm-k');let fin=0;
+    const go=(k,n,ms)=>setTimeout(()=>{const box=K[k],av=box&&box.querySelector('.tm-av');if(!av||!document.body.contains(el))return;
+      const ok=document.createElement('i');ok.className='tm-ok';ok.textContent='✓ bonne réponse';box.appendChild(ok);setTimeout(()=>ok.remove(),1700);
+      const st=document.createElement('i');st.className='tm-star';st.textContent='+'+n;el.appendChild(st);
+      const R=el.getBoundingClientRect(),a=av.getBoundingClientRect(),t=el.querySelector('.tm-tr').getBoundingClientRect();
+      const x0=a.left+a.width/2-R.left,y0=a.top+a.height/2-R.top,x1=t.left+t.width*pct/100-R.left,y1=t.top+t.height/2-R.top;
+      const fly=()=>{st.remove();if(++fin>=(dm&&dl?2:1)&&fi)fi.style.width=pct.toFixed(1)+'%';};
+      try{st.animate([{transform:`translate(${x0}px,${y0}px) scale(.4)`,opacity:0},{transform:`translate(${(x0+x1)/2}px,${Math.min(y0,y1)-46}px) scale(1.1)`,opacity:1,offset:.5},{transform:`translate(${x1}px,${y1}px) scale(.6)`,opacity:.3}],{duration:950,easing:'ease-in-out'}).onfinish=fly;}catch(e){fly();}
+      try{Sound.play('tick');}catch(e){}},ms);
+    if(dl)go(1,dl,80);if(dm)go(0,dm,dl?750:80);},
   // partie gagnée : elle est finie ; on ouvre la récompense, puis on relance une nouvelle partie
   victoire(x,T){const c=x.copain,qui=esc(this.nom(c)),tot=x.moi+x.lui,h=this.main(),pm=tot?Math.round(x.moi/tot*100):50,g=x.gagnees||1;
     const prim=!x.recompense_prise?`<button class="btn y block am-go" data-act="amisreco" data-arg="${x.id}"><span class="am-ic">💎</span> Ouvre ton coffre en diamant !${h}</button>`
       :`<button class="btn g block am-go" data-act="amisnouv" data-arg="${x.id}"><span class="am-ic">🔁</span> Nouvelle partie${h}</button>`;
     return `<div class="card sal win" style="${this.cols(x.createur)}"><div class="win-tr${x.recompense_prise?' pris':''}">${x.recompense_prise?'<span class="win-ray"></span><span class="win-cup">🏆</span>':diamantSVG(false)}</div>
-      <h3 class="win-h">Partie gagnée !</h3>${x.recompense_prise?'':'<p class="win-dm">Le coffre en diamant est à toi !</p>'}<p class="win-p">${T.e} ${esc(T.n)} · <b>${tot}</b> bonnes réponses à deux</p>
-      <div class="win-duo"><div class="wd pm">${this.av(this.moi(),'sm')}<b>Toi</b></div><div class="win-bar"><i class="m" style="width:100%"></i></div><div class="wd pl">${this.av(c,'sm')}<b>${qui}</b></div></div>
+      <h3 class="win-h">Bravo l’équipe !</h3>${x.recompense_prise?'':'<p class="win-dm">Le coffre en diamant est à vous deux 💎</p>'}<p class="win-p">${T.e} ${esc(T.n)} · <b>${tot}</b> bonnes réponses à deux</p>
+      <div class="tm-row tm-wrow"><div class="tm-k"><span class="tm-av">${this.av(this.moi())}</span><b>Toi</b></div><span class="tm-plus">+</span><div class="tm-k"><span class="tm-av">${this.av(c)}</span><b>${qui}</b></div></div>
+      <div class="tm-win">🤝 Objectif atteint ensemble</div>
       <p class="win-n">${'🏆'.repeat(Math.min(5,g))}${g>5?' ×'+g:''} <span>${g} partie${g>1?'s':''} gagnée${g>1?'s':''} ensemble</span></p>
       ${prim}<div class="sal-mini"><button class="smb" data-act="amismot" data-arg="${x.id}"><span class="am-ic">💬</span>Message</button></div></div>`;},
   // salle d'attente : j'ai lancé la partie, j'attends le copain
@@ -3492,8 +3538,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.18';
+const VERSION='2.19';
 const VERSIONS=[
+ ['2.19','24/11/2026 13:20','Entre amis au style du mail d’invitation : « Toi + ton copain = une seule équipe », avatars « à son niveau », coffre en diamant, jauge « Points de l’équipe » ; quand des points arrivent, « ✓ bonne réponse » et un « +N » qui vole jusqu’à la jauge ; victoire « Objectif atteint ensemble »'],
  ['2.18','24/11/2026 11:10','Entre amis : petite présentation animée (et lue à voix haute) la première fois, puis avec le bouton ❓ ; plus de couronne ni de « loin devant » : on joue ensemble, pas l’un contre l’autre'],
  ['2.17','23/11/2026 23:59','Entre amis : un lien d’invitation (reçu par mail ou message) ouvre Malino sur le bon enfant et le fait rejoindre l’équipe de son copain, sans taper le code'],
  ['2.16','23/11/2026 23:40','Espace parents : avancer son enfant est limité à 2 mondes après celui qu’il a atteint seul, dans chaque jeu, et à 3 mondes d’avance au total ; les mondes trop loin sont marqués 🔒 et la suite se débloque quand l’enfant réussit'],
