@@ -1891,10 +1891,14 @@ const ccCells=(cells,cols,nums)=>`<div class="seqr big" style="display:grid;grid
 // Cartes cachées : des cartes sont montrées, puis masquées ; on demande dans quelle case était une carte
 // Cartes face cachée (numéros seulement) : il faut se souvenir de ce qui était où
 const ccBack=(n,cols)=>`<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;justify-items:center;max-width:${cols*70}px;margin:0 auto">${Array.from({length:n},(_,i)=>`<span style="min-width:54px;min-height:60px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:linear-gradient(145deg,#8B5CF6,#6D28D9);color:#fff;font-weight:800;font-size:22px;box-shadow:0 2px 0 rgba(0,0,0,.15)">${i+1}</span>`).join('')}</div>`;
-const ccQ=(n,cols,ms)=>x=>{const r=rng(x.seed),cells=ccPick(r,n),t=Math.floor(r()*n);
-  const nb=[t+1,t-1].filter(k=>k>=0&&k<n&&Math.floor(k/cols)===Math.floor(t/cols)),j=nb[Math.floor(r()*nb.length)],e=cells[t],ans=cells[j];
-  const others=shuffle(cells.filter((_,i)=>i!==j&&i!==t)).slice(0,n>=6?3:2);
-  return {ans,inst:`Quelle carte était à côté de ${e} ?`,html:ccCells(cells,cols,false),flashHide:ms,flashAfter:ccBack(n,cols),opts:shuffle([ans,...others]).map(v=>({v,l:v})),optCls:'emo',fixHTML:ccCells(cells,cols,false)+`<div class="fixsub">${ans} était à côté de ${e}</div>`,fixSay:`${ans} était à côté de ${e}`};};
+const ccQ=(n,cols,ms)=>x=>{const r=rng(x.seed),cells=ccPick(r,n),t=Math.floor(r()*n),row=Math.floor(t/cols),col=t%cols;
+  // Directions possibles : au-dessus, en dessous, à gauche, à droite (seulement si la case existe)
+  const dirs=[['au-dessus de',row>0?t-cols:-1],['en dessous de',t+cols<n?t+cols:-1],['à gauche de',col>0?t-1:-1],['à droite de',col<cols-1?t+1:-1]].filter(d=>d[1]>=0);
+  const [dl,j]=dirs[Math.floor(r()*dirs.length)],e=cells[t],ans=cells[j];
+  // Les mauvais choix ne doivent être voisins de la case : sinon la réponse ne serait pas unique
+  const voisins=[t-cols,t+cols,t-1,t+1].filter(k=>k>=0&&k<n&&!(k===t-1&&col===0)&&!(k===t+1&&col===cols-1));
+  const others=shuffle(cells.filter((_,k)=>k!==t&&!voisins.includes(k))).slice(0,n>=6?3:2);
+  return {ans,inst:`Quelle carte était ${dl} ${e} ?`,html:ccCells(cells,cols,false),flashHide:ms,flashAfter:ccBack(n,cols),opts:shuffle([ans,...others]).map(v=>({v,l:v})),optCls:'emo',fixHTML:ccCells(cells,cols,false)+`<div class="fixsub">${ans} était ${dl} ${e}</div>`,fixSay:`${ans} était ${dl} ${e}`};};
 // Les différences : deux petites grilles côte à côte, sans numéros ; un seul emoji est nouveau dans l'image 2
 const dfBoard=(cells,cols,hi)=>`<div style="display:grid;grid-template-columns:repeat(${cols},40px);gap:6px">${cells.map((v,i)=>`<span style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:24px;background:#fff;border-radius:10px;box-shadow:0 2px 0 rgba(0,0,0,.08);${i===hi?'outline:3px solid #22C55E;outline-offset:-2px;':''}">${v}</span>`).join('')}</div>`;
 const dfPair=(A,B,cols,hi)=>`<div style="display:flex;justify-content:center;align-items:flex-start;gap:14px"><div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="font-weight:800;color:#64748B;font-size:13px">Image 1</div>${dfBoard(A,cols,-1)}</div><div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="font-weight:800;color:#64748B;font-size:13px">Image 2</div>${dfBoard(B,cols,hi)}</div></div>`;
@@ -1936,7 +1940,7 @@ function missionExplain(k){const t=today(),ok=chestAvailable();
   queueModal(`<div class="bigemoji">${I.e}</div><h2>${I.n}</h2><p><b>${st}</b></p><p>${I.what}</p><p class="hint">${I.todo}</p>${btn}<button class="btn g block" data-act="mclose" style="margin-top:8px">OK</button>`,
     ()=>{Sound.play('tap');if(S.settings.voice)Voice.say(`${I.n}. ${I.what} ${I.todo}`);});}
 // Explication de première fois pour « Code secret » (affichée une seule fois)
-const GAME_INTRO={paires:{t:'Cartes cachées',e:'🃏',l:['Des cartes apparaissent avec leur emoji, puis se retournent : on voit seulement leur numéro.','Retiens bien quel emoji était dans quelle case.','La question demande la carte à côté d’un emoji donné. Touche la bonne carte parmi les choix.']},diffs:{t:'Les différences',e:'🔍',l:['Deux images apparaissent : une seule case change entre elles.','Compare case par case, en gardant les deux images en tête.','Touche l’emoji qui est nouveau dans l’image 2. Les mauvais choix existent déjà dans l’image 1.']}};
+const GAME_INTRO={paires:{t:'Cartes cachées',e:'🃏',l:['Des cartes apparaissent avec leur emoji, puis se retournent : on voit seulement leur numéro.','Retiens bien quel emoji était dans quelle case.','La question demande la carte au-dessus, en dessous, à gauche ou à droite d’un emoji donné. Touche la bonne carte parmi les choix.']},diffs:{t:'Les différences',e:'🔍',l:['Deux images apparaissent : une seule case change entre elles.','Compare case par case, en gardant les deux images en tête.','Touche l’emoji qui est nouveau dans l’image 2. Les mauvais choix existent déjà dans l’image 1.']}};
 function gameIntro(sub,mode,opt){const g=GAME_INTRO[sub];queueModal(`<div class="bigemoji">${g.e}</div><h2>${g.t}</h2><ul class="arintro">${g.l.map(x=>`<li>${x}</li>`).join('')}</ul><button class="btn y block" data-act="gamego" data-arg="${esc(sub)}|${esc(mode||'train')}">J’ai compris, on joue ! 🚀</button>`,()=>{Sound.play('tap');});}
 function secretIntro(mode,opt){queueModal(`<div class="bigemoji">🕵️</div><h2>Le code secret</h2><ul class="arintro"><li>🔤 Chaque mot est <b>codé</b> : chaque lettre a été remplacée par la suivante dans l’alphabet.</li><li>✏️ Exemple : <b>LUNE</b> devient <b>MVOF</b> (L→M, U→V, N→O, E→F).</li><li>🔙 Pour décoder, fais le chemin inverse : <b>recule</b> d’une lettre (M→L, V→U, O→N, F→E).</li><li>🔢 Le niveau indique de combien de lettres on recule : « Décalage de 2 » = deux lettres en arrière.</li><li>👆 Lis le code, puis touche le mot qui correspond parmi les trois choix.</li></ul><button class="btn y block" data-act="secretgo" data-arg="${esc(mode||'train')}">J’ai compris, on joue ! 🚀</button>`,()=>{Sound.play('tap');if(S.settings.voice)Voice.say('Chaque lettre a été décalée. Pour décoder, recule d’une lettre.');});}
 // --- Les 6 jeux
@@ -3700,8 +3704,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.45';
+const VERSION='2.46';
 const VERSIONS=[
+ ['2.46','24/11/2026 23:30','Cartes cachées : la question précise la direction (au-dessus, en dessous, à gauche, à droite) pour une seule réponse possible'],
  ['2.45','24/11/2026 23:20','Cartes cachées : question de logique (la carte à côté). Les deux jeux expliquent leurs règles au premier lancement. Plus de choix aux grandes grilles des différences'],
  ['2.44','24/11/2026 23:10','Les différences : plus de numéros ; on tape le nouvel emoji de l’image 2, deux petites images côte à côte sans défilement'],
  ['2.43','25/11/2026 00:35','Cartes cachées : les cartes sont face cachée après l’affichage, plus de numéros révélés ; 4 choix dès 6 cartes'],
