@@ -264,6 +264,7 @@ h1,h2,h3,h4{font-weight:700}
 .msub{margin:2px 0 0;font-size:12.5px;color:var(--mut)}
 .cdone{font-size:13px;font-weight:800}
 .thpk{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow-y:auto;overscroll-behavior:contain;padding:2px 4px}.thpb{font-size:18px;padding:12px 10px;min-height:48px;text-align:left}
+.step.tap{cursor:pointer}
 .sndp{text-align:center}.sndbig{font-size:84px;line-height:1.1}.sndp h2{margin:4px 0 10px}.sndr{width:100%;height:30px;accent-color:#22C55E;margin:6px 0}.sndt{display:flex;justify-content:space-between;font-size:26px;padding:0 6px;margin-bottom:14px}
 .am-lnk{flex:none;background:#EEE9FF;color:#5B3FE0;border-radius:99px;padding:4px 10px;font-weight:800;font-size:12.5px}
 .prep-th{display:block;text-align:center;font-size:12px;color:var(--ink2);margin-top:8px}.hero-p{font-size:14px;color:var(--ink2);margin:0 0 4px}
@@ -1919,6 +1920,17 @@ function sndToggle(){const st=S.settings;if(st.sndMode==='off'){st.sndMode=st.sn
 // Admin : navigation libre dans les mondes d'un jeu à thème (choix du niveau de départ)
 const isAdminU=()=>!!(Plan.info&&Plan.info.admin);
 function thPick(k){const T=THEMES[k];queueModal(`<h2 style="margin:6px 0 2px">${T.e} ${esc(T.n)}</h2><p class="hint" style="margin:0 0 8px">Mode admin : choisis le monde où commencer</p><div class="thpk">${T.levels.map((L,i)=>`<button class="btn p block thpb" data-act="adminmonde" data-arg="${k}|${i+1}">${i+1}. ${esc(L.n)}</button>`).join('')}</div><button class="btn g block" data-act="mclose" style="margin-top:8px">Annuler</button>`);}
+// Explication d'une étape de la mission du jour (tap sur la puce)
+function missionExplain(k){const t=today(),ok=chestAvailable();
+  const I={math:{e:'🔢',n:'Maths',done:!!t.math,what:'Ta séance de calculs du jour. C’est l’étape de base.',todo:'Lance ta séance de maths pour la valider.',go:'math'},
+    fr:{e:'📖',n:'Lecture',done:!!t.fr,what:'Ta séance de lecture du jour.',todo:'Lance ta séance de lecture pour la valider.',go:'fr'},
+    defi:{e:'🎯',n:'Défi des oublis',done:!!t.defi,what:'60 secondes sur les calculs qui te résistent. Obtiens 15 bonnes réponses pour valider cette étape et gagner des pièces en plus.',todo:'C’est un bonus : il n’est pas obligatoire pour ouvrir le coffre.',go:'defi'},
+    chest:{e:'🎁',n:'Coffre du jour',done:!!t.chest,what:'Il s’ouvre quand Maths et Lecture sont faits. Touche-le plusieurs fois pour l’ouvrir.',todo:ok?'Il est prêt : touche-le pour l’ouvrir !':'Termine Maths (et Lecture) pour le débloquer.',go:'chest'}}[k];
+  if(!I)return;
+  const st=I.done?'✅ Fait aujourd’hui':'⏳ Pas encore';
+  const btn=I.done?'':I.go==='chest'?(ok?`<button class="btn y block" data-act="mgo" data-arg="chest">Ouvrir le coffre 🎁</button>`:''):`<button class="btn y block" data-act="mgo" data-arg="${I.go}">Y aller</button>`;
+  queueModal(`<div class="bigemoji">${I.e}</div><h2>${I.n}</h2><p><b>${st}</b></p><p>${I.what}</p><p class="hint">${I.todo}</p>${btn}<button class="btn g block" data-act="mclose" style="margin-top:8px">OK</button>`,
+    ()=>{Sound.play('tap');if(S.settings.voice)Voice.say(`${I.n}. ${I.what} ${I.todo}`);});}
 // Explication de première fois pour « Code secret » (affichée une seule fois)
 function secretIntro(mode,opt){queueModal(`<div class="bigemoji">🕵️</div><h2>Le code secret</h2><ul class="arintro"><li>🔤 Chaque mot est <b>codé</b> : chaque lettre a été remplacée par la suivante dans l’alphabet.</li><li>✏️ Exemple : <b>LUNE</b> devient <b>MVOF</b> (L→M, U→V, N→O, E→F).</li><li>🔙 Pour décoder, fais le chemin inverse : <b>recule</b> d’une lettre (M→L, V→U, O→N, F→E).</li><li>🔢 Le niveau indique de combien de lettres on recule : « Décalage de 2 » = deux lettres en arrière.</li><li>👆 Lis le code, puis touche le mot qui correspond parmi les trois choix.</li></ul><button class="btn y block" data-act="secretgo" data-arg="${esc(mode||'train')}">J’ai compris, on joue ! 🚀</button>`,()=>{Sound.play('tap');if(S.settings.voice)Voice.say('Chaque lettre a été décalée. Pour décoder, recule d’une lettre.');});}
 // --- Les 6 jeux
@@ -3591,7 +3603,7 @@ function renderHome(){Dem.sync();try{Amis.maj();}catch(e){}
   return `<div class="home"><div class="hcol"><div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills">${Acct.user||Acct.restoring?'':'<button class="loginbtn" data-act="openlogin"><b>Se connecter</b><small>💾 Garder mes progrès</small></button>'}<button class="pill sndbtn" data-act="sndpanel" aria-label="Réglage du son" style="border:0;cursor:pointer;font-size:18px;padding:3px 12px">${sndIcon()}</button><span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1&&Dev.partage()?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">👤 Changer d’enfant</button>':''}</div></div>
   ${Etapes.home()}<div class="week card">${weekHTML()}</div>${Plan.banner()}
   
-  <div class="mission card"><div class="mtx"><h3>🎯 Mission du jour</h3><p class="msub">Termine les étapes pour gagner ton coffre du jour</p><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${frOnNow()?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.defi?'ok':''}">${t.defi?'✅':'🎯'} Défi</span><span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'<span class="cdone">Ouvert ✅</span>':ready?'<span class="cdone">Ouvrir 🎁</span>':'<span class="cdone">🎁</span>'}</button></div>
+  <div class="mission card"><div class="mtx"><h3>🎯 Mission du jour</h3><p class="msub">Termine les étapes pour gagner ton coffre du jour</p><div class="steps"><span class="step tap ${t.math?'ok':''}" data-act="mstep" data-arg="math">${t.math?'✅':'1️⃣'} Maths</span>${frOnNow()?`<span class="step tap ${t.fr?'ok':''}" data-act="mstep" data-arg="fr">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step tap ${t.defi?'ok':''}" data-act="mstep" data-arg="defi">${t.defi?'✅':'🎯'} Défi</span><span class="step tap ${t.chest?'ok':''}" data-act="mstep" data-arg="chest">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'<span class="cdone">Ouvert ✅</span>':ready?'<span class="cdone">Ouvrir 🎁</span>':'<span class="cdone">🎁</span>'}</button></div>
   ${Coffre.slotsHTML()}
   <button class="play ${!t.math?'pulse':''}" style="--c:var(--b);--d:var(--bd)" data-act="startmath"><span class="ico">🔢</span><span class="tx"><span class="t1">Maths</span><span class="t2">Monde ${st.mathLevel} · ${ml.n}</span><span class="mbar"><i style="width:${Math.round(mm*100)}%"></i></span><span class="t3">${Math.round(mm*mf)} / ${mf} calculs maîtrisés${mm>=1?' · 🏆 Monde terminé !':mm>=.8?' · Le monde suivant arrive à la fin de la partie !':''}</span></span></button>
   ${Amis.tuile()}
@@ -3681,8 +3693,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.40';
+const VERSION='2.41';
 const VERSIONS=[
+ ['2.41','25/11/2026 00:15','Mission du jour : chaque étape s’explique au toucher et propose d’y aller'],
  ['2.40','25/11/2026 00:05','Admin : choix du monde corrigé (conflit d’action), liste compacte et défilante'],
  ['2.39','24/11/2026 23:55','Défi des oublis : calculs qui résistent, record séparé, 15 bonnes réponses = étape Défi et bonus'],
  ['2.38','24/11/2026 23:40','Admin : choix du monde de départ pour chaque jeu à thème, y compris les jeux verrouillés'],
@@ -3986,6 +3999,8 @@ const ACT={
   sndpanel(){sndPanel();},
   sndtoggle(){sndToggle();},
   secretgo(a){S.thIntro=S.thIntro||{};S.thIntro.secret=1;save();nextModal();startGame('secret',a||'train');},
+  mstep(k){missionExplain(k);},
+  mgo(k){nextModal();({math:()=>startGame('math','train'),fr:()=>startGame('fr','train'),defi:()=>startGame('math','sprint',{oubli:true}),chest:()=>ACT.chest()})[k]();},
   adminmonde(a){const [k,n]=a.split('|');S.settings.lv[k]=+n;save();nextModal();startGame(k,'train',{adm:true});},
   starttheme(a,el){if(!THEMES[a])return;if(isAdminU())return thPick(a);if(!thUnlocked(a))return ACT.thlocked(a);if(el.classList.contains('locked'))return lockedMsg();startGame(a,'train');},
   thlocked(k){const T=THEMES[k],n=T.unlock-levelInfo(S.xp).level;Sound.play('tap');toast(`🔒 ${T.n} se débloque au niveau ${T.unlock} : encore ${n} niveau${n>1?'x':''} !`);if(S.settings.voice)Voice.say(`${T.n} se débloque au niveau ${T.unlock}. Encore ${n} niveau${n>1?'x':''} !`);},
