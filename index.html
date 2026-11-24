@@ -2686,7 +2686,8 @@ const VoixC={m:null,p:null,buf:{},nx:{},last:{},cur:null,tok:0,
   // la voix de base (synthèse, internet, robot) est-elle tirée au sort avec les voix choisies ? choix de l'admin, sinon def
   base(k,def){const b=this.mb&&this.mb[k];return b===undefined?!!def:!!b;},
   // vrai si on joue une voix de contribution plutôt que la voix de base
-  useV(k,def){const n=this.list(k).length;if(!n)return false;return !this.base(k,def)||Math.random()<n/(n+1);},
+  // dès qu'une voix reçue est choisie pour ce son, la voix de base n'est plus jouée
+  useV(k,def){return this.list(k).length>0;},
   pick(k){const L=this.list(k);if(!L.length)return null;if(!this.nx[k]||!L.includes(this.nx[k])){let i=Math.floor(Math.random()*L.length);if(L.length>1&&L[i]===this.last[k])i=(i+1)%L.length;this.nx[k]=L[i];}return this.nx[k];},
   load(f){if(!f)return Promise.resolve(null);if(this.buf[f])return this.buf[f];Sound.unlock();const c=Sound.ctx;if(!c)return Promise.resolve(null);
     const p=fetch(this.url(f)).then(r=>r.ok?r.arrayBuffer():null).then(a=>a?new Promise((ok,ko)=>c.decodeAudioData(a,ok,ko)):null).then(b=>{if(b)ArAudio.prep(b);p.b=b;return b;}).catch(()=>{delete this.buf[f];return null;});
@@ -3553,8 +3554,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.20';
+const VERSION='2.21';
 const VERSIONS=[
+ ['2.21','24/11/2026 21:20','Voix des lettres : quand une voix est choisie pour un son, la voix de base n’est plus jouée'],
  ['2.20','24/11/2026 19:40','Entre amis : « Créer un code » refonctionne ; cadenas sur Entre amis tant que la séance de maths du jour n’est pas faite (un appui la lance) ; le créateur de l’équipe peut changer de jeu pendant la partie (points gardés) ; « Quitter l’équipe » avec le code parent'],
  ['2.19','24/11/2026 13:20','Entre amis au style du mail d’invitation : « Toi + ton copain = une seule équipe », avatars « à son niveau », coffre en diamant, jauge « Points de l’équipe » ; quand des points arrivent, « ✓ bonne réponse » et un « +N » qui vole jusqu’à la jauge ; victoire « Objectif atteint ensemble »'],
  ['2.18','24/11/2026 11:10','Entre amis : petite présentation animée (et lue à voix haute) la première fois, puis avec le bouton ❓ ; plus de couronne ni de « loin devant » : on joue ensemble, pas l’un contre l’autre'],
