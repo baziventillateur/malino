@@ -895,6 +895,22 @@ h1,h2,h3,h4{font-weight:700}
 }
 @media (min-width:1300px) and (min-height:600px) and (orientation:landscape){#app.scr-home,#app.scr-admin{zoom:1.15}}
 @media (min-height:950px) and (orientation:landscape){#app.scr-game{zoom:1.45}}
+/* Téléphone : la question et les réponses tiennent entières dans l'écran, sans faire défiler */
+@media (max-width:600px) and (max-height:900px){
+  .qcard{min-height:0;padding:14px 10px 12px;margin-bottom:8px}
+  .qcard .arw.big{font-size:76px}
+  .speaker{width:64px;height:64px;font-size:28px;margin-top:0}
+  .helpbtn{margin:6px auto 0;padding:5px 12px;font-size:14px}
+  .opts.col{gap:8px}
+  .opts.col .opt{min-height:54px;font-size:28px;border-radius:18px}
+  .opts .opt{min-height:78px;font-size:36px}
+  .opts.emo .opt{font-size:40px}
+}
+@media (max-width:600px) and (max-height:700px){
+  .opts.col .opt{min-height:46px;font-size:24px}
+  .qcard .arw.big{font-size:60px}
+  .speaker{width:54px;height:54px;font-size:24px}
+}
 @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}.stars .st{transform:none}}
 .rarsec{margin:16px 0 4px}.rarh{font-size:15px;margin:0 0 8px;display:flex;align-items:baseline;gap:8px}.rarh small{color:var(--ink2);font-weight:600;font-size:12px}
 .badge{border:2px solid var(--rc,#e5e7eb)}
@@ -3560,8 +3576,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.24';
+const VERSION='2.25';
 const VERSIONS=[
+ ['2.25','24/11/2026 22:05','Téléphone : la question et les réponses tiennent dans l’écran, sans faire défiler'],
  ['2.24','24/11/2026 21:58','Entre amis : après une victoire, « Nouvelle partie » est toujours disponible, même avant d’ouvrir le coffre'],
  ['2.23','24/11/2026 21:40','Compte admin : jusqu’à 8 profils enfants (au lieu de 4)'],
  ['2.22','24/11/2026 21:31','Réglages › Son et voix : on peut réenregistrer une lettre par-dessus ; le bouton ● ne se bloque plus'],
