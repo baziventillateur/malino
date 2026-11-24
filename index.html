@@ -1927,6 +1927,7 @@ function sndPanel(){const idx=Math.max(0,SNDOPT.findIndex(o=>o.m===S.settings.sn
 function sndToggle(){const st=S.settings;if(st.sndMode==='off'){st.sndMode=st.sndLast||'soft';}else{st.sndLast=st.sndMode;st.sndMode='off';}save();sndPaint();}
 // Admin : navigation libre dans les mondes d'un jeu à thème (choix du niveau de départ)
 const isAdminU=()=>!!(Plan.info&&Plan.info.admin);
+function adminLvPick(kind){const isM=kind!=='fr',L=isM?MATH_LEVELS:FR_LEVELS,T={mtrain:'Maths',msprint:'Défi éclair',moubli:'Défi des oublis',fr:'Lecture'}[kind];queueModal(`<h2 style="margin:6px 0 2px">${esc(T)}</h2><p class="hint" style="margin:0 0 8px">Mode admin : choisis le monde où commencer</p><div class="thpk">${L.map((x,i)=>`<button class="btn p block thpb" data-act="adminlv" data-arg="${kind}|${i+1}">${i+1}. ${esc(x.n)}</button>`).join('')}</div><button class="btn g block" data-act="mclose" style="margin-top:8px">Annuler</button>`);}
 function thPick(k){const T=THEMES[k];queueModal(`<h2 style="margin:6px 0 2px">${T.e} ${esc(T.n)}</h2><p class="hint" style="margin:0 0 8px">Mode admin : choisis le monde où commencer</p><div class="thpk">${T.levels.map((L,i)=>`<button class="btn p block thpb" data-act="adminmonde" data-arg="${k}|${i+1}">${i+1}. ${esc(L.n)}</button>`).join('')}</div><button class="btn g block" data-act="mclose" style="margin-top:8px">Annuler</button>`);}
 // Explication d'une étape de la mission du jour (tap sur la puce)
 function missionExplain(k){const t=today(),ok=chestAvailable();
@@ -3704,8 +3705,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.47';
+const VERSION='2.48';
 const VERSIONS=[
+ ['2.48','24/11/2026 23:55','Admin : choix du monde pour Maths, Défi éclair, Défi des oublis et Lecture'],
  ['2.47','24/11/2026 23:45','Histoires : le texte disparaît d’abord, puis la question apparaît seule'],
  ['2.46','24/11/2026 23:30','Cartes cachées : la question précise la direction (au-dessus, en dessous, à gauche, à droite) pour une seule réponse possible'],
  ['2.45','24/11/2026 23:20','Cartes cachées : question de logique (la carte à côté). Les deux jeux expliquent leurs règles au premier lancement. Plus de choix aux grandes grilles des différences'],
@@ -4008,10 +4010,10 @@ const ACT={
   dide(a){const [id,k]=a.split('|'),st=Dem.P[id],x=Dem.idee(k);if(!st||!x)return;Dem.lireTextes(id);st.e=x[1];st.t=x[2];const t=document.getElementById('dt-'+id);if(t)t.value='';Dem.parentDessiner();},
   dok(a){Dem.repondre(a,true);},dno(a){Dem.repondre(a,false);},
   home(){stopGame();closeAllModals();go('home');checkGifts().forEach(giftModal);},
-  startmath(){startGame('math','train');},
-  startsprint(a,el){if(el.classList.contains('locked'))return lockedMsg();startGame('math','sprint');},
-  startoubli(a,el){if(el.classList.contains('locked'))return lockedMsg();startGame('math','sprint',{oubli:true});},
-  startfr(a,el){if(el.classList.contains('locked'))return lockedMsg();startGame('fr','train');},
+  startmath(){if(isAdminU())return adminLvPick('mtrain');startGame('math','train');},
+  startsprint(a,el){if(isAdminU())return adminLvPick('msprint');if(el.classList.contains('locked'))return lockedMsg();startGame('math','sprint');},
+  startoubli(a,el){if(isAdminU())return adminLvPick('moubli');if(el.classList.contains('locked'))return lockedMsg();startGame('math','sprint',{oubli:true});},
+  startfr(a,el){if(isAdminU())return adminLvPick('fr');if(el.classList.contains('locked'))return lockedMsg();startGame('fr','train');},
   gofr(){startGame('fr','train');},
   sndpanel(){sndPanel();},
   sndtoggle(){sndToggle();},
@@ -4019,6 +4021,7 @@ const ACT={
   gamego(a){const [sub,mode]=String(a).split('|');S.thIntro=S.thIntro||{};S.thIntro[sub]=1;save();nextModal();startGame(sub,mode||'train');},
   mstep(k){missionExplain(k);},
   mgo(k){nextModal();({math:()=>startGame('math','train'),fr:()=>startGame('fr','train'),defi:()=>startGame('math','sprint',{oubli:true}),chest:()=>ACT.chest()})[k]();},
+  adminlv(a){const [kind,n]=a.split('|'),k=+n;nextModal();if(kind==='fr'){S.settings.frLevel=k;save();startGame('fr','train',{adm:true});return;}S.settings.mathLevel=k;save();if(kind==='mtrain')startGame('math','train',{adm:true});else if(kind==='msprint')startGame('math','sprint',{adm:true});else startGame('math','sprint',{oubli:true,adm:true});},
   adminmonde(a){const [k,n]=a.split('|');S.settings.lv[k]=+n;save();nextModal();startGame(k,'train',{adm:true});},
   starttheme(a,el){if(!THEMES[a])return;if(isAdminU())return thPick(a);if(!thUnlocked(a))return ACT.thlocked(a);if(el.classList.contains('locked'))return lockedMsg();startGame(a,'train');},
   thlocked(k){const T=THEMES[k],n=T.unlock-levelInfo(S.xp).level;Sound.play('tap');toast(`🔒 ${T.n} se débloque au niveau ${T.unlock} : encore ${n} niveau${n>1?'x':''} !`);if(S.settings.voice)Voice.say(`${T.n} se débloque au niveau ${T.unlock}. Encore ${n} niveau${n>1?'x':''} !`);},
