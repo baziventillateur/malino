@@ -2936,10 +2936,10 @@ function startGame(sub,mode,opt){opt=opt||{};if(sub==='fr')frPreload();if(THEMES
   if(sub==='arabe'&&mode==='theme'){const AL=THEMES.arabe.levels[(S.settings.lv.arabe||1)-1];if(AL&&AL.lesson&&!(S.arLesson||{})[AL.lesson])return ArLesson.open(AL.lesson,()=>startGame(sub,mode));}
   stopGame();clearInterval(Amis.jT);const st=S.settings;S.objN=0;
   Sons.stop(.5);
-  G={sub,mode,queue:[],idx:0,n:0,mainN:0,okFirst:0,combo:0,bestCombo:0,fast:0,times:[],xp:0,coins:0,wrong:0,score:0,t0:Date.now(),reviews:{},timers:[],cur:null,input:'',ended:false,defi:opt.defi||null,defiN:opt.n||0};
+  G={oubli:!!opt.oubli,sub,mode,queue:[],idx:0,n:0,mainN:0,okFirst:0,combo:0,bestCombo:0,fast:0,times:[],xp:0,coins:0,wrong:0,score:0,t0:Date.now(),reviews:{},timers:[],cur:null,input:'',ended:false,defi:opt.defi||null,defiN:opt.n||0};
   try{G.equipe=mode==='sprint'?null:Amis.equipe(sub);}catch(e){G.equipe=null;}
   if(sub==='math'){
-    G.facts=mathFacts(st.mathLevel);
+    if(opt.oubli){const seen=new Map();for(let l=1;l<=st.mathLevel;l++)mathFacts(l).forEach(f=>{if(!seen.has(f.key))seen.set(f.key,f);});G.facts=[...seen.values()];}else G.facts=mathFacts(st.mathLevel);
     if(mode==='train')G.queue=buildQueue(G.facts.map(f=>({key:f.key,f})),G.defiN||st.nQ,k=>wOf(S.facts,k)).map(it=>({kind:'main',it}));
   }else{
     const lv=subLevel(sub),L=subLevels(sub)[lv-1];
@@ -2971,7 +2971,7 @@ function nextQ(){
   if(!G||G.ended)return;let qi;ckpt();
   if(G.mode==='sprint'){
     if(Date.now()>=G.endAt)return endGame();
-    let f,tries=0;do{f=wPick(G.facts,x=>{const s=S.facts[x.key];return s&&s.st>=1?3:1.2;});tries++;}while(f.key===G.lastKey&&G.facts.length>1&&tries<10);
+    const wt=x=>{const s=S.facts[x.key];return G.oubli?(!s?2.5:s.st<3?3:0.6):(s&&s.st>=1?3:1.2);};let f,tries=0;do{f=wPick(G.facts,wt);tries++;}while(f.key===G.lastKey&&G.facts.length>1&&tries<10);
     G.lastKey=f.key;qi={kind:'sprint',it:{key:f.key,f}};
   }else{
     if(G.idx>=G.queue.length)return endGame();
@@ -3095,9 +3095,10 @@ function endGame(){
   const day=dayKey(),avgMs=G.times.length?Math.round(G.times.reduce((a,b)=>a+b,0)/G.times.length):0,dur=Math.round((Date.now()-G.t0)/1000);
   const before=levelInfo(S.xp).level;let sess;
   if(G.mode==='sprint'){
-    const lv=S.settings.mathLevel,best=S.stats.sprintBest[lv]||0;G.prevBest=best;G.record=G.score>best;
+    const lv=G.oubli?'oubli':S.settings.mathLevel,best=S.stats.sprintBest[lv]||0;G.prevBest=best;G.record=G.score>best;
     if(G.record){S.stats.sprintBest[lv]=G.score;G.coins+=cc(8);G.xp+=20;}
-    sess={t:Date.now(),d:day,type:'sprint',lvl:lv,score:G.score,sec:S.settings.sprintSec,wrong:G.wrong,avgMs,xp:G.xp,coins:G.coins,dur:S.settings.sprintSec};
+    if(G.oubli&&G.score>=15){S.days[day]=S.days[day]||{};S.days[day].defi=true;G.coins+=cc(15);}
+    sess={t:Date.now(),d:day,type:'sprint',oubli:!!G.oubli,lvl:G.oubli?0:lv,score:G.score,sec:S.settings.sprintSec,wrong:G.wrong,avgMs,xp:G.xp,coins:G.coins,dur:S.settings.sprintSec};
   }else{
     const acc=G.mainN?G.okFirst/G.mainN:0;G.stars=acc>=.9?3:acc>=.7?2:1;
     G.xp+=20;G.coins+=cc([0,5,10,20][G.stars]);
@@ -3589,10 +3590,11 @@ function renderHome(){Dem.sync();try{Amis.maj();}catch(e){}
   return `<div class="home"><div class="hcol"><div class="top"><button class="me" data-act="shop"><span class="avm">${avatarSVG(S.avatar)}</span><span class="mt"><span class="hello">Salut ${nm()} !</span><span class="lvlrow"><span class="lvlbadge">Niv. ${li.level}</span><span class="xpbar"><i style="width:${Math.round(li.pct*100)}%"></i></span></span><span class="xpt">${li.into} / ${li.need} XP</span></span></button><div class="pills">${Acct.user||Acct.restoring?'':'<button class="loginbtn" data-act="openlogin"><b>Se connecter</b><small>💾 Garder mes progrès</small></button>'}<button class="pill sndbtn" data-act="sndpanel" aria-label="Réglage du son" style="border:0;cursor:pointer;font-size:18px;padding:3px 12px">${sndIcon()}</button><span class="pill">🪙 ${fmtP(S.coins)}</span><span class="pill">🔥 ${curStreak()}</span>${Acct.user&&Acct.list&&Acct.list.length>1&&Dev.partage()?'<button class="pill" data-act="who" aria-label="Changer de profil" style="border:0;cursor:pointer;font-size:12px;padding:3px 10px">👤 Changer d’enfant</button>':''}</div></div>
   ${Etapes.home()}<div class="week card">${weekHTML()}</div>${Plan.banner()}
   
-  <div class="mission card"><div class="mtx"><h3>🎯 Mission du jour</h3><p class="msub">Termine les étapes pour gagner ton coffre du jour</p><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${frOnNow()?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'<span class="cdone">Ouvert ✅</span>':ready?'<span class="cdone">Ouvrir 🎁</span>':'<span class="cdone">🎁</span>'}</button></div>
+  <div class="mission card"><div class="mtx"><h3>🎯 Mission du jour</h3><p class="msub">Termine les étapes pour gagner ton coffre du jour</p><div class="steps"><span class="step ${t.math?'ok':''}">${t.math?'✅':'1️⃣'} Maths</span>${frOnNow()?`<span class="step ${t.fr?'ok':''}">${t.fr?'✅':'2️⃣'} Lecture</span>`:''}<span class="step ${t.defi?'ok':''}">${t.defi?'✅':'🎯'} Défi</span><span class="step ${t.chest?'ok':''}">${t.chest?'✅':'🎁'} Coffre</span></div></div><button class="chest ${ready?'ready':''} ${t.chest?'open':''}" data-act="chest" aria-label="Coffre du jour">${t.chest?'<span class="cdone">Ouvert ✅</span>':ready?'<span class="cdone">Ouvrir 🎁</span>':'<span class="cdone">🎁</span>'}</button></div>
   ${Coffre.slotsHTML()}
   <button class="play ${!t.math?'pulse':''}" style="--c:var(--b);--d:var(--bd)" data-act="startmath"><span class="ico">🔢</span><span class="tx"><span class="t1">Maths</span><span class="t2">Monde ${st.mathLevel} · ${ml.n}</span><span class="mbar"><i style="width:${Math.round(mm*100)}%"></i></span><span class="t3">${Math.round(mm*mf)} / ${mf} calculs maîtrisés${mm>=1?' · 🏆 Monde terminé !':mm>=.8?' · Le monde suivant arrive à la fin de la partie !':''}</span></span></button>
   ${Amis.tuile()}
+  <button class="play ${sprintLocked?'locked':''}" style="--c:#14B8A6;--d:#0E8F81" data-act="startoubli"><span class="ico">🎯</span><span class="tx"><span class="t1">Défi des oublis</span><span class="t2">${today().defi?'✅ Fait aujourd’hui':'Les calculs qui te résistent · 15 bonnes réponses = bonus'}</span></span></button>
   <button class="play ${sprintLocked?'locked':''}" style="--c:var(--o);--d:var(--od)" data-act="startsprint"><span class="ico">⚡</span><span class="tx"><span class="t1">Défi éclair</span><span class="t2">${sprintLocked?'Après ton entraînement de maths':best?`Record : ${best} calculs en ${st.sprintSec} s`:`Le plus de calculs en ${st.sprintSec} s !`}</span></span>${sprintLocked?'<span class="lock">🔒</span>':''}</button>
   ${frOnNow()?`<button class="play ${frLocked?'locked':''} ${!frLocked&&!t.fr?'pulse':''}" style="--c:var(--p);--d:var(--pd)" data-act="startfr"><span class="ico">📖</span><span class="tx"><span class="t1">Lecture</span><span class="t2">${frLocked?'Après ton entraînement de maths':`Monde ${st.frLevel} · ${fl.n}`}</span></span>${frLocked?'<span class="lock">🔒</span>':''}</button>`:''}
   </div><div class="hcol">${themesHTML()}
@@ -3678,8 +3680,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.38';
+const VERSION='2.39';
 const VERSIONS=[
+ ['2.39','24/11/2026 23:55','Défi des oublis : calculs qui résistent, record séparé, 15 bonnes réponses = étape Défi et bonus'],
  ['2.38','24/11/2026 23:40','Admin : choix du monde de départ pour chaque jeu à thème, y compris les jeux verrouillés'],
  ['2.37','24/11/2026 23:30','Son : le réglage coupe les effets seulement, la voix des questions reste active'],
  ['2.36','24/11/2026 23:20','Son : défaut « moyen » ; bouton son en haut de l’accueil (curseur à 4 crans, tout couper en un appui)'],
@@ -3975,6 +3978,7 @@ const ACT={
   home(){stopGame();closeAllModals();go('home');checkGifts().forEach(giftModal);},
   startmath(){startGame('math','train');},
   startsprint(a,el){if(el.classList.contains('locked'))return lockedMsg();startGame('math','sprint');},
+  startoubli(a,el){if(el.classList.contains('locked'))return lockedMsg();startGame('math','sprint',{oubli:true});},
   startfr(a,el){if(el.classList.contains('locked'))return lockedMsg();startGame('fr','train');},
   gofr(){startGame('fr','train');},
   sndpanel(){sndPanel();},
