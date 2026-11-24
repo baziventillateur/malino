@@ -2576,7 +2576,7 @@ const Coffre={plein:false,
     el.style.setProperty('--k',k.toFixed(2));el.classList.remove('hit');void el.offsetWidth;el.classList.add('hit');
     const bar=$('#cofbar');if(bar)bar.style.width=(k*100).toFixed(0)+'%';
     const msg=$('#cofmsg');if(msg)msg.textContent=n<N?['Encore !','Plus fort !','Continue !','Ça bouge !','Presque…'][n%5]+' '+n+' / '+N:'Ça s’ouvre…';
-    try{Sound.play(n<N?'tick':'level');}catch(e){}if(n<N&&n%3===0)try{Confetti.burst(18,innerWidth/2,innerHeight*.4);}catch(e){}
+    try{Sound.unlock();Sound.chestTap(n,n>=N);}catch(e){}
     if(n>=N){el.dataset.done='1';Voice.stop();el.classList.add('slowdown');setTimeout(()=>this.reveal(id),1500);}},
   colle(id){S.album=S.album||{};const a=ALB[id],n=(S.album[id]||0)+1;S.album[id]=n;let bonus=0,serie=null;
     if(n>1)bonus=cc(ALBUM_R[a.r].dup);
@@ -2665,6 +2665,12 @@ const Sound={ctx:null,buf:{},loaded:false,last:{},
     if(n==='good'){if(v)[392,523,659].forEach((f,i)=>T(f,i*.075,.22,'sine',.06));else{T(523,0,.16,'sine',.075);T(659,.065,.22,'sine',.065);}}
     else{if(v)[523,659,784,1047].forEach((f,i)=>T(f,i*.06,.2,'sine',.05));else{T(587,0,.12,'sine',.07);T(784,.06,.2,'sine',.065);}}},
   gn:0,
+  // ouverture d'un coffre : petit « tap » grave et doux, variable à chaque touche, vibration légère
+  chestTap(n,last){try{if(navigator.vibrate)navigator.vibrate(last?[30,40,30]:14);}catch(e){}
+    if(!this.ctx||!S.settings.sound)return;const f=(last?196:150)*(0.93+Math.random()*0.14);
+    if(last){[196,247,294].forEach((x,i)=>this.tone(x,i*.09,.5,'sine',.05));return;}
+    this.tone(f,0,.09,'sine',.07,f*.7);
+    if(n%4===0)this.tone(f*1.5,.03,.08,'sine',.035);},
   // bruits d'animaux : abeille, serpent, lion
   real(n,c,d){try{this.stopReal();const a=this._a=new Audio(CRY_URL(n));a.onerror=()=>{if(c)Voice.say('Qui fait '+c+' ?');};a.play().catch(()=>{});if(d)this._at=setTimeout(()=>{if(this._a===a)this.stopReal();},d*1000);}catch(e){}},
   stopReal(){try{clearTimeout(this._at);if(this._a){this._a.pause();this._a=null;}}catch(e){}},
@@ -3630,8 +3636,9 @@ function seg(k,opts){return `<div class="seg">${opts.map(([v,l])=>`<button class
 function tog(k,l,sub){return `<div class="tog"><span>${l}${sub?`<small>${sub}</small>`:''}</span><button class="sw ${S.settings[k]?'on':''}" data-act="toggle" data-arg="${k}" aria-label="${esc(l)}"><i></i></button></div>`;}
 // Version : à incrémenter à chaque publication (la plus récente en premier, 8 lignes au plus)
 {const _sp=Sound.play.bind(Sound);Sound.play=function(n){_sp(n);if(n==='epic')setTimeout(()=>Sons.pal(),250);};}
-const VERSION='2.30';
+const VERSION='2.31';
 const VERSIONS=[
+ ['2.31','24/11/2026 22:45','Coffres : son d’ouverture plus doux et grave, variable, avec vibration légère'],
  ['2.30','24/11/2026 22:50','Code secret : explication la première fois (décalage, exemple LUNE → MVOF)'],
  ['2.29','24/11/2026 22:40','Déblocage d’un jeu : rayons lumineux, emoji en zoom avec halo de sa couleur et double vague de confettis'],
  ['2.28','24/11/2026 22:30','Coffres : ouverture en 10 touches (secousses qui s’intensifient, puis ralentissement), lumières selon le prestige, message clair quand il reste du temps ; accueil plus lisible'],
