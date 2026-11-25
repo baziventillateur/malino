@@ -131,6 +131,14 @@ details.nouv{background:#F8F6FF;border-radius:10px;padding:6px 8px;margin-bottom
 .son-card .it .dl{font-size:15px}
 .son-card .small{font-size:11.5px}
 @media (max-width:600px){main{padding:6px}.son-card .it b{max-width:30%}.son-card .it audio{flex-basis:100px}}
+.dlg-bg{position:fixed;inset:0;z-index:99;background:rgba(36,38,58,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:18px;animation:dlgF .15s}
+.dlg{background:#fff;border-radius:20px;max-width:380px;width:100%;padding:20px 18px 14px;box-shadow:0 20px 50px rgba(36,38,58,.3);animation:dlgP .18s}
+.dlg .di{width:46px;height:46px;border-radius:14px;background:#F0EBFF;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:10px}
+.dlg.dg .di{background:#FDE8EA}.dlg h3{margin:0 0 6px;font-size:17px}.dlg p{margin:0 0 14px;color:var(--ink2);font-size:14px;line-height:1.45;white-space:pre-line}
+.dlg input{width:100%;padding:10px 12px;border:2px solid #E3DEF8;border-radius:12px;font:inherit;margin:0 0 14px}.dlg input:focus{outline:none;border-color:var(--v)}
+.dlg .db{display:flex;gap:8px;justify-content:flex-end}.dlg button{border:0;border-radius:12px;padding:10px 16px;font:700 14px system-ui;cursor:pointer}
+.dlg .dn{background:#F0EBFF;color:var(--vd)}.dlg .dy{background:var(--v);color:#fff}.dlg.dg .dy{background:var(--r)}
+@keyframes dlgF{from{opacity:0}}@keyframes dlgP{from{transform:scale(.94);opacity:0}}
 </style>
 </head>
 <body>
@@ -139,6 +147,17 @@ details.nouv{background:#F8F6FF;border-radius:10px;padding:6px 8px;margin-bottom
 <main id="app"><p class="mut">Chargement…</p></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
+function uiDlg(o){return new Promise(res=>{const bg=document.createElement('div');bg.className='dlg-bg';const esc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+bg.innerHTML=`<div class="dlg ${o.danger?'dg':''}" role="dialog" aria-modal="true"><div class="di">${o.icon||'💬'}</div><h3>${esc(o.title||'')}</h3><p>${esc(o.msg||'')}</p>${o.input!=null?`<input id="dlgIn" value="${esc(o.input)}" ${o.type?`inputmode="${o.type}"`:''}>`:''}<div class="db">${o.cancel===false?'':`<button class="dn" data-r="0">${esc(o.no||'Annuler')}</button>`}<button class="dy" data-r="1">${esc(o.ok||'OK')}</button></div></div>`;
+const done=v=>{bg.remove();document.removeEventListener('keydown',kd);res(v);};const val=()=>o.input!=null?bg.querySelector('#dlgIn').value:true;
+const kd=e=>{if(e.key==='Escape')done(o.input!=null?null:false);else if(e.key==='Enter')done(val());};document.addEventListener('keydown',kd);
+bg.onclick=e=>{if(e.target===bg)done(o.input!=null?null:false);const b=e.target.closest('[data-r]');if(b)done(b.dataset.r==='1'?val():(o.input!=null?null:false));};
+document.body.appendChild(bg);const f=bg.querySelector('#dlgIn')||bg.querySelector('.dy');if(f){f.focus();if(f.select&&o.input!=null)f.select();}});}
+const uiConfirm=(msg,o)=>uiDlg(Object.assign({msg,icon:'❓',title:'Confirmer ?'},o||{}));
+const uiPrompt=(msg,v,o)=>uiDlg(Object.assign({msg,input:v,icon:'✏️',title:'Valeur'},o||{}));
+const uiAlert=(msg,o)=>uiDlg(Object.assign({msg,icon:'ℹ️',title:'Information',cancel:false},o||{}));
+const uiCopy=(t,l)=>uiDlg({icon:'📋',title:l||'À copier',msg:'La copie automatique est bloquée. Sélectionne le texte :',input:t,cancel:false,ok:'Fermer'});
+
 const SB_URL='https://fcfkfuqzgsmckkxqfwuo.supabase.co',SB_KEY='sb_publishable_a3SNrQOSCH20T5sKsJxuAA_s7H4yCSR',API=SB_URL+'/functions/v1/malino-api';
 const sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
 const $=s=>document.querySelector(s),app=$('#app');
@@ -285,7 +304,7 @@ async function openBell(){if($('#bellov'))return;const ov=document.createElement
       :st==='nosup'?`<span class="small mut">📲 ${PushA.ios()?'Sur iPhone : ajoute Malino à l’écran d’accueil, ouvre-le depuis l’icône, puis reviens ici pour activer le push.':'Ce navigateur ne gère pas les notifications push.'}</span>`
       :st==='denied'?'<span class="small mut">📲 Notifications bloquées pour ce site : autorise-les dans les réglages du navigateur.</span>'
       :'<span class="small">📲 Reçois une notification sur ce téléphone à chaque évènement important</span><button class="small" id="pA">Activer</button>';
-    const a=$('#pA');if(a)a.onclick=async()=>{a.disabled=true;a.textContent='…';try{await PushA.activer();}catch(e){alert('Activation impossible, réessaie.');}pc();};
+    const a=$('#pA');if(a)a.onclick=async()=>{a.disabled=true;a.textContent='…';try{await PushA.activer();}catch(e){uiAlert('Activation impossible, réessaie.',{icon:'⚠️',title:'Notifications'});}pc();};
     const t=$('#pT');if(t)t.onclick=async()=>{t.textContent='Envoi…';const j=await PushA.tester();t.textContent=j&&j.sent?'✅ Envoyé':'Rien reçu ?';};
     const x=$('#pX');if(x)x.onclick=async()=>{await PushA.couper();pc();};};
   const nNL=data.non_lus||0;
@@ -307,7 +326,7 @@ async function openBell(){if($('#bellov'))return;const ov=document.createElement
       el.querySelectorAll('[data-npref]').forEach(b=>b.onclick=async()=>{const on=!b.classList.contains('on');b.classList.toggle('on',on);P[b.dataset.npref]=on;const r=await PushA.fn({mode:'prefs_set',groupe:b.dataset.npref,actif:on});if(!r||!r.ok){b.classList.toggle('on',!on);P[b.dataset.npref]=!on;}});
       el.querySelectorAll('[data-ness]').forEach(b=>b.onclick=async()=>{b.textContent='…';const r=await PushA.tester(b.dataset.ness);b.textContent=r&&r.sent?'✓':'✕';setTimeout(()=>{b.textContent='▶';},2500);});
       el.querySelectorAll('[data-nsplay]').forEach(b=>b.onclick=()=>NSon.jouer(b.dataset.nsplay));
-      el.querySelectorAll('[data-nsdel]').forEach(b=>b.onclick=async()=>{const p=NSONS_P.find(x=>x.k===b.dataset.nsdel);if(!p||!confirm(`Supprimer le son « ${p.nom} » ? Les types qui l’utilisent reprendront le son du téléphone.`))return;b.disabled=true;const r=await PushA.fn({mode:'son_suppr',k:p.k});if(r&&r.ok){NSONS_P=r.perso||[];Object.assign(S,r.sons||{});delete NSon.a[p.k];}draw();});
+      el.querySelectorAll('[data-nsdel]').forEach(b=>b.onclick=async()=>{const p=NSONS_P.find(x=>x.k===b.dataset.nsdel);if(!p||!await uiConfirm(`Les types qui l’utilisent reprendront le son du téléphone.`,{icon:'🗑️',title:`Supprimer le son « ${p.nom} » ?`,ok:'Supprimer',danger:true}))return;b.disabled=true;const r=await PushA.fn({mode:'son_suppr',k:p.k});if(r&&r.ok){NSONS_P=r.perso||[];Object.assign(S,r.sons||{});delete NSon.a[p.k];}draw();});
       const pick=$('#nsPick',el),fin=$('#nsF',el),msg=$('#nsMsg',el);
       if(pick)pick.onclick=()=>{fin.value='';fin.click();};
       if(fin)fin.onchange=()=>{const f=fin.files[0];if(!f)return;
@@ -376,16 +395,16 @@ function drawContrib(){
   app.querySelectorAll('[data-csons]').forEach(b=>b.onclick=()=>sonsDem(b.dataset.csons));
   app.querySelectorAll('[data-cinv]').forEach(b=>b.onclick=()=>inviterDem(DV.find(x=>x.id===b.dataset.cinv)));
   app.querySelectorAll('[data-cf]').forEach(b=>b.onclick=()=>{CFLT=b.dataset.cf;drawContrib();});
-  app.querySelectorAll('[data-cpy]').forEach(b=>b.onclick=async()=>{const u=b.dataset.cpy;try{await navigator.clipboard.writeText(u);b.textContent='Copié ✅';}catch(e){prompt('Copie ce lien :',u);}});
+  app.querySelectorAll('[data-cpy]').forEach(b=>b.onclick=async()=>{const u=b.dataset.cpy;try{await navigator.clipboard.writeText(u);b.textContent='Copié ✅';}catch(e){uiCopy(u,'Copie ce lien');}});
   app.querySelectorAll('[data-shr]').forEach(b=>b.onclick=()=>navigator.share({title:'Malino · Contributions',text:'Bonjour ! Tu peux m’aider pour Malino ? Ça prend quelques minutes :',url:b.dataset.shr}).catch(()=>{}));
   app.querySelectorAll('[data-cedit]').forEach(b=>b.onclick=()=>editDem(DV.find(x=>x.id===b.dataset.cedit)));
   app.querySelectorAll('[data-cst]').forEach(b=>b.onclick=async()=>{const [id,v]=b.dataset.cst.split('|');
-    if(v==='cloturee'&&!confirm('Clôturer cette contribution ? Elle disparaît de la page publique et plus personne ne peut la faire.'))return;
+    if(v==='cloturee'&&!await uiConfirm('Elle disparaît de la page publique et plus personne ne peut la faire.',{icon:'🔒',title:'Clôturer cette contribution ?',ok:'Clôturer',danger:true}))return;
     b.disabled=true;const {error}=await sb.rpc('admin_contrib_statut',{p_id:id,p_statut:v});if(error){b.disabled=false;b.textContent='Échec';return;}loadDev();});
   app.querySelectorAll('[data-cper]').forEach(b=>b.onclick=()=>{const id=b.dataset.cper;DVOPEN[id]=!DVOPEN[id];
     const x=R.find(y=>y.r.id===id);if(DVOPEN[id]&&x&&isNew(x.r)){x.r.vu=true;sb.rpc('admin_contrib_vu',{p_ids:[id]}).then(({error})=>{if(error)x.r.vu=false;},()=>{x.r.vu=false;});const t=$('#tabN'),k=R.filter(y=>isNew(y.r)).length;if(t)t.textContent=k||'';}
     drawContrib();});
-  app.querySelectorAll('[data-cdel]').forEach(b=>b.onclick=async()=>{if(!confirm('Supprimer cette contribution reçue ? (ex. un essai ou un spam)'))return;await sb.rpc('admin_contrib_suppr',{p_id:b.dataset.cdel});loadDev();});
+  app.querySelectorAll('[data-cdel]').forEach(b=>b.onclick=async()=>{if(!await uiConfirm('Par exemple un essai ou un spam.',{icon:'🗑️',title:'Supprimer cette contribution reçue ?',ok:'Supprimer',danger:true}))return;await sb.rpc('admin_contrib_suppr',{p_id:b.dataset.cdel});loadDev();});
   bindVoix(app,()=>loadDev());
 }
 // appels réservés à l'admin vers la fonction des contributions
@@ -395,8 +414,8 @@ function bindVoix(root,after){
   const au=[...root.querySelectorAll('audio[data-path]')],dl=[...root.querySelectorAll('a[data-dl]')],paths=[...new Set(au.map(a=>a.dataset.path).concat(dl.map(a=>a.dataset.dl)))];
   if(paths.length)sb.storage.from('contrib').createSignedUrls(paths,3600).then(({data})=>{const m={};(data||[]).forEach((x,i)=>{if(x&&x.signedUrl)m[paths[i]]=x.signedUrl;});
     au.forEach(a=>{if(m[a.dataset.path])a.src=m[a.dataset.path];});dl.forEach(a=>{const u=m[a.dataset.dl];if(u){a.href=u+'&download='+encodeURIComponent(a.dataset.dl.split('/').slice(-2).join('-'));}});});
-  root.querySelectorAll('[data-adopt]').forEach(b=>b.onclick=e=>{e.stopPropagation();const [id,item,on]=b.dataset.adopt.split('|');
-    if(on==='1'&&!confirm('Retirer cette voix de l’appli ?'))return;
+  root.querySelectorAll('[data-adopt]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const [id,item,on]=b.dataset.adopt.split('|');
+    if(on==='1'&&!await uiConfirm('Elle ne sera plus proposée dans l’appli.',{icon:'🔇',title:'Retirer cette voix ?',ok:'Retirer',danger:true}))return;
     const now=on!=='1';paintBtn(b,now,'adopt');
     AQ.push(()=>fnc({mode:'adopter',id,item,retirer:!now}),j=>{if(!j||!j.ok){paintBtn(b,!now,'adopt');tst('Échec, réessaie');}},after);});
 }
@@ -618,14 +637,14 @@ async function openFiche(uid){const ov=document.createElement('div');ov.id='fich
      ${(k.sessions||[]).length?`<div class="scroll"><table data-plier="5" data-plk="seances"><tr><th>Quand</th><th>Jeu</th><th>Résultat</th><th>Durée</th></tr>${k.sessions.slice(0,12).map(s=>`<tr><td class="small">${s.t?dh(s.t):d(s.d)}</td><td>${JEUX[s.type]||esc(s.type)} <span class="small mut">m.${s.lvl||1}</span></td><td>${s.type==='sprint'?(s.score||0)+' justes':`${s.ok||0}/${s.n||0}`}${s.p?' ⏸️':''}</td><td class="small">${s.dur?Math.max(1,Math.round(s.dur/60))+' min':'—'}</td></tr>`).join('')}</table></div>`:'<p class="small mut" style="margin:0">Aucune partie</p>'}</div>`).join('')||'<div class="card"><p class="small mut" style="margin:0">Aucun enfant</p></div>'}
    <div class="card" data-plier="8" data-plk="histo" data-plrow=":scope > .alert"><h2>🕓 Historique</h2>${tl.slice(0,30).map(x=>`<div class="alert"><span class="mut small" style="min-width:76px">${dh(x.t)}</span><span>${x.e} ${x.x}</span></div>`).join('')}</div>`;
   const oi=$('#oInfo');if(oi)oi.onclick=()=>$('#oExp').classList.toggle('hidden');
-  $('#fCopy').onclick=async()=>{try{await navigator.clipboard.writeText(c.email);$('#fCopy').textContent='Copié ✅';}catch(e){prompt('E-mail :',c.email);}};
-  const pr=$('#fPromo');if(pr)pr.onclick=async()=>{if(!confirm(`Envoyer à ${c.email} l’e-mail « −30 % pendant 3 mois », valable 7 jours ?`))return;pr.disabled=true;const j=await fnRapports({force:'auto_offre',only:c.email}),r=$('#fRes');
+  $('#fCopy').onclick=async()=>{try{await navigator.clipboard.writeText(c.email);$('#fCopy').textContent='Copié ✅';}catch(e){uiCopy(c.email,'E-mail');}};
+  const pr=$('#fPromo');if(pr)pr.onclick=async()=>{if(!await uiConfirm(`Destinataire : ${c.email}\nOffre : −30 % pendant 3 mois, valable 7 jours.`,{icon:'🏷️',title:'Envoyer l’offre −30 % ?',ok:'Envoyer'}))return;pr.disabled=true;const j=await fnRapports({force:'auto_offre',only:c.email}),r=$('#fRes');
     if(j&&j.envoyes){r.className='msg ok';r.textContent='✅ Offre envoyée, valable 7 jours';load();}else{r.className='msg';r.textContent='Non envoyé'+(j&&j.raison?' : '+j.raison:'');pr.disabled=false;}};
-  const dx=$('#fDoux');if(dx)dx.onclick=async()=>{if(!confirm(`Envoyer à ${c.email} la relance douce avec les progrès de ${kids[0]?kids[0].nom:'l’enfant'} (niveau, jours de jeu, points forts) ?`))return;dx.disabled=true;dx.textContent='Envoi…';const j=await fnRapports({force:'auto_decroche',only:c.email}),r=$('#fRes');
+  const dx=$('#fDoux');if(dx)dx.onclick=async()=>{if(!await uiConfirm(`Destinataire : ${c.email}\nContenu : les progrès de ${kids[0]?kids[0].nom:'l’enfant'} (niveau, jours de jeu, points forts).`,{icon:'💌',title:'Envoyer la relance douce ?',ok:'Envoyer'}))return;dx.disabled=true;dx.textContent='Envoi…';const j=await fnRapports({force:'auto_decroche',only:c.email}),r=$('#fRes');
     if(j&&j.envoyes){r.className='msg ok';r.textContent='✅ Relance douce envoyée';dx.textContent='✅ Envoyée';}else{r.className='msg';r.textContent='Non envoyé'+(j&&j.raison?' : '+j.raison:'');dx.disabled=false;dx.textContent='💌 Relance douce';}};
-  const pg=$('#fProl');if(pg)pg.onclick=async()=>{if(!confirm(`Envoyer à ${c.email} l’e-mail « un essai prolongé, offert » (inviter deux proches pour gagner des jours de Malino+) ?`))return;pg.disabled=true;const {data:j,error}=await sb.rpc('admin_envoyer',{p_user:c.user_id,p_type:'prolongation'}),r=$('#fRes');
+  const pg=$('#fProl');if(pg)pg.onclick=async()=>{if(!await uiConfirm(`Destinataire : ${c.email}\nContenu : inviter deux proches pour gagner des jours de Malino+.`,{icon:'⏳',title:'Proposer une prolongation ?',ok:'Envoyer'}))return;pg.disabled=true;const {data:j,error}=await sb.rpc('admin_envoyer',{p_user:c.user_id,p_type:'prolongation'}),r=$('#fRes');
     if(!error&&j&&j.ok){r.className='msg ok';r.textContent='✅ Envoi lancé : il apparaîtra dans l’historique d’ici une minute';}else{r.className='msg';r.textContent='Non envoyé'+(j&&j.raison?' : '+j.raison:'');pg.disabled=false;}};
-  const g=$('#fGift');if(g)g.onclick=async()=>{if(!confirm(`Offrir 1 mois de Malino+ à ${c.email} ? Un e-mail lui sera envoyé.`))return;g.disabled=true;g.textContent='Envoi…';close();await offrir(c.email,1,'');};}
+  const g=$('#fGift');if(g)g.onclick=async()=>{if(!await uiConfirm(`Un e-mail sera envoyé à ${c.email}.`,{icon:'🎁',title:'Offrir 1 mois de Malino+ ?',ok:'Offrir'}))return;g.disabled=true;g.textContent='Envoi…';close();await offrir(c.email,1,'');};}
 
 // ---------- Automatisations ----------
 const REGLES=[
@@ -649,7 +668,7 @@ function autoCard(){const A=D.auto||{},on=A.actif!==false,J=D.auto_journal||[];
    <details style="margin-top:8px" data-plier="5" data-plk="auto" data-plrow=":scope > .alert"><summary style="font-size:13px">Derniers envois automatiques (${J.length})</summary>${J.map(j=>`<div class="alert"><span class="mut small" style="min-width:76px">${dh(j.cree_le)}</span><span><b>${esc(JTYPE[j.type]||j.type)}</b> ${esc(j.email||'')}<br><span class="small mut">${esc(j.detail||'')}</span></span></div>`).join('')||'<p class="small mut">Aucun pour le moment.</p>'}</details></div>`;}
 function autoBind(){const A=D.auto||{};
   $('#aInfo').onclick=()=>{SHOWR=!SHOWR;draw();};
-  $('#aMaster').onclick=async()=>{const on=A.actif!==false;if(on&&!confirm('Mettre en pause tous les e-mails automatiques de relance ?'))return;await sb.rpc('admin_auto_set',{p:{actif:!on}});load();};
+  $('#aMaster').onclick=async()=>{const on=A.actif!==false;if(on&&!await uiConfirm('Plus aucun e-mail automatique de relance ne partira tant que tu ne les réactives pas.',{icon:'⏸️',title:'Mettre les relances en pause ?',ok:'Mettre en pause',danger:true}))return;await sb.rpc('admin_auto_set',{p:{actif:!on}});load();};
   app.querySelectorAll('[data-auto]').forEach(b=>b.onclick=async()=>{const k=b.dataset.auto;await sb.rpc('admin_auto_set',{p:{[k]:A[k]===false}});load();});
   $('#aSim').onclick=async()=>{const r=$('#aSimRes');r.innerHTML='<p class="small mut">Calcul…</p>';const j=await fnRapports({simulation:true}),e=Object.entries((j&&j.a_envoyer)||{});
     r.innerHTML=j.error?'<p class="msg">Aperçu impossible.</p>':`<div class="todo" style="font-weight:400">${e.length?`<b>${e.length} e-mail${e.length>1?'s':''} au prochain passage :</b><br>`+e.map(([m,t])=>`<button class="lk" data-voir="${esc(m)}">${esc(m)} → ${esc(JTYPE['rapport_'+t]||t)} <b>›</b></button>`).join('')+'<span class="small mut">Touche une ligne pour lire l’e-mail.</span>':'Aucun e-mail ne partirait au prochain passage.'}</div>`;
@@ -754,8 +773,8 @@ function draw(){
     const {data,error}=await sb.rpc('admin_code_creer',{p_code:$('#cCode').value,p_libelle:$('#cLib').value,p_jours:+$('#cJours').value,p_max:+($('#cMax').value||0),p_expire:e?new Date(e+'T23:59:59').toISOString():null});
     if(error||!data||!data.ok){r.textContent={libelle:'Indique où tu le partages',format:'Code : 4 à 24 lettres, chiffres ou tirets',existe:'Ce code existe déjà'}[data&&data.error]||'Échec, réessaie';return;}
     await load();const n=$('#cRes');n.className='msg ok';n.textContent='✅ Code créé : '+data.code;};
-  app.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{const u=location.origin+'/?code='+b.dataset.copy;try{await navigator.clipboard.writeText(u);b.textContent='Lien copié ✅';}catch(e){prompt('Copie ce lien :',u);}});
-  app.querySelectorAll('[data-cmax]').forEach(b=>b.onclick=async()=>{const v=prompt('Nombre maximum d’utilisations (0 = illimité)',b.dataset.max);if(v===null)return;await sb.rpc('admin_code_maj',{p_id:+b.dataset.cmax,p_max:+v||0,p_expire:b.dataset.exp||null,p_actif:b.dataset.act==='true'});load();});
+  app.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{const u=location.origin+'/?code='+b.dataset.copy;try{await navigator.clipboard.writeText(u);b.textContent='Lien copié ✅';}catch(e){uiCopy(u,'Copie ce lien');}});
+  app.querySelectorAll('[data-cmax]').forEach(b=>b.onclick=async()=>{const v=await uiPrompt('0 = illimité',b.dataset.max,{icon:'🔢',title:'Nombre maximum d’utilisations',type:'numeric',ok:'Enregistrer'});if(v===null)return;await sb.rpc('admin_code_maj',{p_id:+b.dataset.cmax,p_max:+v||0,p_expire:b.dataset.exp||null,p_actif:b.dataset.act==='true'});load();});
   app.querySelectorAll('[data-ctog]').forEach(b=>b.onclick=async()=>{await sb.rpc('admin_code_maj',{p_id:+b.dataset.ctog,p_max:+b.dataset.max,p_expire:b.dataset.exp||null,p_actif:b.dataset.act!=='true'});load();});
   if($('#gGo'))$('#gGo').onclick=()=>offrir($('#gEmail').value,$('#gMois').value,$('#gMsg').value);
   if($('#aInfo'))autoBind();
@@ -763,7 +782,7 @@ function draw(){
   app.querySelectorAll('[data-flt]').forEach(b=>b.onclick=()=>{FLT=b.dataset.flt;ONL=false;draw();});
   const tgOnl=()=>{ONL=!ONL;LIVE.sig=null;draw();};if($('#fOnl'))$('#fOnl').onclick=tgOnl
   app.querySelectorAll('[data-fiche]').forEach(r=>r.onclick=e=>{if(e.target.closest('button'))return;openFiche(r.dataset.fiche);});
-  app.querySelectorAll('[data-gift]').forEach(b=>b.onclick=()=>{if(confirm(`Offrir 1 mois de Malino+ à ${b.dataset.gift} ? Un e-mail lui sera envoyé.`))offrir(b.dataset.gift,1,'');});
+  app.querySelectorAll('[data-gift]').forEach(b=>b.onclick=async()=>{if(await uiConfirm(`Un e-mail sera envoyé à ${b.dataset.gift}.`,{icon:'🎁',title:'Offrir 1 mois de Malino+ ?',ok:'Offrir'}))offrir(b.dataset.gift,1,'');});
   devLink();
   if($('#sAdd'))$('#sAdd').onclick=async()=>{const e=$('#sEmail').value.trim();if(!e)return;await sb.rpc('admin_stop',{mail:e,ajouter:true});load();};
   app.querySelectorAll('[data-unstop]').forEach(b=>b.onclick=async()=>{await sb.rpc('admin_stop',{mail:b.dataset.unstop,ajouter:false});load();});
@@ -800,7 +819,7 @@ function drawJeu(){const v=JEUD||(JEUD=Object.assign({},JEU));
   app.innerHTML=`<p class="small mut" style="margin:0 0 8px">Ces réglages s’appliquent à tous les enfants, au prochain lancement de l’appli. Les valeurs de base sont rappelées sous chaque case.</p>`+JEUF.map(([t,h,F,x])=>`<div class="card jcard"><h2>${t}</h2>${h?`<p class="small mut" style="margin:-4px 0 6px">${h}</p>`:''}${F.map(([k,l,a,mn,mx,stp])=>`<label class="jrow ${v[k]!==JEU0[k]?'chg':''}"><span><b>${l}</b>${a?`<small>${a}</small>`:''}<small class="jbase">base : ${String(JEU0[k]).replace('.',',')}</small></span><input type="number" inputmode="decimal" data-jeu="${k}" min="${mn}" max="${mx}" step="${stp}" value="${v[k]}"></label>`).join('')}${x==='niv'?`<div id="jniv">${jeuNiv(v)}</div>`:''}</div>`).join('')
    +`<div class="jbar"><button id="jSave">💾 Enregistrer</button><button class="o" id="jBase">↺ Valeurs de base</button><span class="msg" id="jRes"></span></div>`;
   app.querySelectorAll('[data-jeu]').forEach(i=>i.oninput=()=>{const k=i.dataset.jeu,n=parseFloat(String(i.value).replace(',','.'));if(isFinite(n))JEUD[k]=n;i.closest('.jrow').classList.toggle('chg',JEUD[k]!==JEU0[k]);if(k==='xpK'||k==='xpE')$('#jniv').innerHTML=jeuNiv(JEUD);});
-  $('#jBase').onclick=()=>{if(!confirm('Revenir à toutes les valeurs de base ?'))return;JEUD=Object.assign({},JEU0);drawJeu();};
+  $('#jBase').onclick=async()=>{if(!await uiConfirm('Tes réglages actuels seront remplacés.',{icon:'↩️',title:'Revenir aux valeurs de base ?',ok:'Revenir',danger:true}))return;JEUD=Object.assign({},JEU0);drawJeu();};
   $('#jSave').onclick=async()=>{const r=$('#jRes'),p={};let bad='';
     JEUF.forEach(([,,F])=>F.forEach(([k,l,,mn,mx])=>{const n=+JEUD[k];if(!isFinite(n)||n<mn||n>mx)bad=bad||`${l} : entre ${mn} et ${mx}`;else if(n!==JEU0[k])p[k]=n;}));
     if(bad){r.className='msg';r.textContent='⚠️ '+bad;return;}
